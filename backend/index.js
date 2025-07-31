@@ -16,7 +16,7 @@ app.use(express.json());
 
 // Route.
 app.get('/', (req, res) => {
-  res.send('API is running...');
+  res.send('API is running');
 });
 
 // Db.
