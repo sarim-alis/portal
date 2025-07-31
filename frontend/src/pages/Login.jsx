@@ -7,7 +7,7 @@ import styles from '../styles/login.js';
 
 
 // Frontend.
-const Login = () => {
+const Login = ({ onLogin }) => {
   const [isHovered, setIsHovered] = useState(false);
   // States.
   const initialValues = {
@@ -23,8 +23,14 @@ const Login = () => {
 
   // Handle submit.
   const handleSubmit = (values) => {
-    console.log('Submitting', values);
-    // TODO: Connect to backend API here
+    const { username, password } = values;
+
+    // Hardcoded credentials
+    if (username === 'admin' && password === '123456') {
+      onLogin(); // Call parent to update login state
+    } else {
+      alert('Invalid credentials');
+    }
   };
 
   const butts = {button: {padding: '10px',backgroundColor: isHovered ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.45)',borderColor: 'rgba(0, 0, 0, 0.45)',color: 'white',borderRadius: '4px',cursor: 'pointer'}};

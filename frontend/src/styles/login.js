@@ -34,6 +34,7 @@ const styles = {
       border: '1px solid #ccc',
       borderRadius: '4px',
       fontSize: '14px',
+      color: 'black'
     },
     button: {
       backgroundColor: 'rgba(0, 0, 0, 0.45)',
