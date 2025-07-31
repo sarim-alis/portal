@@ -1,24 +1,25 @@
 // backend/index.js
+// Imports.
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import pool from './db/conn.js';
 
+// Config.
 dotenv.config();
-
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middlewares
+// Middleware.
 app.use(cors());
 app.use(express.json());
 
-// Root route
+// Route.
 app.get('/', (req, res) => {
   res.send('API is running...');
 });
 
-// Test DB connection (optional)
+// Db.
 pool.connect()
   .then(() => {
     console.log('🟢 Connected to PostgreSQL');
