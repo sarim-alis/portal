@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import styles from '../../styles/login.js';
+import styles from '../styles/login.js';
 
 
 // Frontend.
