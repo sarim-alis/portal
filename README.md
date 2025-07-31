@@ -1,1 +1,1 @@
-![Pink Gift](./frontend/public/pink.jpg)
+![Pink Gift](./frontend/public/Pink.jpg)
