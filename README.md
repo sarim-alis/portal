@@ -1,1 +1,1 @@
-![Uploading Pink gift.jpg…]()
+![Pink Gift](./frontend/public/pink.jpg)
