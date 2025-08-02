@@ -1,0 +1,109 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Note that some adapters may set a maximum length for the String type by default, please ensure your strings are long
+// enough when changing adapters.
+// See https://www.prisma.io/docs/orm/reference/prisma-schema-reference#string for more information
+datasource db {
+  provider = "postgresql"
+  url      =  env("DATABASE_URL")
+}
+
+model Session {
+  id            String    @id
+  shop          String
+  state         String
+  isOnline      Boolean   @default(false)
+  scope         String?
+  expires       DateTime?
+  accessToken   String
+  userId        BigInt?
+  firstName     String?
+  lastName      String?
+  email         String?
+  accountOwner  Boolean   @default(false)
+  locale        String?
+  collaborator  Boolean?  @default(false)
+  emailVerified Boolean?  @default(false)
+}
+
+model Voucher {
+  id            String   @id @default(uuid())
+  code          String   @unique
+  shopifyOrderId String
+  customerEmail String
+  used          Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  order         Order    @relation(fields: [shopifyOrderId], references: [shopifyOrderId])
+  emailSent      Boolean  @default(false)
+}
+
+model Product {
+  id              String   @id @default(cuid())
+  shopifyId       String   @unique
+  title           String
+  description     String?
+  vendor          String?
+  status          String
+  imageUrl        String?
+  imageAlt        String?
+  totalInventory  Int
+  categoryId      String?
+  categoryName    String?
+  type            String? 
+  createdAt       DateTime @default(now())
+}
+
+model Order {
+  id                String   @id @default(cuid())
+  shopifyOrderId    String   @unique
+  customerEmail     String?
+  customerName      String?
+  totalPrice        Float
+  currency          String
+  status            String
+  fulfillmentStatus String?
+  itemQuantity      Int
+  processedAt       DateTime
+  lineItems         Json?    // Store line items as JSON
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  vouchers          Voucher[] // Relation to vouchers
+  customerId        String?
+  customer          Customer? @relation("CustomerOrders", fields: [customerId], references: [id])
+}
+
+model Location {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  employees Employee[] @relation("EmployeeLocations")
+}
+
+model Employee {
+  id        String      @id @default(cuid())
+  username  String      @unique
+  email     String?     @unique
+  address   String?
+  password  String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  locations Location[] @relation("EmployeeLocations")
+}
+
+model Customer {
+  id         String   @id @default(cuid())
+  shopifyId  String?   @unique                // Shopify Customer ID (GraphQL ID)
+  firstName  String?
+  lastName   String?
+  email      String?  @unique
+  createdAt  DateTime @default(now())
+  orders     Order[]  @relation("CustomerOrders")
+}
