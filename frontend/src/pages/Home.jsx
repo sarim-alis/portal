@@ -5,6 +5,7 @@ const Home = () => {
   const [activeTab, setActiveTab] = useState('vouchers');
   const [searchQuery, setSearchQuery] = useState('');
   const [showPopup, setShowPopup] = useState(false);
+  const [locations, setLocations] = useState([]);
   const [selectedVoucher, setSelectedVoucher] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState('Select your location');
   const [amountToRedeem, setAmountToRedeem] = useState('');
@@ -19,6 +20,21 @@ const Home = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  useEffect(() => {
+  const fetchLocations = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/loc'); // or your domain
+      const data = await response.json();
+      console.log('📍 Locations from API:', data.locations);
+      setLocations(data.locations);
+    } catch (error) {
+      console.error('❌ Failed to fetch locations:', error);
+    }
+  };
+
+  fetchLocations();
+}, []);
 
   const voucherData = [
     { orderNumber: '39A3-292A', expiration: '12-29-25', locationUsed: 'Woodland Hills', useDate: '6-13-25', status: 'USED' },
@@ -73,7 +89,7 @@ const Home = () => {
     setIsGiftCard(false);
   };
 
-  const locations = ['Woodland Hills', 'Pomona', 'Ventura', 'Santa Monica', 'Century City'];
+  // const locations = ['Woodland Hills', 'Pomona', 'Ventura', 'Santa Monica', 'Century City'];
 
   return (
     <div style={styles.mainContainer(isMobile)}>
@@ -301,8 +317,8 @@ const Home = () => {
                 >
                   <option value="Select your location" disabled>Select your location</option>
                   {locations.map(location => (
-                    <option key={location} value={location} style={styles.selectOption}>
-                      {location}
+                    <option key={location.id} value={location.name} style={styles.selectOption}>
+                      {location.name}
                     </option>
                   ))}
                 </select>
