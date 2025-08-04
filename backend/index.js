@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import pool from './db/conn.js';
 import authRoutes from './src/routes/authRoutes.js';
 import locRoutes from './src/routes/locRoutes.js';
+import vouRoutes from './src/routes/vouRoutes.js';
 
 
 // Config.
@@ -19,7 +20,8 @@ app.use(express.json());
 
 // Route.
 app.use('/api/auth', authRoutes);
-app.use('/api/loc', locRoutes);                   
+app.use('/api/loc', locRoutes);  
+app.use('/api/vou', vouRoutes);          
 app.get('/', (req, res) => {
   res.send('API is running');
 });

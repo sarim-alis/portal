@@ -6,11 +6,26 @@ const Home = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showPopup, setShowPopup] = useState(false);
   const [locations, setLocations] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [selectedVoucher, setSelectedVoucher] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState('Select your location');
   const [amountToRedeem, setAmountToRedeem] = useState('');
   const [isGiftCard, setIsGiftCard] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  // const formatOrderId = (shopifyOrderId) => {
+  //   if (!shopifyOrderId) return '';
+  //     const id = shopifyOrderId.toUpperCase();
+  //     return `${id.slice(0, 4)}-${id.slice(4, 8)}`;
+  // };
+
+  const formatOrderId = (shopifyOrderId) => {
+    if (!shopifyOrderId) return '';
+      const id = shopifyOrderId.toString();
+      return id.match(/.{1,4}/g).join('-');
+  };
+
+
 
   useEffect(() => {
     const handleResize = () => {
@@ -35,6 +50,20 @@ const Home = () => {
 
   fetchLocations();
 }, []);
+
+useEffect(() => {
+  const fetchOrdersWithVouchers = async () => {
+  try {
+    const response = await fetch('http://localhost:5000/api/vou');
+    const data = await response.json();
+    console.log('📦 Orders with Vouchers:', data);
+    setOrders(data);
+  } catch (error) {
+    
+  }
+};
+  fetchOrdersWithVouchers();
+}, [])
 
   const voucherData = [
     { orderNumber: '39A3-292A', expiration: '12-29-25', locationUsed: 'Woodland Hills', useDate: '6-13-25', status: 'USED' },
@@ -67,12 +96,13 @@ const Home = () => {
     { giftCardCode: '39A3-292M', value: '--', remainingValue: '$0.00', locationUsed: '--', useDate: '--', hasUseButton: false }
   ];
 
-  const handleUseVoucher = (orderNumber) => {
-    const voucher = voucherData.find(v => v.orderNumber === orderNumber);
-    setSelectedVoucher(voucher);
-    setIsGiftCard(false);
-    setShowPopup(true);
-  };
+const handleUseVoucher = (voucher) => {
+  setSelectedVoucher(voucher);
+  setIsGiftCard(false);
+  setShowPopup(true);
+};
+
+
 
   const handleUseGiftCard = (giftCardCode) => {
     const giftCard = giftCardData.find(g => g.giftCardCode === giftCardCode);
@@ -207,32 +237,34 @@ const Home = () => {
           </div>
 
           {/* Table Rows */}
-          {activeTab === 'vouchers' ? (
-            voucherData.map((voucher, index) => (
-              <div
-                key={voucher.orderNumber}
-                style={styles.tableRowContainer(index, voucherData.length, isMobile)}
+         {activeTab === 'vouchers' ? (
+  orders.map((order, index) => (
+    order.vouchers.map((voucher, vIndex) => (
+      <div
+        key={voucher.id}
+        style={styles.tableRowContainer(index + vIndex, orders.length, isMobile)}
+      >
+        <div style={styles.tableRow(activeTab, isMobile)}>
+          <div>{formatOrderId(order.shopifyOrderId)}</div>
+          <div>12-29-25</div> {/* Placeholder or calculated expiry */}
+          <div>{voucher.locationUsed || '--'}</div>
+          <div>{voucher.useDate || '--'}</div>
+          <div>{voucher.used ? 'USED' : 'VALID'}</div>
+          <div style={styles.buttonContainer}>
+            {!voucher.used && (
+              <button
+                onClick={() => handleUseVoucher(voucher)}
+                style={styles.useButton(isMobile)}
               >
-                <div style={styles.tableRow(activeTab, isMobile)}>
-                  <div>{voucher.orderNumber}</div>
-                  <div>{voucher.expiration}</div>
-                  <div>{voucher.locationUsed}</div>
-                  <div>{voucher.useDate}</div>
-                  <div>{voucher.status}</div>
-                  <div style={styles.buttonContainer}>
-                    {voucher.status === 'VALID' && (
-                      <button
-                        onClick={() => handleUseVoucher(voucher.orderNumber)}
-                        style={styles.useButton(isMobile)}
-                      >
-                        Use
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
+                Use
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    ))
+  ))
+): (
             giftCardData.map((giftCard, index) => (
               <div
                 key={giftCard.giftCardCode}
@@ -283,7 +315,7 @@ const Home = () => {
                 </span>
                 <input
                   type="text"
-                  value={selectedVoucher?.orderNumber || selectedVoucher?.giftCardCode}
+                  value={selectedVoucher?.code || ''}
                   readOnly
                   style={styles.popupInput(isMobile)}
                 />

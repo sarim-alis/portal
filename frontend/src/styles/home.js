@@ -255,7 +255,7 @@ const styles = {
     minWidth: isMobile ? '100%' : 'auto'
   }),
 
-  popupInput: (isMobile, width = '120px') => ({
+  popupInput: (isMobile, width = '150px') => ({
     backgroundColor: '#000',
     border: '2px solid #fff',
     color: '#fff',
