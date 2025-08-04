@@ -4,6 +4,9 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import pool from './db/conn.js';
+import authRoutes from './src/routes/authRoutes.js';
+import locRoutes from './src/routes/locRoutes.js';
+
 
 // Config.
 dotenv.config();
@@ -15,6 +18,8 @@ app.use(cors());
 app.use(express.json());
 
 // Route.
+app.use('/api/auth', authRoutes);
+app.use('/api/loc', locRoutes);                   
 app.get('/', (req, res) => {
   res.send('API is running');
 });

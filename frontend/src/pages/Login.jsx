@@ -11,27 +11,55 @@ const Login = ({ onLogin }) => {
   const [isHovered, setIsHovered] = useState(false);
   // States.
   const initialValues = {
-    username: '',
+    email: '',
     password: '',
   };
 
   // Schema.
   const Schema = Yup.object({
-    username: Yup.string().required('Username is required'),
+    email: Yup.string().email('Invalid email').required('Email is required'),
     password: Yup.string().required('Password is required'),
   });
 
   // Handle submit.
-  const handleSubmit = (values) => {
-    const { username, password } = values;
+  // const handleSubmit = (values) => {
+  //   const { username, password } = values;
 
-    // Hardcoded credentials
-    if (username === 'admin' && password === '123456') {
-      onLogin(); // Call parent to update login state
+  //   // Hardcoded credentials
+  //   if (username === 'admin' && password === '123456') {
+  //     onLogin(); // Call parent to update login state
+  //   } else {
+  //     alert('Invalid credentials');
+  //   }
+  // };
+
+  // Handle submit.
+  const handleSubmit = async (values, { setSubmitting }) => {
+  try {
+    const res = await fetch('http://localhost:5000/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(values),
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      // Login successful
+      onLogin(); // Or store token/data if needed
     } else {
-      alert('Invalid credentials');
+      alert(data.error || 'Invalid credentials');
     }
-  };
+  } catch (error) {
+    console.error('Login error:', error);
+    alert('Something went wrong');
+  } finally {
+    setSubmitting(false);
+  }
+};
+
 
   const butts = {button: {padding: '10px',backgroundColor: isHovered ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.45)',borderColor: 'rgba(0, 0, 0, 0.45)',color: 'white',borderRadius: '4px',cursor: 'pointer'}};
 
@@ -44,12 +72,12 @@ const Login = ({ onLogin }) => {
         <Form style={styles.form}>
           <img src="/logo.svg" alt="Logo" style={{ width: '120px', height: '120px', marginBottom: '20px', alignSelf: 'center' }} />
 
-          {/* Username */}
+          {/* Email */}
           <label style={styles.label}>
-            Username<span style={{ color: '#ce1127' }}>*</span>
+            Email<span style={{ color: '#ce1127' }}>*</span>
           </label>
-          <Field name="username" style={styles.input} />
-          <ErrorMessage name="username" component="div" style={styles.error} />
+          <Field name="email" style={styles.input} />
+          <ErrorMessage name="email" component="div" style={styles.error} />
 
           {/* Password */}
           <label style={styles.label}>
