@@ -7,6 +7,7 @@ const Home = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [locations, setLocations] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [giftCardOrders, setGiftCardOrders] = useState([]);
   const [selectedVoucher, setSelectedVoucher] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState('Select your location');
   const [amountToRedeem, setAmountToRedeem] = useState('');
@@ -51,50 +52,49 @@ const Home = () => {
   fetchLocations();
 }, []);
 
-useEffect(() => {
-  const fetchOrdersWithVouchers = async () => {
-  try {
-    const response = await fetch('http://localhost:5000/api/vou');
-    const data = await response.json();
-    console.log('📦 Orders with Vouchers:', data);
-    setOrders(data);
-  } catch (error) {
-    
-  }
-};
-  fetchOrdersWithVouchers();
-}, [])
+  useEffect(() => {
+    const fetchOrdersWithVouchers = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/vou');
+        const data = await response.json();
+        console.log('📦 Orders with Vouchers:', data);
+        
+        // Filter orders to only show those with voucher type line items.
+        const voucherOrders = data.filter(order => 
+          order.lineItems.some(item => item.type === '["voucher"]')
+        );
+        
+        console.log('🎫 Filtered Voucher Orders:', voucherOrders);
+        setOrders(voucherOrders);
+      } catch (error) {
+        console.error('❌ Failed to fetch voucher orders:', error);
+      }
+    };
 
-  const voucherData = [
-    { orderNumber: '39A3-292A', expiration: '12-29-25', locationUsed: 'Woodland Hills', useDate: '6-13-25', status: 'USED' },
-    { orderNumber: '39A3-292B', expiration: '6-29-24', locationUsed: '--', useDate: '--', status: 'EXPIRED' },
-    { orderNumber: '39A3-292C', expiration: '5-20-24', locationUsed: '--', useDate: '--', status: 'EXPIRED' },
-    { orderNumber: '39A3-292D', expiration: '12-29-25', locationUsed: '--', useDate: '--', status: 'VALID' },
-    { orderNumber: '39A3-292E', expiration: '12-29-25', locationUsed: 'Pomona', useDate: '6-12-25', status: 'USED' },
-    { orderNumber: '39A3-292F', expiration: '12-29-25', locationUsed: '--', useDate: '--', status: 'VALID' },
-    { orderNumber: '39A3-292G', expiration: '12-29-25', locationUsed: 'Ventura', useDate: '7-13-25', status: 'USED' },
-    { orderNumber: '39A3-292H', expiration: '12-29-25', locationUsed: '--', useDate: '--', status: 'VALID' },
-    { orderNumber: '39A3-292I', expiration: '01-29-25', locationUsed: '--', useDate: '--', status: 'EXPIRED' },
-    { orderNumber: '39A3-292J', expiration: '12-29-25', locationUsed: '--', useDate: '--', status: 'VALID' },
-    { orderNumber: '39A3-292K', expiration: '12-29-25', locationUsed: 'Century City', useDate: '8-10-25', status: 'USED' },
-    { orderNumber: '39A3-292L', expiration: '12-29-25', locationUsed: '--', useDate: '--', status: 'VALID' }
-  ];
+    fetchOrdersWithVouchers();
+  }, []);
 
-  const giftCardData = [
-    { giftCardCode: '39A3-292A', value: '$100.00', remainingValue: '$50.00', locationUsed: 'Santa Monica', useDate: '6-13-25', hasUseButton: true },
-    { giftCardCode: '39A3-292B', value: '$200.00', remainingValue: '$50.00', locationUsed: 'Ventura', useDate: '7-02-25', hasUseButton: true },
-    { giftCardCode: '39A3-292C', value: '$250.00', remainingValue: '$0.00', locationUsed: 'Century City', useDate: '5-02-25', hasUseButton: true },
-    { giftCardCode: '39A3-292D', value: '--', remainingValue: '$0.00', locationUsed: '--', useDate: '--', hasUseButton: false },
-    { giftCardCode: '39A3-292E', value: '--', remainingValue: '$0.00', locationUsed: '--', useDate: '--', hasUseButton: false },
-    { giftCardCode: '39A3-292F', value: '--', remainingValue: '$0.00', locationUsed: '--', useDate: '--', hasUseButton: false },
-    { giftCardCode: '39A3-292G', value: '--', remainingValue: '$0.00', locationUsed: '--', useDate: '--', hasUseButton: false },
-    { giftCardCode: '39A3-292H', value: '--', remainingValue: '$0.00', locationUsed: '--', useDate: '--', hasUseButton: false },
-    { giftCardCode: '39A3-292I', value: '--', remainingValue: '$0.00', locationUsed: '--', useDate: '--', hasUseButton: false },
-    { giftCardCode: '39A3-292J', value: '$300.00', remainingValue: '$250.00', locationUsed: 'Santa Monica', useDate: '6-13-25', hasUseButton: true },
-    { giftCardCode: '39A3-292K', value: '$250.00', remainingValue: '$100.00', locationUsed: 'Pomona', useDate: '7-02-25', hasUseButton: true },
-    { giftCardCode: '39A3-292L', value: '$350.00', remainingValue: '$100.00', locationUsed: 'Ventura', useDate: '5-02-25', hasUseButton: true },
-    { giftCardCode: '39A3-292M', value: '--', remainingValue: '$0.00', locationUsed: '--', useDate: '--', hasUseButton: false }
-  ];
+  useEffect(() => {
+    const fetchOrdersWithGiftCards = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/vou');
+        const data = await response.json();
+        console.log('🎁 Orders with Gift Cards:', data);
+        
+        // Filter orders to only show those with gift type line items.
+        const giftOrders = data.filter(order => 
+          order.lineItems.some(item => item.type === '["gift"]')
+        );
+        
+        console.log('🎟️ Filtered Gift Card Orders:', giftOrders);
+        setGiftCardOrders(giftOrders);
+      } catch (error) {
+        console.error('❌ Failed to fetch gift card orders:', error);
+      }
+    };
+
+    fetchOrdersWithGiftCards();
+  }, []);
 
 const handleUseVoucher = (voucher) => {
   setSelectedVoucher(voucher);
@@ -104,12 +104,11 @@ const handleUseVoucher = (voucher) => {
 
 
 
-  const handleUseGiftCard = (giftCardCode) => {
-    const giftCard = giftCardData.find(g => g.giftCardCode === giftCardCode);
-    setSelectedVoucher({orderNumber: giftCardCode, ...giftCard});
-    setIsGiftCard(true);
-    setShowPopup(true);
-  };
+ const handleUseGiftCard = (giftCard) => {
+  setSelectedVoucher({orderNumber: giftCard.code, ...giftCard});
+  setIsGiftCard(true);
+  setShowPopup(true);
+};
 
   const closePopup = () => {
     setShowPopup(false);
@@ -119,7 +118,6 @@ const handleUseVoucher = (voucher) => {
     setIsGiftCard(false);
   };
 
-  // const locations = ['Woodland Hills', 'Pomona', 'Ventura', 'Santa Monica', 'Century City'];
 
   return (
     <div style={styles.mainContainer(isMobile)}>
@@ -265,31 +263,33 @@ const handleUseVoucher = (voucher) => {
     ))
   ))
 ): (
-            giftCardData.map((giftCard, index) => (
-              <div
-                key={giftCard.giftCardCode}
-                style={styles.tableRowContainer(index, giftCardData.length, isMobile)}
-              >
-                <div style={styles.tableRow(activeTab, isMobile)}>
-                  <div>{giftCard.giftCardCode}</div>
-                  <div>{giftCard.value}</div>
-                  <div>{giftCard.remainingValue}</div>
-                  <div>{giftCard.locationUsed}</div>
-                  <div>{giftCard.useDate}</div>
-                  <div style={styles.buttonContainer}>
-                    {giftCard.hasUseButton && (
-                      <button
-                        onClick={() => handleUseGiftCard(giftCard.giftCardCode)}
-                        style={styles.useButton(isMobile)}
-                      >
-                        Use
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
+  giftCardOrders.map((order, index) => (
+    order.vouchers.map((giftCard, vIndex) => (
+      <div
+        key={giftCard.id}
+        style={styles.tableRowContainer(index + vIndex, giftCardOrders.length, isMobile)}
+      >
+        <div style={styles.tableRow(activeTab, isMobile)}>
+          <div>{giftCard.code}</div>
+          <div>${order.totalPrice}</div> {/* Use order total as value */}
+          <div>{giftCard.remainingValue || `$${order.totalPrice}`}</div> {/* Remaining value or full amount */}
+          <div>{giftCard.locationUsed || '--'}</div>
+          <div>{giftCard.useDate || '--'}</div>
+          <div style={styles.buttonContainer}>
+            {!giftCard.used && (
+  <button
+    onClick={() => handleUseGiftCard(giftCard)}
+    style={styles.useButton(isMobile)}
+  >
+    Use
+  </button>
+)}
+          </div>
+        </div>
+      </div>
+    ))
+  ))
+)}
         </div>
           </div>
         </div>
