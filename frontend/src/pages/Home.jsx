@@ -40,7 +40,7 @@ const Home = () => {
   useEffect(() => {
   const fetchLocations = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/loc'); // or your domain
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/loc`); // or your domain
       const data = await response.json();
       console.log('📍 Locations from API:', data.locations);
       setLocations(data.locations);
@@ -55,7 +55,7 @@ const Home = () => {
   useEffect(() => {
     const fetchOrdersWithVouchers = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/vou');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/vou`);
         const data = await response.json();
         console.log('📦 Orders with Vouchers:', data);
         
@@ -77,7 +77,7 @@ const Home = () => {
   useEffect(() => {
     const fetchOrdersWithGiftCards = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/vou');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/vou`);
         const data = await response.json();
         console.log('🎁 Orders with Gift Cards:', data);
         
