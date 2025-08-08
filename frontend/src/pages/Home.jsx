@@ -248,7 +248,7 @@ const handleUseVoucher = (voucher) => {
       >
         <div style={styles.tableRow(activeTab, isMobile)}>
           <div>{formatOrderId(order.shopifyOrderId)}</div>
-          <div>{voucher.expire || '--'}</div> {/* Placeholder or calculated expiry */}
+          <div>{order.lineItems[0]?.expire ? (() => { const date = new Date(order.lineItems[0].expire); const mm = String(date.getMonth() + 1).padStart(2, '0'); const dd = String(date.getDate()).padStart(2, '0'); const yyyy = date.getFullYear(); return `${mm}/${dd}/${yyyy}`;})(): '--'}</div>
           <div>{voucher.locationUsed || '--'}</div>
           <div>{voucher.useDate || '--'}</div>
           <div>{voucher.used ? 'USED' : 'VALID'}</div>
