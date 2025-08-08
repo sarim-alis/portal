@@ -1,6 +1,9 @@
+// Imports.
 import React, { useState, useEffect } from 'react';
 import styles from '../styles/home.js';
 
+
+// Frontend.
 const Home = () => {
   const [activeTab, setActiveTab] = useState('vouchers');
   const [searchQuery, setSearchQuery] = useState('');
@@ -14,12 +17,7 @@ const Home = () => {
   const [isGiftCard, setIsGiftCard] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
-  // const formatOrderId = (shopifyOrderId) => {
-  //   if (!shopifyOrderId) return '';
-  //     const id = shopifyOrderId.toUpperCase();
-  //     return `${id.slice(0, 4)}-${id.slice(4, 8)}`;
-  // };
-
+  // Format order id.
   const formatOrderId = (shopifyOrderId) => {
     if (!shopifyOrderId) return '';
       const id = shopifyOrderId.toString();
@@ -27,7 +25,7 @@ const Home = () => {
   };
 
 
-
+  // Handle resize.
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 768);
@@ -37,6 +35,8 @@ const Home = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+
+  // Fetch locations.
   useEffect(() => {
   const fetchLocations = async () => {
     try {
@@ -52,6 +52,7 @@ const Home = () => {
   fetchLocations();
 }, []);
 
+  // Fetch orders with vouchers.
   useEffect(() => {
     const fetchOrdersWithVouchers = async () => {
       try {
@@ -74,6 +75,7 @@ const Home = () => {
     fetchOrdersWithVouchers();
   }, []);
 
+  // Fetch orders with gift cards.
   useEffect(() => {
     const fetchOrdersWithGiftCards = async () => {
       try {
@@ -96,6 +98,7 @@ const Home = () => {
     fetchOrdersWithGiftCards();
   }, []);
 
+// Handle use voucher.
 const handleUseVoucher = (voucher) => {
   setSelectedVoucher(voucher);
   setIsGiftCard(false);
@@ -103,13 +106,14 @@ const handleUseVoucher = (voucher) => {
 };
 
 
-
+// Handle use gift card.
  const handleUseGiftCard = (giftCard) => {
   setSelectedVoucher({orderNumber: giftCard.code, ...giftCard});
   setIsGiftCard(true);
   setShowPopup(true);
 };
 
+  // Close popup.
   const closePopup = () => {
     setShowPopup(false);
     setSelectedVoucher(null);
@@ -244,7 +248,7 @@ const handleUseVoucher = (voucher) => {
       >
         <div style={styles.tableRow(activeTab, isMobile)}>
           <div>{formatOrderId(order.shopifyOrderId)}</div>
-          <div>12-29-25</div> {/* Placeholder or calculated expiry */}
+          <div>{voucher.expire || '--'}</div> {/* Placeholder or calculated expiry */}
           <div>{voucher.locationUsed || '--'}</div>
           <div>{voucher.useDate || '--'}</div>
           <div>{voucher.used ? 'USED' : 'VALID'}</div>
