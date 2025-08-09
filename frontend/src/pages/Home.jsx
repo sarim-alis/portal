@@ -400,11 +400,11 @@ const Home = () => {
                     </span>
                     <input
                       type="text"
-                      value={amountToRedeem}
-                      onChange={(e) => setAmountToRedeem(e.target.value)}
+                      value={amountToRedeem !== "" ? `$${amountToRedeem}` : ""}
+                      onChange={(e) => {const val = e.target.value.replace(/[^0-9.]/g, ""); setAmountToRedeem(val)}}
                       placeholder="$XX,XX"
                       style={styles.popupInput(isMobile)}
-                    />
+                    />     
                   </>
                 )}
               </div>
