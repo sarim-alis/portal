@@ -107,8 +107,12 @@ const handleUseVoucher = (voucher) => {
 
 
 // Handle use gift card.
- const handleUseGiftCard = (giftCard) => {
-  setSelectedVoucher({orderNumber: giftCard.code, ...giftCard});
+ const handleUseGiftCard = (giftCard, order) => {
+  setSelectedVoucher({
+    orderNumber: giftCard.code, 
+    ...giftCard,
+    totalPrice: order.totalPrice // Add totalPrice from order
+  });
   setIsGiftCard(true);
   setShowPopup(true);
 };
@@ -282,7 +286,7 @@ const handleUseVoucher = (voucher) => {
           <div style={styles.buttonContainer}>
             {!giftCard.used && (
   <button
-    onClick={() => handleUseGiftCard(giftCard)}
+    onClick={() => handleUseGiftCard(giftCard, order)}
     style={styles.useButton(isMobile)}
   >
     Use
@@ -365,7 +369,7 @@ const handleUseVoucher = (voucher) => {
                     </span>
                     <input
                       type="text"
-                      value={selectedVoucher?.remainingValue || '$0.00'}
+                      value={selectedVoucher?.remainingValue || `$${selectedVoucher?.totalPrice || '0.00'}`}
                       readOnly
                       style={styles.popupReadonlyInput(isMobile)}
                     />
