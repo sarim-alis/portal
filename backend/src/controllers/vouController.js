@@ -68,3 +68,50 @@ export const redeemByCode = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+export const redeemByCodes = async (req, res) => {
+  try {
+    const { code, locationUsed } = req.body;
+
+    if (!code || !locationUsed) {
+      return res.status(400).json({ error: "Code and location are required" });
+    }
+
+    // Find voucher and related order.
+    const voucher = await prisma.voucher.findUnique({
+      where: { code },
+      include: { order: true },
+    });
+
+    if (!voucher) {
+      return res.status(404).json({ error: "Voucher not found" });
+    }
+
+    const order = voucher.order;
+
+    if (!order) {
+      return res.status(404).json({ error: "Order not found for this voucher" });
+    }
+
+    // Check if already used.
+    if (order.statusUse) {
+      return res.status(400).json({ error: "Voucher already used" });
+    }
+
+    // Update order to mark as used.
+    const updatedOrder = await prisma.order.update({
+      where: { id: order.id },
+      data: {
+        statusUse: true,
+        locationUsed: locationUsed,
+        redeemedAt: new Date(),
+      },
+    });
+
+    res.json({message: "Voucher marked as used successfully",code,updatedOrder});
+
+  } catch (error) {
+    console.error("Error marking voucher as used:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
