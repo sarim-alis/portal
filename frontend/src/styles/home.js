@@ -248,6 +248,14 @@ const styles = {
     gap: isMobile ? '10px' : '0'
   }),
 
+  popupFlexContainers: (isMobile) => ({
+    display: 'flex',
+    alignItems: 'center',
+    marginBottom: '15px',
+    flexWrap: isMobile ? 'wrap' : 'nowrap',
+    gap: isMobile ? '10px' : '15px'
+  }),
+
   popupLabel: (isMobile) => ({
     color: '#fff',
     fontSize: isMobile ? '16px' : '18px',
@@ -278,7 +286,25 @@ const styles = {
     fontSize: '16px',
     outline: 'none',
     width: isMobile ? '100%' : width,
-    textAlign: 'center'
+    textAlign: 'center',
+  }),
+
+  redemButt: {
+    display: 'flex',
+    justifyContent: 'center',
+    marginTop: '10px'
+  },
+
+  redeemButts: (isMobile) => ({
+   backgroundColor: '#000',
+    border: '2px solid #fff',
+    color: "#fff",
+    padding: "8px 60px",
+    border: "none",
+    borderRadius: "4px",
+    marginTop: "12px",
+    cursor: "pointer",
+    width: isMobile ? '100%' : 'auto',
   }),
 
   validationText: (isMobile) => ({
