@@ -76,6 +76,9 @@ model Order {
   remainingBalance  Float?
   vouchers          Voucher[] // Relation to vouchers
   customerId        String?
+  locationUsed      String?
+  redeemedAt        DateTime?
+  statusUse         String?
   customer          Customer? @relation("CustomerOrders", fields: [customerId], references: [id])
 }
 
@@ -84,7 +87,6 @@ model Location {
   name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   employees Employee[] @relation("EmployeeLocations")
 }
 

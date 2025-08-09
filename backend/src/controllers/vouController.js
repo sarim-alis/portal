@@ -22,9 +22,9 @@ export const getOrdersWithVouchers = async (req, res) => {
 
 export const redeemByCode = async (req, res) => {
   try {
-    const { code, redeemAmount } = req.body;
+    const { code, redeemAmount, locationUsed } = req.body;
 
-    if (!code || !redeemAmount || redeemAmount <= 0) {
+    if (!code || !redeemAmount || redeemAmount <= 0 || !locationUsed) {
       return res.status(400).json({ error: "Invalid code or redeemAmount" });
     }
 
@@ -56,6 +56,8 @@ export const redeemByCode = async (req, res) => {
       where: { id: order.id },
       data: {
         remainingBalance: newBalance,
+        locationUsed: locationUsed,
+        redeemedAt: new Date(),
       },
     });
 

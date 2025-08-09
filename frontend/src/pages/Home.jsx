@@ -112,6 +112,7 @@ const Home = () => {
       totalPrice: order.totalPrice,
       remainingBalance: order.remainingBalance,
       orderId: order.id,
+      location: order.location
     });
     setIsGiftCard(true);
     setShowPopup(true);
@@ -136,6 +137,9 @@ const Home = () => {
           body: JSON.stringify({
             code: selectedVoucher.code,
             redeemAmount: parseFloat(amountToRedeem),
+            locationUsed: selectedLocation,
+            redeemedAt: new Date().toISOString(),
+            useDate: new Date().toISOString()
           }),
         }
       );
@@ -144,13 +148,15 @@ const Home = () => {
       if (response.ok) {
         alert("Redeemed successfully!");
 
-        // Update state so UI shows new remaining balance without refresh
+        // Update state so UI shows new remaining balance without refresh.
         setGiftCardOrders((prevOrders) =>
           prevOrders.map((order) =>
             order.id === data.updatedOrder.id
               ? {
                   ...order,
                   remainingBalance: data.updatedOrder.remainingBalance,
+                  locationUsed: data.updatedOrder.locationUsed,
+                  redeemedAt: data.updatedOrder.redeemedAt,
                 }
               : order
           )
@@ -346,8 +352,8 @@ const Home = () => {
                               ? `$${order.remainingBalance}`
                               : "—"}
                           </div>
-                          <div>{giftCard.locationUsed || "—"}</div>
-                          <div>{giftCard.useDate || "—"}</div>
+                          <div>{order.locationUsed || "—"}</div>
+                          <div>{order.redeemedAt ? new Date(order.redeemedAt).toLocaleDateString() : "—"}</div>
                           <div style={styles.buttonContainer}>
                             {!giftCard.used && (
                               <button
