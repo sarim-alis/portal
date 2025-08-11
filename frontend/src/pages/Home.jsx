@@ -163,30 +163,6 @@ useEffect(() => {
     return;
   }
 
-  // Check expiration if applicable
-  const expireDate = matchingOrder.lineItems[0]?.expire;
-  if (expireDate) {
-    const expirationDate = new Date(expireDate);
-    const currentDate = new Date();
-    
-    if (expirationDate < currentDate) {
-      const formattedExpireDate = (() => {
-        const date = new Date(expireDate);
-        const mm = String(date.getMonth() + 1).padStart(2, "0");
-        const dd = String(date.getDate()).padStart(2, "0");
-        const yyyy = date.getFullYear();
-        return `${mm}/${dd}/${yyyy}`;
-      })();
-      
-      setGiftCardValidation({
-        status: 'expired',
-        message: `Gift card expired on ${formattedExpireDate}`,
-        color: "#fd7e14" // Orange
-      });
-      return;
-    }
-  }
-
   // Gift card is valid
   setGiftCardValidation({
     status: 'valid',
