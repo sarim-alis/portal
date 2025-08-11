@@ -13,7 +13,7 @@ const Home = () => {
   const [voucherValidation, setVoucherValidation] = useState({
     status: null, // 'valid', 'expired', 'invalid', 'used'
     message: "",
-    color: "#666"
+    color: "#fff"
   });
   const [locations, setLocations] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -30,8 +30,33 @@ const [giftCardSearchCode, setGiftCardSearchCode] = useState("");
 const [giftCardValidation, setGiftCardValidation] = useState({
   status: null, // 'valid', 'expired', 'invalid', 'used'
   message: "",
-  color: "#666"
+  color: "#fff"
 });
+
+const formatDates = (value) => {
+  if (!value) return "—";
+
+  const arr = Array.isArray(value) ? value : [value];
+
+  const formatted = arr
+    .map((d) => {
+      const dt = d instanceof Date ? d : new Date(d);
+      if (Number.isNaN(dt.getTime())) return null;
+      return dt.toLocaleDateString();
+    })
+    .filter(Boolean);
+
+  if (!formatted.length) return "—";
+
+  // Join with <br /> and return as React fragment
+  return formatted.reduce((acc, date, i) => {
+    if (i === 0) return [date];
+    return [...acc, <br key={i} />, date];
+  }, []);
+};
+
+
+
 
 
   // Handle resize.
@@ -126,7 +151,7 @@ useEffect(() => {
     setGiftCardValidation({
       status: null,
       message: "Enter 4-digit code format (XXXX-XXXX)",
-      color: "#fff"
+      color: "white"
     });
     return;
   }
@@ -404,8 +429,8 @@ const handleTabChange = (tab) => {
           body: JSON.stringify({
             code: selectedVoucher.code, 
             redeemAmount: parseFloat(amountToRedeem), 
-            locationUsed: selectedLocation, 
-            redeemedAt: new Date().toISOString(), 
+            locationUsed: [selectedLocation],
+            redeemedAt: [new Date().toISOString()],
             useDate: new Date().toISOString()
           }),
         }
@@ -462,8 +487,8 @@ const handleTabChange = (tab) => {
               ? {
                   ...order, 
                   statusUse: true, 
-                  locationUsed: selectedLocation, 
-                  redeemedAt: new Date().toISOString()
+                  locationUsed: [selectedLocation], 
+                  redeemedAt: [new Date().toISOString()],
                 } 
               : order
           )
@@ -496,7 +521,7 @@ const handleTabChange = (tab) => {
   setVoucherValidation({
     status: null,
     message: "Enter 4-digit code format (XXXX-XXXX)",
-    color: "#666"
+    color: "#fff"
   });
 };
 
@@ -508,7 +533,7 @@ const closeGiftCardSearchPopup = () => {
   setGiftCardValidation({
     status: null,
     message: "Enter 4-digit code format (XXXX-XXXX)",
-    color: "#666"
+    color: "#fff"
   });
 };
   // const closeSearchPopup = () => {
@@ -645,7 +670,7 @@ useEffect(() => {
                             return `${mm}/${dd}/${yyyy}`;
                           })() : "--"}</div>
                           <div>{order.locationUsed || "—"}</div>
-                          <div>{order.redeemedAt ? new Date(order.redeemedAt).toLocaleDateString() : "—"}</div>
+                          <div>{formatDates(order.redeemedAt) || "—"}</div>
                           <div>{order.statusUse ? "USED" : "VALID"}</div>
                           <div style={styles.buttonContainer}>
                             {!voucher.used && (
@@ -665,8 +690,8 @@ useEffect(() => {
                           <div>{giftCard.code}</div>
                           <div>${order.totalPrice}</div>
                           <div>{order.remainingBalance != null ? `$${order.remainingBalance}` : "—"}</div>
-                          <div>{order.locationUsed || "—"}</div>
-                          <div>{order.redeemedAt ? new Date(order.redeemedAt).toLocaleDateString(): "—"}</div>
+                          <div> {order.locationUsed?.length ? order.locationUsed.map((loc, idx) => ( <div key={idx}>{loc}</div>)): "—"}</div>
+                          <div>{formatDates(order.redeemedAt) || "—"}</div>
                           <div style={styles.buttonContainer}>
                             {!giftCard.used && (
                               <button onClick={() => handleUseGiftCard(giftCard, order)} style={styles.useButton(isMobile)}>

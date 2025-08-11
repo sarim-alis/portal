@@ -56,8 +56,8 @@ export const redeemByCode = async (req, res) => {
       where: { id: order.id },
       data: {
         remainingBalance: newBalance,
-        locationUsed: locationUsed,
-        redeemedAt: new Date(),
+        locationUsed: { push: locationUsed },
+        redeemedAt: { push: new Date() },
       },
     });
 
@@ -103,8 +103,8 @@ export const redeemByCodes = async (req, res) => {
       where: { id: order.id },
       data: {
         statusUse: true,
-        locationUsed: locationUsed,
-        redeemedAt: new Date(),
+        locationUsed: { push: locationUsed },
+        redeemedAt: { push: new Date() },
       },
     });
 
