@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
+import { toast } from "react-toastify";
 import styles from '../styles/login.js';
 
 
@@ -22,18 +23,6 @@ const Login = ({ onLogin }) => {
   });
 
   // Handle submit.
-  // const handleSubmit = (values) => {
-  //   const { username, password } = values;
-
-  //   // Hardcoded credentials
-  //   if (username === 'admin' && password === '123456') {
-  //     onLogin(); // Call parent to update login state
-  //   } else {
-  //     alert('Invalid credentials');
-  //   }
-  // };
-
-  // Handle submit.
   const handleSubmit = async (values, { setSubmitting }) => {
   try {
     const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
@@ -48,13 +37,14 @@ const Login = ({ onLogin }) => {
 
     if (res.ok) {
       // Login successful
+      toast.success('Login successful! 🎉');
       onLogin(); // Or store token/data if needed
     } else {
-      alert(data.error || 'Invalid credentials');
+      toast.error(data.error || 'Invalid credentials');
     }
   } catch (error) {
     console.error('Login error:', error);
-    alert('Something went wrong');
+    toast.error('Something went wrong');
   } finally {
     setSubmitting(false);
   }
