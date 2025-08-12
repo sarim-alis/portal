@@ -220,12 +220,13 @@ const handleGiftCardSearch = () => {
 const handleTabChange = (tab) => {
   setActiveTab(tab);
   setSearchQuery("");
-  setFilteredOrders([]);
-  setFilteredGiftCardOrders([]);
-  
   if (tab === "vouchers") {
+    const usedVouchers = orders.filter((order) => 
+      order.statusUse === true || order.vouchers?.some(voucher => voucher.status === 'USED'));
+    setFilteredOrders(usedVouchers);
     setShowSearchPopup(true);
   } else if (tab === "giftcards") {
+    setFilteredGiftCardOrders([]);
     setShowGiftCardSearchPopup(true);
   }
 };
@@ -451,7 +452,6 @@ const closeSearchPopup = () => {
   setShowSearchPopup(false);
   setVoucherSearchCode("");
   setSearchQuery("");
-  setFilteredOrders([]);
   setVoucherValidation({
     status: null,
     message: "Enter 4-digit code format (XXXX-XXXX)",
@@ -475,7 +475,9 @@ const closeGiftCardSearchPopup = () => {
 // For vouchers, show USED status by default.
 useEffect(() => {
   if (!searchQuery.trim()) {
-    setFilteredOrders([]);
+    const usedVouchers = orders.filter((order) => 
+      order.statusUse === true || order.vouchers?.some(voucher => voucher.status === 'USED'));
+    setFilteredOrders(usedVouchers);
   } else {
     const filtered = orders.filter((order) => 
       order.vouchers.some((voucher) => 
