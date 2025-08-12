@@ -586,7 +586,9 @@ useEffect(() => {
               {/* Table Rows */}
               {activeTab === "vouchers"
                 ? filteredOrders.map((order, index) =>
-                    order.vouchers.map((voucher, vIndex) => (
+                    order.vouchers.map((voucher, vIndex) => {
+                    const isUsed = order.statusUse === true || voucher.status === "USED";
+                  return (
                       <div key={voucher.id} style={styles.tableRowContainer(index + vIndex, filteredOrders.length, isMobile)}>
                         <div style={styles.tableRow(activeTab, isMobile)}>
                           <div>{voucher.code}</div>
@@ -599,17 +601,16 @@ useEffect(() => {
                           })() : "--"}</div>
                           <div>{order.locationUsed || "—"}</div>
                           <div>{formatDates(order.redeemedAt) || "—"}</div>
-                          <div>{order.statusUse ? "USED" : "VALID"}</div>
+                          <div>{isUsed ? "USED" : "VALID"}</div>
                           <div style={styles.buttonContainer}>
-                            {!voucher.used && (
-                              <button onClick={() => handleUseVoucher(voucher)} style={styles.useButton(isMobile)}>
-                                Use
-                              </button>
-                            )}
-                          </div>
+                            <button onClick={() => { if (!isUsed) handleUseVoucher(voucher, order)}} style={{...styles.useButton(isMobile), cursor: isUsed ? "not-allowed" : "pointer", opacity: isUsed ? 0.6 : 1}} disabled={isUsed}>
+                              Use
+                            </button>
                         </div>
                       </div>
-                    ))
+                    </div>
+                    );
+                  })
                   )
                 : filteredGiftCardOrders.map((order, index) =>
                     order.vouchers.map((giftCard, vIndex) => (
