@@ -1,5 +1,6 @@
 // Imports.
 import React, { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import styles from "../styles/home.js";
 
 
@@ -193,13 +194,13 @@ useEffect(() => {
 // Handle gift card search.
 const handleGiftCardSearch = () => {
   if (!giftCardSearchCode.trim()) {
-    alert("Please enter a gift card code");
+    toast.error("Please enter a gift card code");
     return;
   }
 
   // Only allow search if gift card is valid.
   if (giftCardValidation.status !== 'valid') {
-    alert(giftCardValidation.message);
+    toast.error(giftCardValidation.message);
     return;
   }
 
@@ -297,13 +298,13 @@ useEffect(() => {
 // Handle voucher search.
 const handleVoucherSearch = () => {
     if (!voucherSearchCode.trim()) {
-      alert("Please enter a voucher code");
+      toast.error("Please enter a voucher code");
       return;
     }
 
     // Only allow search if voucher is valid
     if (voucherValidation.status !== 'valid') {
-      alert(voucherValidation.message);
+      toast.error(voucherValidation.message);
       return;
     }
 
@@ -348,7 +349,7 @@ const handleRedeemGiftCard = async () => {
       !amountToRedeem ||
       selectedLocation === "Select your location"
     ) {
-      alert("Please enter amount and select a location.");
+      toast.error("Please enter amount and select a location.");
       return;
     }
 
@@ -370,7 +371,7 @@ const handleRedeemGiftCard = async () => {
 
       const data = await response.json();
       if (response.ok) {
-        alert("Redeemed successfully!");
+        toast.success("Gift redeemed successfully!");
         setGiftCardOrders((prevOrders) => 
           prevOrders.map((order) => 
             order.id === data.updatedOrder.id 
@@ -385,11 +386,11 @@ const handleRedeemGiftCard = async () => {
         );
         closePopup();
       } else {
-        alert(data.error || "Failed to redeem.");
+        toast.error(data.error || "Failed to redeem.");
       }
     } catch (error) {
       console.error("Error redeeming gift card:", error);
-      alert("Error redeeming gift card.");
+      toast.error("Error redeeming gift card.");
     }
   };
 
@@ -397,7 +398,7 @@ const handleRedeemGiftCard = async () => {
 // Handle mark voucher as used.
 const handleMarkVoucherAsUsed = async () => {
     if (!selectedVoucher || !selectedLocation || selectedLocation === "Select your location") {
-      alert("Please select a location.");
+      toast.error("Please select a location.");
       return;
     }
 
@@ -414,7 +415,7 @@ const handleMarkVoucherAsUsed = async () => {
       const data = await response.json();
 
       if (response.ok) {
-        alert("Voucher marked as used successfully!");
+        toast.success("Voucher used successfully!");
         setOrders((prevOrders) => 
           prevOrders.map((order) => 
             order.vouchers?.some((v) => v.code === selectedVoucher.code) 
@@ -429,11 +430,11 @@ const handleMarkVoucherAsUsed = async () => {
         );
         closePopup();
       } else {
-        alert(data.error || "Failed to mark voucher as used.");
+        toast.error(data.error || "Failed to mark voucher as used.");
       }
     } catch (error) {
       console.error("Error marking voucher as used:", error);
-      alert("Error marking voucher as used.");
+      toast.error("Error marking voucher as used.");
     }
 };
 

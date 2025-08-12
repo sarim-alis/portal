@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import Login from "./pages/Login.jsx";
 import Home from "./pages/Home.jsx";
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
