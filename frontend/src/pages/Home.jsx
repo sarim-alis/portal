@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import styles from "../styles/home.js";
 
+
 // Frontend.
 const Home = () => {
   // States.
@@ -26,12 +27,12 @@ const Home = () => {
   const [isGiftCard, setIsGiftCard] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [showGiftCardSearchPopup, setShowGiftCardSearchPopup] = useState(false);
-const [giftCardSearchCode, setGiftCardSearchCode] = useState("");
-const [giftCardValidation, setGiftCardValidation] = useState({
-  status: null, // 'valid', 'expired', 'invalid', 'used'
-  message: "",
-  color: "#fff"
-});
+  const [giftCardSearchCode, setGiftCardSearchCode] = useState("");
+  const [giftCardValidation, setGiftCardValidation] = useState({
+    status: null, // 'valid', 'expired', 'invalid', 'used'
+    message: "",
+    color: "#fff"
+  });
 
 const formatDates = (value) => {
   if (!value) return "—";
@@ -48,16 +49,12 @@ const formatDates = (value) => {
 
   if (!formatted.length) return "—";
 
-  // Join with <br /> and return as React fragment
+  // Join with <br /> and return as React fragment.
   return formatted.reduce((acc, date, i) => {
     if (i === 0) return [date];
     return [...acc, <br key={i} />, date];
   }, []);
 };
-
-
-
-
 
   // Handle resize.
   useEffect(() => {
@@ -79,7 +76,7 @@ const formatDates = (value) => {
   }
 }, [activeTab]);
 
-  // Validate voucher in real-time as user types
+  // Validate voucher in real-time as user types.
   useEffect(() => {
     if (!voucherSearchCode.trim()) {
       setVoucherValidation({
@@ -92,7 +89,7 @@ const formatDates = (value) => {
 
     const formattedCode = voucherSearchCode.toUpperCase().replace(/[^A-Z0-9]/g, '');
     
-    // Find matching voucher
+    // Find matching order.
     const matchingOrder = orders.find(order =>
       order.vouchers.some(voucher =>
         voucher.code.replace(/[^A-Z0-9]/g, '') === formattedCode
@@ -103,7 +100,7 @@ const formatDates = (value) => {
       setVoucherValidation({
         status: 'invalid',
         message: "Invalid voucher number",
-        color: "#dc3545" // Red
+        color: "#dc3545"
       });
       return;
     }
@@ -112,7 +109,7 @@ const formatDates = (value) => {
       v.code.replace(/[^A-Z0-9]/g, '') === formattedCode
     );
 
-    // Check expiration
+    // Check expiration.
     const expireDate = matchingOrder.lineItems[0]?.expire;
     if (expireDate) {
       const expirationDate = new Date(expireDate);
@@ -130,22 +127,22 @@ const formatDates = (value) => {
         setVoucherValidation({
           status: 'expired',
           message: `Voucher expired on ${formattedExpireDate}`,
-          color: "#fd7e14" // Orange
+          color: "#fd7e14"
         });
         return;
       }
     }
 
-    // Voucher is valid
+    // Voucher is valid.
     setVoucherValidation({
       status: 'valid',
       message: "Valid voucher",
-      color: "#28a745" // Green
+      color: "#28a745"
     });
 
   }, [voucherSearchCode, orders]);
 
-  // Add this useEffect for gift card validation in real-time
+  // Set gift card validation.
 useEffect(() => {
   if (!giftCardSearchCode.trim()) {
     setGiftCardValidation({
@@ -158,7 +155,7 @@ useEffect(() => {
 
   const formattedCode = giftCardSearchCode.toUpperCase().replace(/[^A-Z0-9]/g, '');
   
-  // Find matching gift card
+  // Find matching gift card.
   const matchingOrder = giftCardOrders.find(order =>
     order.vouchers.some(giftCard =>
       giftCard.code.replace(/[^A-Z0-9]/g, '') === formattedCode
@@ -169,62 +166,38 @@ useEffect(() => {
     setGiftCardValidation({
       status: 'invalid',
       message: "Invalid gift card number",
-      color: "#dc3545" // Red
+      color: "#dc3545"
     });
     return;
   }
 
-  const giftCard = matchingOrder.vouchers.find(v =>
-    v.code.replace(/[^A-Z0-9]/g, '') === formattedCode
-  );
-
-  // Check if gift card is already fully used
+  // Check if gift card is already used.
   if (matchingOrder.remainingBalance === 0) {
     setGiftCardValidation({
       status: 'used',
       message: "Gift card has been fully used",
-      color: "#6c757d" // Gray
+      color: "#6c757d"
     });
     return;
   }
 
-  // Gift card is valid
+  // Gift card is valid.
   setGiftCardValidation({
     status: 'valid',
     message: "Valid gift card",
-    color: "#28a745" // Green
+    color: "#28a745"
   });
 
 }, [giftCardSearchCode, giftCardOrders]);
 
-// Add this useEffect to filter gift card orders based on search
-// useEffect(() => {
-//   if (!searchQuery.trim()) {
-//     setFilteredGiftCardOrders(giftCardOrders);
-//   } else {
-//     const filtered = giftCardOrders.filter((order) => 
-//       order.vouchers.some((giftCard) => 
-//         giftCard.code.toLowerCase().includes(searchQuery.toLowerCase()) || 
-//         order.shopifyOrderId.includes(searchQuery)
-//       )
-//     );
-//     setFilteredGiftCardOrders(filtered);
-//   }
-// }, [searchQuery, giftCardOrders]);
-
-// Update the existing useEffect that sets filteredOrders to also set filteredGiftCardOrders
-// useEffect(() => {
-//   setFilteredGiftCardOrders(giftCardOrders);
-// }, [giftCardOrders]);
-
-// Add this new function for gift card search
+// Handle gift card search.
 const handleGiftCardSearch = () => {
   if (!giftCardSearchCode.trim()) {
     alert("Please enter a gift card code");
     return;
   }
 
-  // Only allow search if gift card is valid
+  // Only allow search if gift card is valid.
   if (giftCardValidation.status !== 'valid') {
     alert(giftCardValidation.message);
     return;
@@ -243,12 +216,12 @@ const handleGiftCardSearch = () => {
   setShowGiftCardSearchPopup(false);
 };
 
-// Update the handleTabChange function
+// Handle tab change.
 const handleTabChange = (tab) => {
   setActiveTab(tab);
-  setSearchQuery(""); // Clear search
-  setFilteredOrders([]); // Clear voucher results
-  setFilteredGiftCardOrders([]); // Clear gift card results
+  setSearchQuery("");
+  setFilteredOrders([]);
+  setFilteredGiftCardOrders([]);
   
   if (tab === "vouchers") {
     setShowSearchPopup(true);
@@ -257,28 +230,8 @@ const handleTabChange = (tab) => {
   }
 };
 
-// const handleTabChange = (tab) => {
-//   setActiveTab(tab);
-//   if (tab === "vouchers") {
-//     setShowSearchPopup(true);
-//   } else if (tab === "giftcards") {
-//     setShowGiftCardSearchPopup(true);
-//   }
-// };
-
-// Add this new function to close gift card search popup
-// const closeGiftCardSearchPopup = () => {
-//   setShowGiftCardSearchPopup(false);
-//   setGiftCardSearchCode("");
-//   setGiftCardValidation({
-//     status: null,
-//     message: "Enter 4-digit code format (XXXX-XXXX)",
-//     color: "#666"
-//   });
-// };
-
-  // Fetch locations.
-  useEffect(() => {
+// Fetch locations.
+useEffect(() => {
     const fetchLocations = async () => {
       try {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/loc`);
@@ -291,7 +244,7 @@ const handleTabChange = (tab) => {
     };
 
     fetchLocations();
-  }, []);
+}, []);
 
   // Fetch orders with vouchers.
   useEffect(() => {
@@ -340,23 +293,8 @@ const handleTabChange = (tab) => {
     fetchOrdersWithGiftCards();
   }, []);
 
-  // Filter orders based on search query
-  // useEffect(() => {
-  //   if (!searchQuery.trim()) {
-  //     setFilteredOrders(orders);
-  //   } else {
-  //     const filtered = orders.filter((order) => 
-  //       order.vouchers.some((voucher) => 
-  //         voucher.code.toLowerCase().includes(searchQuery.toLowerCase()) || 
-  //         order.shopifyOrderId.includes(searchQuery)
-  //       )
-  //     );
-  //     setFilteredOrders(filtered);
-  //   }
-  // }, [searchQuery, orders]);
-
-  // Handle voucher code search from popup.
-  const handleVoucherSearch = () => {
+// Handle voucher search.
+const handleVoucherSearch = () => {
     if (!voucherSearchCode.trim()) {
       alert("Please enter a voucher code");
       return;
@@ -381,36 +319,29 @@ const handleTabChange = (tab) => {
     setShowSearchPopup(false);
   };
 
-  // Handle tab change.
-  // const handleTabChange = (tab) => {
-  //   setActiveTab(tab);
-  //   if (tab === "vouchers") {
-  //     setShowSearchPopup(true);
-  //   }
-  // };
+// Handle use voucher.
+const handleUseVoucher = (voucher) => {
+  setSelectedVoucher(voucher);
+  setIsGiftCard(false);
+  setShowPopup(true);
+};
 
-  // Handle use voucher.
-  const handleUseVoucher = (voucher) => {
-    setSelectedVoucher(voucher);
-    setIsGiftCard(false);
-    setShowPopup(true);
-  };
+// Handle use gift card.
+const handleUseGiftCard = (giftCard, order) => {
+  setSelectedVoucher({
+    orderNumber: giftCard.code,
+    ...giftCard,
+    totalPrice: order.totalPrice,
+    remainingBalance: order.remainingBalance,
+    orderId: order.id,
+    location: order.location,
+  });
+  setIsGiftCard(true);
+  setShowPopup(true);
+};
 
-  // Handle use gift card.
-  const handleUseGiftCard = (giftCard, order) => {
-    setSelectedVoucher({
-      orderNumber: giftCard.code,
-      ...giftCard,
-      totalPrice: order.totalPrice,
-      remainingBalance: order.remainingBalance,
-      orderId: order.id,
-      location: order.location,
-    });
-    setIsGiftCard(true);
-    setShowPopup(true);
-  };
-
-  const handleRedeemGiftCard = async () => {
+// Handle redeem gift card.
+const handleRedeemGiftCard = async () => {
     if (
       !selectedVoucher ||
       !amountToRedeem ||
@@ -461,7 +392,9 @@ const handleTabChange = (tab) => {
     }
   };
 
-  const handleMarkVoucherAsUsed = async () => {
+
+// Handle mark voucher as used.
+const handleMarkVoucherAsUsed = async () => {
     if (!selectedVoucher || !selectedLocation || selectedLocation === "Select your location") {
       alert("Please select a location.");
       return;
@@ -501,23 +434,24 @@ const handleTabChange = (tab) => {
       console.error("Error marking voucher as used:", error);
       alert("Error marking voucher as used.");
     }
-  };
+};
 
-  // Close popup.
-  const closePopup = () => {
-    setShowPopup(false);
-    setSelectedVoucher(null);
-    setSelectedLocation("Select your location");
-    setAmountToRedeem("");
-    setIsGiftCard(false);
-  };
 
-  // Close search popup.
-  const closeSearchPopup = () => {
+// Close popup.
+const closePopup = () => {
+  setShowPopup(false);
+  setSelectedVoucher(null);
+  setSelectedLocation("Select your location");
+  setAmountToRedeem("");
+  setIsGiftCard(false);
+};
+
+// Close search popup.
+const closeSearchPopup = () => {
   setShowSearchPopup(false);
   setVoucherSearchCode("");
   setSearchQuery("");
-  setFilteredOrders([]); // Clear results
+  setFilteredOrders([]);
   setVoucherValidation({
     status: null,
     message: "Enter 4-digit code format (XXXX-XXXX)",
@@ -525,31 +459,23 @@ const handleTabChange = (tab) => {
   });
 };
 
+// Close gift card search popup.
 const closeGiftCardSearchPopup = () => {
   setShowGiftCardSearchPopup(false);
   setGiftCardSearchCode("");
   setSearchQuery("");
-  setFilteredGiftCardOrders([]); // Clear results
+  setFilteredGiftCardOrders([]);
   setGiftCardValidation({
     status: null,
     message: "Enter 4-digit code format (XXXX-XXXX)",
     color: "#fff"
   });
 };
-  // const closeSearchPopup = () => {
-  //   setShowSearchPopup(false);
-  //   setVoucherSearchCode("");
-  //   setVoucherValidation({
-  //     status: null,
-  //     message: "Enter 4-digit code format (XXXX-XXXX)",
-  //     color: "#666"
-  //   });
-  // };
 
-  // For vouchers - update existing useEffect
+// For vouchers, show USED status by default.
 useEffect(() => {
   if (!searchQuery.trim()) {
-    setFilteredOrders([]); // Show nothing when no search
+    setFilteredOrders([]);
   } else {
     const filtered = orders.filter((order) => 
       order.vouchers.some((voucher) => 
@@ -562,10 +488,10 @@ useEffect(() => {
 }, [searchQuery, orders]);
 
 
-// Add this useEffect for gift card search filtering
+// Show only when gift code is enter.
 useEffect(() => {
   if (!searchQuery.trim()) {
-    setFilteredGiftCardOrders([]); // Show nothing when no search
+    setFilteredGiftCardOrders([]);
   } else {
     const filtered = giftCardOrders.filter((order) => 
       order.vouchers.some((giftCard) => 
