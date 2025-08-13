@@ -7,8 +7,22 @@ import { ToastContainer } from 'react-toastify';
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // Check localStorage on load.
+  useEffect(() => {
+    const loggedIn = localStorage.getItem("isAuthenticated");
+    if (loggedIn === "true") {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+
   const handleLogin = () => {
     setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem("isAuthenticated");
   };
 
   return (
