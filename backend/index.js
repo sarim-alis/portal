@@ -37,7 +37,11 @@ app.get('/', (req, res) => {
 });
 
 // ✅ ADDED: Catch-all route for React Router
-app.get('*', (req, res) => {
+// app.get('*', (req, res) => {
+//   res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
+// });
+
+app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
 });
 
