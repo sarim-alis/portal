@@ -23,39 +23,19 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/loc', locRoutes);  
 app.use('/api/vou', vouRoutes);  
-        
-// app.get('/', (req, res) => {
-//   res.send('API is running');
-// });
 
-
-// const __dirname = path.resolve();
-// app.use(express.static(path.join(__dirname, '../frontend/build')));
-
-// // Root route - serve React app instead of "API is running"
-// app.get('/', (req, res) => {
-//   res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));  // ✅ CHANGED: Serve React app
-// });
 
 
 
 const __dirname = path.resolve();
 app.use(express.static(path.join(__dirname, 'frontend/dist')));
 
-// Serve React app for all routes
 app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend/dist', 'index.html'));
 });
 
 
-// ✅ ADDED: Catch-all route for React Router
-// app.get('*', (req, res) => {
-//   res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
-// });
 
-// app.get(/.*/, (req, res) => {
-//   res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
-// });
 
 // Db.
 pool.connect()
