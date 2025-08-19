@@ -334,7 +334,28 @@ const styles = {
   selectOption: {
     backgroundColor: '#000',
     color: '#fff'
-  }
+  },
+  topBar: {
+    width: "100%",
+    display: "flex",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    padding: "10px 20px",
+    background: "#4a4a4a",
+    position: "sticky",
+    top: 0,
+    zIndex: 1000,
+  },
+
+  logoutButton: {
+    padding: "12px 24px",
+    backgroundColor: "#4A90E2",
+    color: "white",
+    border: "none",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontWeight: "500",
+  },
 };
 
 export default styles;

@@ -28,7 +28,7 @@ function App() {
   return (
     <>
       <div>
-        {isAuthenticated ? <Home /> : <Login onLogin={handleLogin} />}
+        {isAuthenticated ? <Home onLogout={handleLogout} /> : <Login onLogin={handleLogin} />}
         <ToastContainer />
       </div>
     </>

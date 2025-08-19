@@ -5,7 +5,7 @@ import styles from "../styles/home.js";
 
 
 // Frontend.
-const Home = () => {
+const Home = ({ onLogout }) => {
   // States.
   const [activeTab, setActiveTab] = useState("vouchers");
   const [searchQuery, setSearchQuery] = useState("");
@@ -560,9 +560,17 @@ useEffect(() => {
 
   return (
     <div style={styles.mainContainer(isMobile)}>
+     <div style={{ position: "relative", minHeight: "100vh" }}>
+      {/* Top Bar */}
+      <div style={styles.topBar}>
+        <button onClick={onLogout} style={styles.logoutButton}>
+          Logout
+        </button>
+      </div>
+
       <div style={styles.contentContainer(isMobile)}>
         {/* Sort and Filter */}
-        <h2 style={styles.sortFilterHeader}>Sort and Filter 🏡</h2>
+        <h2 style={styles.sortFilterHeader}>Sort and Filter</h2>
 
         {/* Filter Buttons */}
         <div style={styles.filterButtonsRow}>
@@ -828,6 +836,7 @@ useEffect(() => {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 };
