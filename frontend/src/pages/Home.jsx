@@ -69,20 +69,38 @@ const formatVoucherCode = (value) => {
   return truncated.substring(0, 4) + '-' + truncated.substring(4);
 };
 
+// formatDollarAmount.
+const formatDollarAmount = (amount) => {
+  if (amount === null || amount === undefined || amount === "") return "—";
+  const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+  if (isNaN(numericAmount)) return "—";
+  return numericAmount.toFixed(2);
+};
+
 // handleAmountChange.
 const handleAmountChange = (e) => {
-  const val = e.target.value.replace(/[^0-9.]/g, "");
+  let val = e.target.value.replace(/[$,]/g, "").replace(/[^0-9.]/g, "");
+  
+  const decimalCount = (val.match(/\./g) || []).length;
+  if (decimalCount > 1) {
+    val = val.substring(0, val.lastIndexOf('.'));
+  }
+
+  const decimalIndex = val.indexOf('.');
+  if (decimalIndex !== -1 && val.length > decimalIndex + 3) {
+    val = val.substring(0, decimalIndex + 3);
+  }
+  
   const numericValue = parseFloat(val);
   const maxBalance = selectedVoucher?.remainingBalance ?? selectedVoucher?.totalPrice ?? 0;
-  
-  // Reset reduction flag.
   setWasAmountReduced(false);
   
   // If entered amount exceeds max balance, automatically reduce to max.
-  if (numericValue > maxBalance) {
-    setAmountToRedeem(maxBalance.toString());
+  if (!isNaN(numericValue) && numericValue > maxBalance) {
+    const formattedMaxBalance = formatDollarAmount(maxBalance);
+    setAmountToRedeem(formattedMaxBalance);
     setWasAmountReduced(true);
-    toast.info(`Amount reduced to maximum available balance: $${maxBalance}`);
+    toast.info(`Amount reduced to maximum available balance: $${formattedMaxBalance}`);
   } else {
     setAmountToRedeem(val);
   }
@@ -380,7 +398,7 @@ const handleRedeemGiftCard = async () => {
       !amountToRedeem ||
       selectedLocation === "Select your location"
     ) {
-      toast.error("Please enter amount and select a location.");
+      toast.info("Please enter amount and select a location.");
       return;
     }
 
@@ -429,7 +447,7 @@ const handleRedeemGiftCard = async () => {
 // Handle mark voucher as used.
 const handleMarkVoucherAsUsed = async () => {
     if (!selectedVoucher || !selectedLocation || selectedLocation === "Select your location") {
-      toast.error("Please select a location.");
+      toast.info("Please select a location.");
       return;
     }
 
@@ -650,8 +668,8 @@ useEffect(() => {
                       <div key={giftCard.id} style={styles.tableRowContainer(index + vIndex, filteredGiftCardOrders.length, isMobile)}>
                         <div style={styles.tableRow(activeTab, isMobile)}>
                           <div>{giftCard.code}</div>
-                          <div>${order.totalPrice}</div>
-                          <div>{order.remainingBalance != null ? `$${order.remainingBalance}` : "—"}</div>
+                          <div>${formatDollarAmount(order.totalPrice)}</div>
+                          <div>{order.remainingBalance != null ? `$${formatDollarAmount(order.remainingBalance)}` : "—"}</div>
                           <div> {order.locationUsed?.length ? order.locationUsed.map((loc, idx) => ( <div key={idx}>{loc}</div>)): "—"}</div>
                           <div>{formatDates(order.redeemedAt) || "—"}</div>
                           <div style={styles.buttonContainer}>
