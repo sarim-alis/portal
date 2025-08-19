@@ -57,6 +57,17 @@ const formatDates = (value) => {
   }, []);
 };
 
+// formatVoucherCode.
+const formatVoucherCode = (value) => {
+  const cleanValue = value.replace(/[^A-Z0-9]/g, '');
+  if (cleanValue.length <= 4) {
+    return cleanValue;
+  }
+  
+  const truncated = cleanValue.substring(0, 8);
+  return truncated.substring(0, 4) + '-' + truncated.substring(4);
+};
+
   // Handle resize.
   useEffect(() => {
     const handleResize = () => {setIsMobile(window.innerWidth <= 768);};
@@ -88,7 +99,7 @@ const formatDates = (value) => {
       return;
     }
 
-    const formattedCode = voucherSearchCode.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const formattedCode = voucherSearchCode.replace(/[^A-Z0-9]/g, '');
     
     // Find matching order.
     const matchingOrder = orders.find(order =>
@@ -154,7 +165,7 @@ useEffect(() => {
     return;
   }
 
-  const formattedCode = giftCardSearchCode.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const formattedCode = giftCardSearchCode.replace(/[^A-Z0-9]/g, '');
   
   // Find matching gift card.
   const matchingOrder = giftCardOrders.find(order =>
@@ -204,7 +215,7 @@ const handleGiftCardSearch = () => {
     return;
   }
 
-  const formattedCode = giftCardSearchCode.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const formattedCode = giftCardSearchCode.replace(/[^A-Z0-9]/g, '');
   
   const filtered = giftCardOrders.filter((order) =>
     order.vouchers.some((giftCard) =>
@@ -308,7 +319,7 @@ const handleVoucherSearch = () => {
       return;
     }
 
-    const formattedCode = voucherSearchCode.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const formattedCode = voucherSearchCode.replace(/[^A-Z0-9]/g, '');
     
     const filtered = orders.filter((order) =>
       order.vouchers.some((voucher) =>
@@ -650,7 +661,10 @@ useEffect(() => {
                 <input 
                   type="text" 
                   value={voucherSearchCode}
-                  onChange={(e) => setVoucherSearchCode(e.target.value.toUpperCase())}
+                  onChange={(e) => {
+                    const formatted = formatVoucherCode(e.target.value.toUpperCase());
+                    setVoucherSearchCode(formatted);
+                  }}
                   placeholder="XXXX-XXXX"
                   style={styles.popupInput(isMobile)}
                   maxLength={9}
@@ -694,7 +708,10 @@ useEffect(() => {
           <input 
             type="text" 
             value={giftCardSearchCode}
-            onChange={(e) => setGiftCardSearchCode(e.target.value.toUpperCase())}
+            onChange={(e) => {
+              const formatted = formatVoucherCode(e.target.value.toUpperCase());
+              setGiftCardSearchCode(formatted);
+            }}
             placeholder="XXXX-XXXX"
             style={styles.popupInput(isMobile)}
             maxLength={9}
