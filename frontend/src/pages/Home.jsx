@@ -25,6 +25,7 @@ const Home = () => {
   const [selectedVoucher, setSelectedVoucher] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState("Select your location");
   const [amountToRedeem, setAmountToRedeem] = useState("");
+  const [wasAmountReduced, setWasAmountReduced] = useState(false);
   const [isGiftCard, setIsGiftCard] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [showGiftCardSearchPopup, setShowGiftCardSearchPopup] = useState(false);
@@ -66,6 +67,25 @@ const formatVoucherCode = (value) => {
   
   const truncated = cleanValue.substring(0, 8);
   return truncated.substring(0, 4) + '-' + truncated.substring(4);
+};
+
+// handleAmountChange.
+const handleAmountChange = (e) => {
+  const val = e.target.value.replace(/[^0-9.]/g, "");
+  const numericValue = parseFloat(val);
+  const maxBalance = selectedVoucher?.remainingBalance ?? selectedVoucher?.totalPrice ?? 0;
+  
+  // Reset reduction flag.
+  setWasAmountReduced(false);
+  
+  // If entered amount exceeds max balance, automatically reduce to max.
+  if (numericValue > maxBalance) {
+    setAmountToRedeem(maxBalance.toString());
+    setWasAmountReduced(true);
+    toast.info(`Amount reduced to maximum available balance: $${maxBalance}`);
+  } else {
+    setAmountToRedeem(val);
+  }
 };
 
   // Handle resize.
@@ -457,6 +477,7 @@ const closePopup = () => {
   setSelectedLocation("Select your location");
   setAmountToRedeem("");
   setIsGiftCard(false);
+  setWasAmountReduced(false);
 };
 
 // Close search popup.
@@ -758,7 +779,7 @@ useEffect(() => {
                 {isGiftCard && (
                   <>
                     <span style={styles.popupLabel(isMobile)}>Amount to Redeem:</span>
-                    <input type="text" value={amountToRedeem !== "" ? `$${amountToRedeem}` : ""} onChange={(e) => {const val = e.target.value.replace(/[^0-9.]/g, ""); setAmountToRedeem(val)}} placeholder="$XX,XX" style={styles.popupInput(isMobile)}/>
+                    <input type="text" value={amountToRedeem !== "" ? `$${amountToRedeem}` : ""} onChange={handleAmountChange} placeholder="$XX,XX" style={{...styles.popupInput(isMobile), borderColor: wasAmountReduced ? '#28a745' : styles.popupInput(isMobile).borderColor}}/>
                   </>
                 )}
               </div>
