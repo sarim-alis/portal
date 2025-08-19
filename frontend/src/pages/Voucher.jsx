@@ -2,7 +2,9 @@ import React from 'react'
 
 const Gift = () => {
   return (
-    <div>Voucher</div>
+    <div>
+      <h1>Voucher 🏷️</h1>
+    </div>
   )
 }
 
