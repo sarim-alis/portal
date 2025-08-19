@@ -567,7 +567,7 @@ useEffect(() => {
         <button onClick={onLogout} style={styles.logoutButton}>
           Logout
         </button>
-         <Link to="/gift">Go to Gift 🎁</Link>
+         <Link to="/gift" style={styles.logoutButton}>Go to Gift 🎁</Link>
       </div>
 
       <div style={styles.contentContainer(isMobile)}>
