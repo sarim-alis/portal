@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import styles from "../styles/home.js";
+import { useNavigate, Link } from "react-router-dom";
 
 
 // Frontend.
@@ -566,6 +567,7 @@ useEffect(() => {
         <button onClick={onLogout} style={styles.logoutButton}>
           Logout
         </button>
+         <Link to="/gift">Go to Gift 🎁</Link>
       </div>
 
       <div style={styles.contentContainer(isMobile)}>

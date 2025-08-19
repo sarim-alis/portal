@@ -48,7 +48,6 @@ function App() {
             <Route path="/gift" element={<Gift />} />
           </>
         ) : (
-          // If not logged in, redirect everything else to login
           <Route path="*" element={<Navigate to="/login" />} />
         )}
       </Routes>
