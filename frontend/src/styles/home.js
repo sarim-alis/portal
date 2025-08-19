@@ -62,11 +62,12 @@ const styles = {
   searchInput: {
     backgroundColor: 'transparent',
     border: '2px solid #fff',
-    color: '#fff',
+    color: 'white !important',
     padding: '8px 16px',
     borderRadius: '4px',
     fontSize: '14px',
-    outline: 'none'
+    outline: 'none',
+    textAlign: 'center'
   },
 
   // Mobile tabs styles

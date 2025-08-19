@@ -108,7 +108,7 @@ const handleAmountChange = (e) => {
 
   // Handle resize.
   useEffect(() => {
-    const handleResize = () => {setIsMobile(window.innerWidth <= 768);};
+    const handleResize = () => {setIsMobile(window.innerWidth <= 1100);};
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
