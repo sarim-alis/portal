@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login.jsx";
 import Home from "./pages/Home.jsx";
-import Gift from "./pages/Gift.jsx";
+import Voucher from "./pages/Voucher.jsx";
 import { ToastContainer } from "react-toastify";
 
 function App() {
@@ -45,7 +45,7 @@ function App() {
         {isAuthenticated ? (
           <>
             <Route path="/" element={<Home onLogout={handleLogout} />} />
-            <Route path="/gift" element={<Gift />} />
+            <Route path="/gift" element={<Voucher />} />
           </>
         ) : (
           <Route path="*" element={<Navigate to="/login" />} />
