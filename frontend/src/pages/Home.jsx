@@ -590,32 +590,36 @@ useEffect(() => {
               {activeTab === "vouchers"
                 ? (() => {
                     console.log("🟢 Table data fetch (vouchers):", filteredOrders);
+                    console.log("DEBUG orders structure:", orders);
                     return filteredOrders.map((order, index) =>
-                      order.vouchers.map((voucher, vIndex) => {
-                        const isUsed = order.statusUse === true || voucher.status === "USED";
-                        return (
-                          <div key={voucher.id} style={styles.tableRowContainer(index + vIndex, filteredOrders.length, isMobile)}>
-                            <div style={styles.tableRow(activeTab, isMobile)}>
-                              <div>{voucher.code}</div>
-                              <div>{order.lineItems[0]?.expire ? (() => {
-                                const date = new Date(order.lineItems[0].expire);
-                                const mm = String(date.getMonth() + 1).padStart(2, "0");
-                                const dd = String(date.getDate()).padStart(2,"0");
-                                const yyyy = date.getFullYear();
-                                return `${mm}/${dd}/${yyyy}`;
-                              })() : "--"}</div>
-                              <div>{order.locationUsed || "—"}</div>
-                              <div>{formatDates(order.redeemedAt) || "—"}</div>
-                              <div>{isUsed ? "USED" : "VALID"}</div>
-                              <div style={styles.buttonContainer}>
-                                <button onClick={() => { if (!isUsed) handleUseVoucher(voucher, order)}} style={{...styles.useButton(isMobile), cursor: isUsed ? "not-allowed" : "pointer", opacity: isUsed ? 0.6 : 1}} disabled={isUsed}>
-                                  Use
-                                </button>
+                      (order.vouchers && order.vouchers.length > 0
+                        ? order.vouchers.map((voucher, vIndex) => {
+                            const isUsed = order.statusUse === true || voucher.status === "USED";
+                            return (
+                              <div key={voucher.id} style={styles.tableRowContainer(index + vIndex, filteredOrders.length, isMobile)}>
+                                <div style={styles.tableRow(activeTab, isMobile)}>
+                                  <div>{voucher.code}</div>
+                                  <div>{order.lineItems[0]?.expire ? (() => {
+                                    const date = new Date(order.lineItems[0].expire);
+                                    const mm = String(date.getMonth() + 1).padStart(2, "0");
+                                    const dd = String(date.getDate()).padStart(2,"0");
+                                    const yyyy = date.getFullYear();
+                                    return `${mm}/${dd}/${yyyy}`;
+                                  })() : "--"}</div>
+                                  <div>{order.locationUsed || "—"}</div>
+                                  <div>{formatDates(order.redeemedAt) || "—"}</div>
+                                  <div>{isUsed ? "USED" : "VALID"}</div>
+                                  <div style={styles.buttonContainer}>
+                                    <button onClick={() => { if (!isUsed) handleUseVoucher(voucher, order)}} style={{...styles.useButton(isMobile), cursor: isUsed ? "not-allowed" : "pointer", opacity: isUsed ? 0.6 : 1}} disabled={isUsed}>
+                                      Use
+                                    </button>
+                                  </div>
+                                </div>
                               </div>
-                            </div>
-                          </div>
-                        );
-                      })
+                            );
+                          })
+                        : <div key={order.id || index} style={{textAlign: 'center', color: '#888', padding: '10px'}}>No vouchers</div>
+                      )
                     );
                   })()
                 : (() => {
