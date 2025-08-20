@@ -1,7 +1,7 @@
 // Imports.
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import styles from "../styles/home.js";
+import styles from "../styles/customer.js";
 
 
 // Frontend.
@@ -578,14 +578,10 @@ useEffect(() => {
           <div style={styles.filterButtonsGrid(activeTab, isMobile)}>
             {activeTab === "vouchers" ? (
               <>
-                <button style={styles.filterButton}>Purchase Date</button>
-                <button style={styles.filterButton}>Location</button>
-                <button style={styles.filterButton}>Status</button>
                 <input type="text" placeholder="Search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={styles.searchInput}/>
               </>
             ) : (
               <>
-                <button style={styles.filterButton}>Purchase Date</button>
                 <input type="text" placeholder="Search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={styles.searchInput}/>
               </>
             )}
@@ -595,10 +591,10 @@ useEffect(() => {
         {/* Mobile Tabs */}
         <div style={styles.mobileTabsContainer(isMobile)}>
           <button onClick={() => handleTabChange("vouchers")} style={styles.mobileTab(activeTab === "vouchers")}>
-            Vouchers
+            My Vouchers
           </button>
           <button onClick={() => handleTabChange("giftcards")} style={styles.mobileTab(activeTab === "giftcards")}>
-            Gift Cards
+            My Gift Cards
           </button>
         </div>
 
@@ -607,10 +603,10 @@ useEffect(() => {
           {/* Left Side Tabs */}
           <div style={styles.leftTabsContainer(isMobile)}>
             <button onClick={() => handleTabChange("vouchers")} style={styles.leftTab(activeTab === "vouchers")}>
-              Vouchers
+              My Vouchers
             </button>
             <button onClick={() => handleTabChange("giftcards")} style={styles.leftTab(activeTab === "giftcards")}>
-              Gift Cards
+              My Gift Cards
             </button>
           </div>
 
@@ -622,21 +618,19 @@ useEffect(() => {
                 <div style={styles.tableHeader(activeTab, isMobile)}>
                   {activeTab === "vouchers" ? (
                     <>
-                      <div>Order Number</div>
-                      <div>Expiration</div>
-                      <div>Location Used</div>
-                      <div>Use Date</div>
-                      <div>Status</div>
-                      <div></div>
+                      <div>Order #</div>
+                      <div>Gift Card Number</div>
+                      <div>Amount Used</div>
+                      <div>Remaining Balance</div>
+                      <div>Location</div>
                     </>
                   ) : (
                     <>
-                      <div>Gift Card Code</div>
-                      <div>Value</div>
-                      <div>Remaining Value</div>
-                      <div>Location Used</div>
-                      <div>Use Date</div>
-                      <div></div>
+                      <div>Order #</div>
+                      <div>Voucher Code</div>
+                      <div>Expiration Date</div>
+                      <div>Remaining Balance</div>
+                      <div>Location</div>
                     </>
                   )}
                 </div>
@@ -661,11 +655,6 @@ useEffect(() => {
                           <div>{order.locationUsed || "—"}</div>
                           <div>{formatDates(order.redeemedAt) || "—"}</div>
                           <div>{isUsed ? "USED" : "VALID"}</div>
-                          <div style={styles.buttonContainer}>
-                            <button onClick={() => { if (!isUsed) handleUseVoucher(voucher, order)}} style={{...styles.useButton(isMobile), cursor: isUsed ? "not-allowed" : "pointer", opacity: isUsed ? 0.6 : 1}} disabled={isUsed}>
-                              Use
-                            </button>
-                        </div>
                       </div>
                     </div>
                     );
@@ -680,13 +669,6 @@ useEffect(() => {
                           <div>{order.remainingBalance != null ? `$${formatDollarAmount(order.remainingBalance)}` : "—"}</div>
                           <div> {order.locationUsed?.length ? order.locationUsed.map((loc, idx) => ( <div key={idx}>{loc}</div>)): "—"}</div>
                           <div>{formatDates(order.redeemedAt) || "—"}</div>
-                          <div style={styles.buttonContainer}>
-                            {!giftCard.used && (
-                              <button onClick={() => handleUseGiftCard(giftCard, order)} style={styles.useButton(isMobile)}>
-                                Use
-                              </button>
-                            )}
-                          </div>
                         </div>
                       </div>
                     ))
