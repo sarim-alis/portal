@@ -9,9 +9,9 @@ const Customer = ({ onLogout }) => {
   // States.
   const [activeTab, setActiveTab] = useState("vouchers");
   const [searchQuery, setSearchQuery] = useState("");
-  const [showSearchPopup, setShowSearchPopup] = useState(false);
-  const [voucherSearchCode, setVoucherSearchCode] = useState("");
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [orders, setOrders] = useState([]);
+  const [giftOrders, setGiftOrders] = useState([]);
 
   // Handle resize.
   useEffect(() => {
@@ -20,46 +20,54 @@ const Customer = ({ onLogout }) => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Show search popup when switching to vouchers tab.
-  useEffect(() => {
-    if (activeTab === "vouchers") {
-      setShowSearchPopup(true);
+// Handle tab change.
+const handleTabChange = (tab) => {
+  setActiveTab(tab);
+};
+
+useEffect(() => {
+  const fetchOrders = async () => {
+    try {
+      const email = localStorage.getItem("userEmail");
+      if (!email) {
+        console.error("No user email found in localStorage");
+        return;
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/vou/cust?email=${email}`
+      );
+      const data = await response.json();
+      console.log("📦 All Orders:", data);
+
+      // ✅ Separate vouchers
+      const voucherOrders = data.filter(
+        (voucher) =>
+          voucher.order?.lineItems?.some(
+            (item) => item.type === '["voucher"]'
+          )
+      );
+
+      // ✅ Separate gifts
+      const giftOrders = data.filter(
+        (voucher) =>
+          voucher.order?.lineItems?.some(
+            (item) => item.type === '["gift"]'
+          )
+      );
+
+      console.log("🎫 Voucher Orders:", voucherOrders);
+      console.log("🎁 Gift Orders:", giftOrders);
+
+      setOrders(voucherOrders);
+      setGiftOrders(giftOrders);
+    } catch (error) {
+      console.error("❌ Failed to fetch orders:", error);
     }
-  }, [activeTab]);
+  };
 
-  useEffect(() => {
-  if (activeTab === "giftcards") {
-    setShowGiftCardSearchPopup(true);
-  }
-}, [activeTab]);
-
-
-  // Fetch orders with vouchers.
-//   useEffect(() => {
-//     const fetchOrdersWithVouchers = async () => {
-//       try {
-//         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/vou/cust?email=${email}`);
-//         const data = await response.json();
-//         console.log("📦 Orders with Vouchers:", data);
-
-//         // Filter orders with type voucher.
-//         const voucherOrders = data.filter((order) =>
-//           order.lineItems.some((item) => item.type === '["voucher"]')
-//         );
-
-//         console.log("🎫 Filtered Voucher Orders:", voucherOrders);
-//         setOrders(voucherOrders);
-//         // setFilteredOrders(voucherOrders);
-//       } catch (error) {
-//         console.error("❌ Failed to fetch voucher orders:", error);
-//       }
-//     };
-
-//     fetchOrdersWithVouchers();
-//   }, []);
-
-
-
+  fetchOrders();
+}, []);
 
 
   return (
@@ -137,43 +145,62 @@ const Customer = ({ onLogout }) => {
                 </div>
               </div>
 
-              {/* Table Rows
-              {activeTab === "vouchers"
-                ? filteredOrders.map((order, index) =>
-                    order.vouchers.map((voucher, vIndex) => {
-                    const isUsed = order.statusUse === true || voucher.status === "USED";
-                  return (
-                      <div key={voucher.id} style={styles.tableRowContainer(index + vIndex, filteredOrders.length, isMobile)}>
-                        <div style={styles.tableRow(activeTab, isMobile)}>
-                          <div>{voucher.code}</div>
-                          <div>{order.lineItems[0]?.expire ? (() => {
-                            const date = new Date(order.lineItems[0].expire);
-                            const mm = String(date.getMonth() + 1).padStart(2, "0");
-                            const dd = String(date.getDate()).padStart(2,"0");
-                            const yyyy = date.getFullYear();
-                            return `${mm}/${dd}/${yyyy}`;
-                          })() : "--"}</div>
-                          <div>{order.locationUsed || "—"}</div>
-                          <div>{formatDates(order.redeemedAt) || "—"}</div>
-                          <div>{isUsed ? "USED" : "VALID"}</div>
-                      </div>
-                    </div>
-                    );
-                  })
-                  )
-                : filteredGiftCardOrders.map((order, index) =>
-                    order.vouchers.map((giftCard, vIndex) => (
-                      <div key={giftCard.id} style={styles.tableRowContainer(index + vIndex, filteredGiftCardOrders.length, isMobile)}>
-                        <div style={styles.tableRow(activeTab, isMobile)}>
-                          <div>{giftCard.code}</div>
-                          <div>${formatDollarAmount(order.totalPrice)}</div>
-                          <div>{order.remainingBalance != null ? `$${formatDollarAmount(order.remainingBalance)}` : "—"}</div>
-                          <div> {order.locationUsed?.length ? order.locationUsed.map((loc, idx) => ( <div key={idx}>{loc}</div>)): "—"}</div>
-                          <div>{formatDates(order.redeemedAt) || "—"}</div>
-                        </div>
-                      </div>
-                    ))
-                  )} */}
+              {/* Table Rows */}
+{activeTab === "vouchers"
+  ? orders.map((voucher, index) => {
+      const order = voucher.order;
+      return (
+        <div
+          key={voucher.id}
+          style={styles.tableRowContainer(index, orders.length, isMobile)}
+        >
+          <div style={styles.tableRow(activeTab, isMobile)}>
+            <div>{order.shopifyOrderId}</div>
+            <div>{voucher.code}</div>
+            <div>{voucher.used ? "USED" : "VALID"}</div>
+            <div>
+              {order.remainingBalance != null
+                ? `$${order.remainingBalance}`
+                : "—"}
+            </div>
+            <div>
+              {order.locationUsed?.length
+                ? order.locationUsed.join(", ")
+                : "—"}
+            </div>
+          </div>
+        </div>
+      );
+    })
+  : giftOrders.map((gift, index) => {
+      const order = gift.order;
+      return (
+        <div
+          key={gift.id}
+          style={styles.tableRowContainer(index, giftOrders.length, isMobile)}
+        >
+          <div style={styles.tableRow(activeTab, isMobile)}>
+            <div>{order.shopifyOrderId}</div>
+            <div>{gift.code}</div>
+            <div>
+              {order.lineItems[0]?.expire
+                ? new Date(order.lineItems[0].expire).toLocaleDateString()
+                : "--"}
+            </div>
+            <div>
+              {order.remainingBalance != null
+                ? `$${order.remainingBalance}`
+                : "—"}
+            </div>
+            <div>
+              {order.locationUsed?.length
+                ? order.locationUsed.join(", ")
+                : "—"}
+            </div>
+          </div>
+        </div>
+      );
+    })}
             </div>
           </div>
         </div>
