@@ -34,7 +34,7 @@ function App() {
     setRole(null);
     localStorage.removeItem("isAuthenticated");
     localStorage.removeItem("userEmail");
-    setRole(localStorage.getItem("userRole"));
+    localStorage.removeItem("userRole")
   };
 
   return (
