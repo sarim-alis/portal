@@ -104,4 +104,5 @@ model Customer {
   createdAt DateTime @default(now())
   orders    Order[]  @relation("CustomerOrders")
   password   String?
+  role       String?
 }
