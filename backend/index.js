@@ -7,6 +7,7 @@ import pool from './db/conn.js';
 import authRoutes from './src/routes/authRoutes.js';
 import locRoutes from './src/routes/locRoutes.js';
 import vouRoutes from './src/routes/vouRoutes.js';
+import path from 'path'; 
 
 
 // Config.
@@ -21,10 +22,20 @@ app.use(express.json());
 // Route.
 app.use('/api/auth', authRoutes);
 app.use('/api/loc', locRoutes);  
-app.use('/api/vou', vouRoutes);          
-app.get('/', (req, res) => {
-  res.send('API is running');
+app.use('/api/vou', vouRoutes);  
+
+
+
+
+const __dirname = path.resolve();
+app.use(express.static(path.join(__dirname, 'frontend/dist')));
+
+app.get(/.*/, (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend/dist', 'index.html'));
 });
+
+
+
 
 // Db.
 pool.connect()
