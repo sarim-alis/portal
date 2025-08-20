@@ -4,7 +4,6 @@ import { toast } from "react-toastify";
 import styles from "../styles/home.js";
 
 
-
 // Frontend.
 const Home = ({ onLogout }) => {
   // States.
@@ -37,13 +36,10 @@ const Home = ({ onLogout }) => {
     color: "#fff"
   });
 
-
 const formatDates = (value) => {
   if (!value) return "—";
 
-
   const arr = Array.isArray(value) ? value : [value];
-
 
   const formatted = arr
     .map((d) => {
@@ -53,9 +49,7 @@ const formatDates = (value) => {
     })
     .filter(Boolean);
 
-
   if (!formatted.length) return "—";
-
 
   // Join with <br /> and return as React fragment.
   return formatted.reduce((acc, date, i) => {
@@ -63,7 +57,6 @@ const formatDates = (value) => {
     return [...acc, <br key={i} />, date];
   }, []);
 };
-
 
 // formatVoucherCode.
 const formatVoucherCode = (value) => {
@@ -76,7 +69,6 @@ const formatVoucherCode = (value) => {
   return truncated.substring(0, 4) + '-' + truncated.substring(4);
 };
 
-
 // formatDollarAmount.
 const formatDollarAmount = (amount) => {
   if (amount === null || amount === undefined || amount === "") return "—";
@@ -84,7 +76,6 @@ const formatDollarAmount = (amount) => {
   if (isNaN(numericAmount)) return "—";
   return numericAmount.toFixed(2);
 };
-
 
 // handleAmountChange.
 const handleAmountChange = (e) => {
@@ -94,7 +85,6 @@ const handleAmountChange = (e) => {
   if (decimalCount > 1) {
     val = val.substring(0, val.lastIndexOf('.'));
   }
-
 
   const decimalIndex = val.indexOf('.');
   if (decimalIndex !== -1 && val.length > decimalIndex + 3) {
@@ -116,14 +106,12 @@ const handleAmountChange = (e) => {
   }
 };
 
-
   // Handle resize.
   useEffect(() => {
     const handleResize = () => {setIsMobile(window.innerWidth <= 1100);};
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
 
   // Show search popup when switching to vouchers tab.
   useEffect(() => {
@@ -132,13 +120,11 @@ const handleAmountChange = (e) => {
     }
   }, [activeTab]);
 
-
   useEffect(() => {
   if (activeTab === "giftcards") {
     setShowGiftCardSearchPopup(true);
   }
 }, [activeTab]);
-
 
   // Validate voucher in real-time as user types.
   useEffect(() => {
@@ -151,7 +137,6 @@ const handleAmountChange = (e) => {
       return;
     }
 
-
     const formattedCode = voucherSearchCode.replace(/[^A-Z0-9]/g, '');
     
     // Find matching order.
@@ -160,7 +145,6 @@ const handleAmountChange = (e) => {
         voucher.code.replace(/[^A-Z0-9]/g, '') === formattedCode
       )
     );
-
 
     if (!matchingOrder) {
       setVoucherValidation({
@@ -171,11 +155,9 @@ const handleAmountChange = (e) => {
       return;
     }
 
-
     const voucher = matchingOrder.vouchers.find(v =>
       v.code.replace(/[^A-Z0-9]/g, '') === formattedCode
     );
-
 
     // Check expiration.
     const expireDate = matchingOrder.lineItems[0]?.expire;
@@ -201,7 +183,6 @@ const handleAmountChange = (e) => {
       }
     }
 
-
     // Voucher is valid.
     setVoucherValidation({
       status: 'valid',
@@ -209,9 +190,7 @@ const handleAmountChange = (e) => {
       color: "#28a745"
     });
 
-
   }, [voucherSearchCode, orders]);
-
 
   // Set gift card validation.
 useEffect(() => {
@@ -224,7 +203,6 @@ useEffect(() => {
     return;
   }
 
-
   const formattedCode = giftCardSearchCode.replace(/[^A-Z0-9]/g, '');
   
   // Find matching gift card.
@@ -234,7 +212,6 @@ useEffect(() => {
     )
   );
 
-
   if (!matchingOrder) {
     setGiftCardValidation({
       status: 'invalid',
@@ -243,7 +220,6 @@ useEffect(() => {
     });
     return;
   }
-
 
   // Check if gift card is already used.
   if (matchingOrder.remainingBalance === 0) {
@@ -255,7 +231,6 @@ useEffect(() => {
     return;
   }
 
-
   // Gift card is valid.
   setGiftCardValidation({
     status: 'valid',
@@ -263,9 +238,7 @@ useEffect(() => {
     color: "#28a745"
   });
 
-
 }, [giftCardSearchCode, giftCardOrders]);
-
 
 // Handle gift card search.
 const handleGiftCardSearch = () => {
@@ -274,13 +247,11 @@ const handleGiftCardSearch = () => {
     return;
   }
 
-
   // Only allow search if gift card is valid.
   if (giftCardValidation.status !== 'valid') {
     toast.error(giftCardValidation.message);
     return;
   }
-
 
   const formattedCode = giftCardSearchCode.replace(/[^A-Z0-9]/g, '');
   
@@ -290,173 +261,88 @@ const handleGiftCardSearch = () => {
     )
   );
 
-
-  console.log("🔍 Gift Card Search - Formatted Code:", formattedCode);
-  console.log("🔍 Gift Card Search - Filtered Results:", filtered);
-  
   setFilteredGiftCardOrders(filtered);
   setSearchQuery(giftCardSearchCode);
   setShowGiftCardSearchPopup(false);
 };
 
-
 // Handle tab change.
 const handleTabChange = (tab) => {
-  console.log("🔄 Tab changed to:", tab);
-  
   setActiveTab(tab);
   setSearchQuery("");
   if (tab === "vouchers") {
     const usedVouchers = orders.filter((order) => 
       order.statusUse === true || order.vouchers?.some(voucher => voucher.status === 'USED'));
-    console.log("🎫 Used Vouchers for display:", usedVouchers);
     setFilteredOrders(usedVouchers);
     setShowSearchPopup(true);
   } else if (tab === "giftcards") {
-    console.log("🎁 Switching to Gift Cards tab");
     setFilteredGiftCardOrders([]);
     setShowGiftCardSearchPopup(true);
   }
 };
 
-
 // Fetch locations.
 useEffect(() => {
     const fetchLocations = async () => {
       try {
-        console.log("🚀 Fetching locations from:", `${import.meta.env.VITE_API_URL}/api/loc`);
-        
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/loc`);
-        console.log("📡 Locations response status:", response.status);
-        console.log("📡 Locations response ok:", response.ok);
-        
         const data = await response.json();
-        console.log("📍 Raw locations data:", data);
-        console.log("📍 Locations array:", data.locations);
-        console.log("📍 Number of locations:", data.locations?.length || 0);
-        
+        console.log("📍 Locations from API:", data.locations);
         setLocations(data.locations);
       } catch (error) {
         console.error("❌ Failed to fetch locations:", error);
-        console.error("❌ Location fetch error details:", {
-          message: error.message,
-          stack: error.stack
-        });
       }
     };
 
-
     fetchLocations();
 }, []);
-
 
   // Fetch orders with vouchers.
   useEffect(() => {
     const fetchOrdersWithVouchers = async () => {
       try {
-        console.log("🚀 Fetching voucher orders from:", `${import.meta.env.VITE_API_URL}/api/vou`);
-        
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/vou`);
-        console.log("📡 Vouchers response status:", response.status);
-        console.log("📡 Vouchers response ok:", response.ok);
-        
         const data = await response.json();
-        console.log("📦 Raw voucher orders data:", data);
-        console.log("📦 Total orders received:", data.length);
-
+        console.log("📦 Orders with Vouchers:", data);
 
         // Filter orders with type voucher.
-        // const voucherOrders = data.filter((order) =>
-        //   order.lineItems.some((item) => item.type === '["voucher"]')
-        // );
+        const voucherOrders = data.filter((order) =>
+          order.lineItems.some((item) => item.type === '["voucher"]')
+        );
 
-
-        // console.log("🎫 Filtered Voucher Orders:", voucherOrders);
-        // console.log("🎫 Number of voucher orders:", voucherOrders.length);
-        
-        // Log each voucher order structure
-        // voucherOrders.forEach((order, index) => {
-        //   console.log(`🎫 Voucher Order ${index + 1}:`, {
-        //     id: order.id,
-        //     shopifyOrderId: order.shopifyOrderId,
-        //     vouchers: order.vouchers,
-        //     lineItems: order.lineItems,
-        //     statusUse: order.statusUse,
-        //     locationUsed: order.locationUsed,
-        //     redeemedAt: order.redeemedAt
-        //   });
-        // });
-        
-        // setOrders(voucherOrders);
-        setOrders(data); 
+        console.log("🎫 Filtered Voucher Orders:", voucherOrders);
+        setOrders(voucherOrders);
         // setFilteredOrders(voucherOrders);
       } catch (error) {
         console.error("❌ Failed to fetch voucher orders:", error);
-        console.error("❌ Voucher fetch error details:", {
-          message: error.message,
-          stack: error.stack
-        });
       }
     };
 
-
     fetchOrdersWithVouchers();
   }, []);
-
 
   // Fetch orders with gifts.
   useEffect(() => {
     const fetchOrdersWithGiftCards = async () => {
       try {
-        console.log("🚀 Fetching gift card orders from:", `${import.meta.env.VITE_API_URL}/api/vou`);
-        
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/vou`);
-        console.log("📡 Gift Cards response status:", response.status);
-        console.log("📡 Gift Cards response ok:", response.ok);
-        
         const data = await response.json();
-        console.log("🎁 Raw gift card orders data:", data);
-        console.log("🎁 Total orders received for gift cards:", data.length);
-
+        console.log("🎁 Orders with Gift Cards:", data);
 
         // Filter orders with type gift.
-        // const giftOrders = data.filter((order) =>
-        //   order.lineItems.some((item) => item.type === '["gift"]')
-        // );
+        const giftOrders = data.filter((order) =>
+          order.lineItems.some((item) => item.type === '["gift"]')
+        );
 
-
-        // console.log("🎟️ Filtered Gift Card Orders:", giftOrders);
-        // console.log("🎟️ Number of gift card orders:", giftOrders.length);
-        
-        // Log each gift card order structure
-        // giftOrders.forEach((order, index) => {
-        //   console.log(`🎟️ Gift Card Order ${index + 1}:`, {
-        //     id: order.id,
-        //     shopifyOrderId: order.shopifyOrderId,
-        //     vouchers: order.vouchers,
-        //     lineItems: order.lineItems,
-        //     totalPrice: order.totalPrice,
-        //     remainingBalance: order.remainingBalance,
-        //     locationUsed: order.locationUsed,
-        //     redeemedAt: order.redeemedAt
-        //   });
-        // });
-        
-        // setGiftCardOrders(giftOrders);
-        setGiftCardOrders(data);
+        console.log("🎟️ Filtered Gift Card Orders:", giftOrders);
+        setGiftCardOrders(giftOrders);
       } catch (error) {
         console.error("❌ Failed to fetch gift card orders:", error);
-        console.error("❌ Gift card fetch error details:", {
-          message: error.message,
-          stack: error.stack
-        });
       }
     };
 
-
     fetchOrdersWithGiftCards();
   }, []);
-
 
 // Handle voucher search.
 const handleVoucherSearch = () => {
@@ -465,13 +351,11 @@ const handleVoucherSearch = () => {
       return;
     }
 
-
     // Only allow search if voucher is valid
     if (voucherValidation.status !== 'valid') {
       toast.error(voucherValidation.message);
       return;
     }
-
 
     const formattedCode = voucherSearchCode.replace(/[^A-Z0-9]/g, '');
     
@@ -481,31 +365,20 @@ const handleVoucherSearch = () => {
       )
     );
 
-
-    console.log("🔍 Voucher Search - Formatted Code:", formattedCode);
-    console.log("🔍 Voucher Search - Filtered Results:", filtered);
-
-
     setFilteredOrders(filtered);
     setSearchQuery(voucherSearchCode);
     setShowSearchPopup(false);
   };
 
-
 // Handle use voucher.
 const handleUseVoucher = (voucher) => {
-  console.log("🎫 Using voucher:", voucher);
   setSelectedVoucher(voucher);
   setIsGiftCard(false);
   setShowPopup(true);
 };
 
-
 // Handle use gift card.
 const handleUseGiftCard = (giftCard, order) => {
-  console.log("🎁 Using gift card:", giftCard);
-  console.log("🎁 Gift card order:", order);
-  
   setSelectedVoucher({
     orderNumber: giftCard.code,
     ...giftCard,
@@ -518,7 +391,6 @@ const handleUseGiftCard = (giftCard, order) => {
   setShowPopup(true);
 };
 
-
 // Handle redeem gift card.
 const handleRedeemGiftCard = async () => {
     if (
@@ -530,17 +402,7 @@ const handleRedeemGiftCard = async () => {
       return;
     }
 
-
     try {
-      console.log("🎁 Redeeming gift card:", {
-        code: selectedVoucher.code,
-        redeemAmount: parseFloat(amountToRedeem),
-        locationUsed: [selectedLocation],
-        redeemedAt: [new Date().toISOString()],
-        useDate: new Date().toISOString()
-      });
-
-
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/api/vou/redeem`,
         {
@@ -556,11 +418,7 @@ const handleRedeemGiftCard = async () => {
         }
       );
 
-
-      console.log("📡 Gift card redeem response status:", response.status);
       const data = await response.json();
-      console.log("📦 Gift card redeem response data:", data);
-      
       if (response.ok) {
         toast.success("Gift redeemed successfully!");
         setGiftCardOrders((prevOrders) => 
@@ -577,15 +435,13 @@ const handleRedeemGiftCard = async () => {
         );
         closePopup();
       } else {
-        console.error("❌ Gift card redeem failed:", data);
         toast.error(data.error || "Failed to redeem.");
       }
     } catch (error) {
-      console.error("❌ Error redeeming gift card:", error);
+      console.error("Error redeeming gift card:", error);
       toast.error("Error redeeming gift card.");
     }
   };
-
 
 
 // Handle mark voucher as used.
@@ -595,14 +451,7 @@ const handleMarkVoucherAsUsed = async () => {
       return;
     }
 
-
     try {
-      console.log("🎫 Marking voucher as used:", {
-        code: selectedVoucher.code,
-        locationUsed: selectedLocation
-      });
-
-
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/api/vou/redeems`,
         {
@@ -612,11 +461,7 @@ const handleMarkVoucherAsUsed = async () => {
         }
       );
 
-
-      console.log("📡 Voucher redeem response status:", response.status);
       const data = await response.json();
-      console.log("📦 Voucher redeem response data:", data);
-
 
       if (response.ok) {
         toast.success("Voucher used successfully!");
@@ -634,15 +479,13 @@ const handleMarkVoucherAsUsed = async () => {
         );
         closePopup();
       } else {
-        console.error("❌ Voucher redeem failed:", data);
         toast.error(data.error || "Failed to mark voucher as used.");
       }
     } catch (error) {
-      console.error("❌ Error marking voucher as used:", error);
+      console.error("Error marking voucher as used:", error);
       toast.error("Error marking voucher as used.");
     }
 };
-
 
 
 // Close popup.
@@ -655,7 +498,6 @@ const closePopup = () => {
   setWasAmountReduced(false);
 };
 
-
 // Close search popup.
 const closeSearchPopup = () => {
   setShowSearchPopup(false);
@@ -667,7 +509,6 @@ const closeSearchPopup = () => {
     color: "#fff"
   });
 };
-
 
 // Close gift card search popup.
 const closeGiftCardSearchPopup = () => {
@@ -682,16 +523,12 @@ const closeGiftCardSearchPopup = () => {
   });
 };
 
-
 // For vouchers, show USED status by default.
 useEffect(() => {
-  console.log("🔍 Voucher filtering effect triggered");
-  console.log("🔍 Search query:", searchQuery);
-  console.log("🔍 All orders:", orders);
-  
   if (!searchQuery.trim()) {
-    // Show ALL vouchers when search query is empty
-    setFilteredOrders(orders);
+    const usedVouchers = orders.filter((order) => 
+      order.statusUse === true || order.vouchers?.some(voucher => voucher.status === 'USED'));
+    setFilteredOrders(usedVouchers);
   } else {
     const filtered = orders.filter((order) => 
       order.vouchers.some((voucher) => 
@@ -699,22 +536,15 @@ useEffect(() => {
         order.shopifyOrderId.includes(searchQuery)
       )
     );
-    console.log("🔍 Filtered vouchers by search:", filtered);
     setFilteredOrders(filtered);
   }
 }, [searchQuery, orders]);
 
 
-
 // Show only when gift code is enter.
 useEffect(() => {
-  console.log("🔍 Gift card filtering effect triggered");
-  console.log("🔍 Search query:", searchQuery);
-  console.log("🔍 All gift card orders:", giftCardOrders);
-  
   if (!searchQuery.trim()) {
-    // Show ALL gift cards when search query is empty
-    setFilteredGiftCardOrders(giftCardOrders);
+    setFilteredGiftCardOrders([]);
   } else {
     const filtered = giftCardOrders.filter((order) => 
       order.vouchers.some((giftCard) => 
@@ -722,18 +552,10 @@ useEffect(() => {
         order.shopifyOrderId.includes(searchQuery)
       )
     );
-    console.log("🔍 Filtered gift cards by search:", filtered);
     setFilteredGiftCardOrders(filtered);
   }
 }, [searchQuery, giftCardOrders]);
 
-
-  // Add console log for table rendering
-  useEffect(() => {
-    console.log("📊 Current active tab:", activeTab);
-    console.log("📊 Filtered Orders for display:", filteredOrders);
-    console.log("📊 Filtered Gift Card Orders for display:", filteredGiftCardOrders);
-  }, [activeTab, filteredOrders, filteredGiftCardOrders]);
 
 
   return (
@@ -746,11 +568,9 @@ useEffect(() => {
         </button>
       </div>
 
-
       <div style={styles.contentContainer(isMobile)}>
         {/* Sort and Filter */}
         <h2 style={styles.sortFilterHeader}>Sort and Filter</h2>
-
 
         {/* Filter Buttons */}
         <div style={styles.filterButtonsRow}>
@@ -772,7 +592,6 @@ useEffect(() => {
           </div>
         </div>
 
-
         {/* Mobile Tabs */}
         <div style={styles.mobileTabsContainer(isMobile)}>
           <button onClick={() => handleTabChange("vouchers")} style={styles.mobileTab(activeTab === "vouchers")}>
@@ -782,7 +601,6 @@ useEffect(() => {
             Gift Cards
           </button>
         </div>
-
 
         {/* Main Content Layout */}
         <div style={styles.mainContentLayout(isMobile)}>
@@ -795,7 +613,6 @@ useEffect(() => {
               Gift Cards
             </button>
           </div>
-
 
           {/* Right Side Content */}
           <div style={styles.rightSideContent}>
@@ -825,13 +642,12 @@ useEffect(() => {
                 </div>
               </div>
 
-
               {/* Table Rows */}
               {activeTab === "vouchers"
                 ? filteredOrders.map((order, index) =>
                     order.vouchers.map((voucher, vIndex) => {
                     const isUsed = order.statusUse === true || voucher.status === "USED";
-                    return (
+                  return (
                       <div key={voucher.id} style={styles.tableRowContainer(index + vIndex, filteredOrders.length, isMobile)}>
                         <div style={styles.tableRow(activeTab, isMobile)}>
                           <div>{voucher.code}</div>
@@ -849,11 +665,11 @@ useEffect(() => {
                             <button onClick={() => { if (!isUsed) handleUseVoucher(voucher, order)}} style={{...styles.useButton(isMobile), cursor: isUsed ? "not-allowed" : "pointer", opacity: isUsed ? 0.6 : 1}} disabled={isUsed}>
                               Use
                             </button>
-                          </div>
                         </div>
                       </div>
+                    </div>
                     );
-                    })
+                  })
                   )
                 : filteredGiftCardOrders.map((order, index) =>
                     order.vouchers.map((giftCard, vIndex) => (
@@ -861,7 +677,7 @@ useEffect(() => {
                         <div style={styles.tableRow(activeTab, isMobile)}>
                           <div>{giftCard.code}</div>
                           <div>${formatDollarAmount(order.totalPrice)}</div>
-                          <div>{order.remainingBalance != null ? `${formatDollarAmount(order.remainingBalance)}` : "—"}</div>
+                          <div>{order.remainingBalance != null ? `$${formatDollarAmount(order.remainingBalance)}` : "—"}</div>
                           <div> {order.locationUsed?.length ? order.locationUsed.map((loc, idx) => ( <div key={idx}>{loc}</div>)): "—"}</div>
                           <div>{formatDates(order.redeemedAt) || "—"}</div>
                           <div style={styles.buttonContainer}>
@@ -880,15 +696,13 @@ useEffect(() => {
         </div>
       </div>
 
-
       {/* Search Popup with Validation */}
       {showSearchPopup && (
         <div style={styles.popupOverlay}>
           <div style={styles.popupModal(isMobile)}>
             <button onClick={closeSearchPopup} style={styles.closeButton}>×</button>
 
-
-            <div style={styles.popupContentContainer}>             
+            <div style={styles.popupContentContainer}>           
               <div style={styles.popupFlexContainer(isMobile)}>
                 <span style={styles.popupLabel(isMobile)}>Voucher ID:</span>
                 <input 
@@ -912,7 +726,6 @@ useEffect(() => {
                 </span>
               </div>
 
-
               <div style={styles.redemButt}>
                 <button 
                   onClick={handleVoucherSearch}
@@ -931,14 +744,12 @@ useEffect(() => {
         </div>
       )}
 
-
       {showGiftCardSearchPopup && (
   <div style={styles.popupOverlay}>
     <div style={styles.popupModal(isMobile)}>
       <button onClick={closeGiftCardSearchPopup} style={styles.closeButton}>×</button>
 
-
-      <div style={styles.popupContentContainer}>             
+      <div style={styles.popupContentContainer}>           
         <div style={styles.popupFlexContainer(isMobile)}>
           <span style={styles.popupLabel(isMobile)}>Gift Card ID:</span>
           <input 
@@ -962,7 +773,6 @@ useEffect(() => {
           </span>
         </div>
 
-
         <div style={styles.redemButt}>
           <button 
             onClick={handleGiftCardSearch}
@@ -981,13 +791,11 @@ useEffect(() => {
   </div>
 )}
 
-
       {/* Use Voucher/Gift Card Popup */}
       {showPopup && (
         <div style={styles.popupOverlay}>
           <div style={styles.popupModal(isMobile)}>
             <button onClick={closePopup} style={styles.closeButton}>×</button>
-
 
             <div style={styles.popupContentContainer}>
               <div style={styles.popupFlexContainer(isMobile)}>
@@ -997,11 +805,10 @@ useEffect(() => {
                 {isGiftCard && (
                   <>
                     <span style={styles.popupLabel(isMobile)}>Amount to Redeem:</span>
-                    <input type="text" value={amountToRedeem !== "" ? `${amountToRedeem}` : ""} onChange={handleAmountChange} placeholder="$XX,XX" style={{...styles.popupInput(isMobile), borderColor: wasAmountReduced ? '#28a745' : styles.popupInput(isMobile).borderColor}}/>
+                    <input type="text" value={amountToRedeem !== "" ? `$${amountToRedeem}` : ""} onChange={handleAmountChange} placeholder="$XX,XX" style={{...styles.popupInput(isMobile), borderColor: wasAmountReduced ? '#28a745' : styles.popupInput(isMobile).borderColor}}/>
                   </>
                 )}
               </div>
-
 
               <div style={styles.popupFlexContainers(isMobile)}>
                 <span style={styles.popupLabel(isMobile)}>Location:</span>
@@ -1016,7 +823,7 @@ useEffect(() => {
                 {isGiftCard && (
                   <>
                     <span style={styles.popupLabel(isMobile)}>Remaining Balance:</span>
-                    <input type="text" value={selectedVoucher?.remainingBalance != null ? `${selectedVoucher.remainingBalance}` : `${selectedVoucher?.totalPrice || "0.00"}`} style={styles.popupReadonlyInput(isMobile)}/>
+                    <input type="text" value={selectedVoucher?.remainingBalance != null ? `$${selectedVoucher.remainingBalance}` : `$${selectedVoucher?.totalPrice || "0.00"}`} style={styles.popupReadonlyInput(isMobile)}/>
                   </>
                 )}
               </div>
@@ -1033,6 +840,5 @@ useEffect(() => {
     </div>
   );
 };
-
 
 export default Home;
