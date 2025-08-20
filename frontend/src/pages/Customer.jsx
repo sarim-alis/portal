@@ -5,7 +5,7 @@ import styles from "../styles/home.js";
 
 
 // Frontend.
-const Home = ({ onLogout }) => {
+const Customer = ({ onLogout }) => {
   // States.
   const [activeTab, setActiveTab] = useState("vouchers");
   const [searchQuery, setSearchQuery] = useState("");
@@ -841,4 +841,4 @@ useEffect(() => {
   );
 };
 
-export default Home;
+export default Customer;
