@@ -5,10 +5,12 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { toast } from "react-toastify";
 import styles from '../styles/login.js';
+import { useNavigate } from "react-router-dom";
 
 
 // Frontend.
 const Login = ({ onLogin }) => {
+  const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
   // States.
   const initialValues = {
@@ -39,6 +41,9 @@ const Login = ({ onLogin }) => {
       // Login successful
       toast.success('Login successful! 🎉');
       localStorage.setItem("isAuthenticated", "true");
+      localStorage.setItem("userRole", data.user.role || "employee");
+      localStorage.setItem("userEmail", data.user.email);
+      navigate("/");
       onLogin(); // Or store token/data if needed
     } else {
       toast.error(data.error || 'Invalid credentials');

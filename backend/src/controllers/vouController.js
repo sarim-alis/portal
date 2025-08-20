@@ -20,6 +20,33 @@ export const getOrdersWithVouchers = async (req, res) => {
   }
 };
 
+export const getCustomerVouchers = async (req, res) => {
+  try {
+    const { email } = req.query; // Pass customer email as query param
+
+    if (!email) {
+      return res.status(400).json({ error: "Customer email is required" });
+    }
+
+    // Fetch vouchers for this customer
+    const vouchers = await prisma.voucher.findMany({
+      where: { customerEmail: email },
+      include: {
+        order: true, // include the related order info
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    res.json(vouchers);
+  } catch (error) {
+    console.error('Error fetching customer vouchers:', error);
+    res.status(500).json({ error: 'Failed to fetch customer vouchers' });
+  }
+};
+
+
 export const redeemByCode = async (req, res) => {
   try {
     const { code, redeemAmount, locationUsed } = req.body;
