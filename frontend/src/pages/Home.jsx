@@ -5,7 +5,7 @@ import styles from "../styles/home.js";
 
 
 // Frontend.
-const Home = () => {
+const Home = ({ onLogout }) => {
   // States.
   const [activeTab, setActiveTab] = useState("vouchers");
   const [searchQuery, setSearchQuery] = useState("");
@@ -25,6 +25,7 @@ const Home = () => {
   const [selectedVoucher, setSelectedVoucher] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState("Select your location");
   const [amountToRedeem, setAmountToRedeem] = useState("");
+  const [wasAmountReduced, setWasAmountReduced] = useState(false);
   const [isGiftCard, setIsGiftCard] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [showGiftCardSearchPopup, setShowGiftCardSearchPopup] = useState(false);
@@ -57,9 +58,57 @@ const formatDates = (value) => {
   }, []);
 };
 
+// formatVoucherCode.
+const formatVoucherCode = (value) => {
+  const cleanValue = value.replace(/[^A-Z0-9]/g, '');
+  if (cleanValue.length <= 4) {
+    return cleanValue;
+  }
+  
+  const truncated = cleanValue.substring(0, 8);
+  return truncated.substring(0, 4) + '-' + truncated.substring(4);
+};
+
+// formatDollarAmount.
+const formatDollarAmount = (amount) => {
+  if (amount === null || amount === undefined || amount === "") return "—";
+  const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+  if (isNaN(numericAmount)) return "—";
+  return numericAmount.toFixed(2);
+};
+
+// handleAmountChange.
+const handleAmountChange = (e) => {
+  let val = e.target.value.replace(/[$,]/g, "").replace(/[^0-9.]/g, "");
+  
+  const decimalCount = (val.match(/\./g) || []).length;
+  if (decimalCount > 1) {
+    val = val.substring(0, val.lastIndexOf('.'));
+  }
+
+  const decimalIndex = val.indexOf('.');
+  if (decimalIndex !== -1 && val.length > decimalIndex + 3) {
+    val = val.substring(0, decimalIndex + 3);
+  }
+  
+  const numericValue = parseFloat(val);
+  const maxBalance = selectedVoucher?.remainingBalance ?? selectedVoucher?.totalPrice ?? 0;
+  setWasAmountReduced(false);
+  
+  // If entered amount exceeds max balance, automatically reduce to max.
+  if (!isNaN(numericValue) && numericValue > maxBalance) {
+    const formattedMaxBalance = formatDollarAmount(maxBalance);
+    setAmountToRedeem(formattedMaxBalance);
+    setWasAmountReduced(true);
+    toast.info(`Amount reduced to maximum available balance: $${formattedMaxBalance}`);
+  } else {
+    setAmountToRedeem(val);
+  }
+};
+
   // Handle resize.
   useEffect(() => {
-    const handleResize = () => {setIsMobile(window.innerWidth <= 768);};
+    const handleResize = () => {setIsMobile(window.innerWidth <= 1100);};
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -88,7 +137,7 @@ const formatDates = (value) => {
       return;
     }
 
-    const formattedCode = voucherSearchCode.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const formattedCode = voucherSearchCode.replace(/[^A-Z0-9]/g, '');
     
     // Find matching order.
     const matchingOrder = orders.find(order =>
@@ -154,7 +203,7 @@ useEffect(() => {
     return;
   }
 
-  const formattedCode = giftCardSearchCode.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const formattedCode = giftCardSearchCode.replace(/[^A-Z0-9]/g, '');
   
   // Find matching gift card.
   const matchingOrder = giftCardOrders.find(order =>
@@ -204,7 +253,7 @@ const handleGiftCardSearch = () => {
     return;
   }
 
-  const formattedCode = giftCardSearchCode.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const formattedCode = giftCardSearchCode.replace(/[^A-Z0-9]/g, '');
   
   const filtered = giftCardOrders.filter((order) =>
     order.vouchers.some((giftCard) =>
@@ -308,7 +357,7 @@ const handleVoucherSearch = () => {
       return;
     }
 
-    const formattedCode = voucherSearchCode.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const formattedCode = voucherSearchCode.replace(/[^A-Z0-9]/g, '');
     
     const filtered = orders.filter((order) =>
       order.vouchers.some((voucher) =>
@@ -349,7 +398,7 @@ const handleRedeemGiftCard = async () => {
       !amountToRedeem ||
       selectedLocation === "Select your location"
     ) {
-      toast.error("Please enter amount and select a location.");
+      toast.info("Please enter amount and select a location.");
       return;
     }
 
@@ -398,7 +447,7 @@ const handleRedeemGiftCard = async () => {
 // Handle mark voucher as used.
 const handleMarkVoucherAsUsed = async () => {
     if (!selectedVoucher || !selectedLocation || selectedLocation === "Select your location") {
-      toast.error("Please select a location.");
+      toast.info("Please select a location.");
       return;
     }
 
@@ -446,6 +495,7 @@ const closePopup = () => {
   setSelectedLocation("Select your location");
   setAmountToRedeem("");
   setIsGiftCard(false);
+  setWasAmountReduced(false);
 };
 
 // Close search popup.
@@ -510,9 +560,17 @@ useEffect(() => {
 
   return (
     <div style={styles.mainContainer(isMobile)}>
+     <div style={{ position: "relative", minHeight: "100vh" }}>
+      {/* Top Bar */}
+      <div style={styles.topBar}>
+        <button onClick={onLogout} style={styles.logoutButton}>
+          Logout
+        </button>
+      </div>
+
       <div style={styles.contentContainer(isMobile)}>
         {/* Sort and Filter */}
-        <h2 style={styles.sortFilterHeader}>Sort and Filter 🏡</h2>
+        <h2 style={styles.sortFilterHeader}>Sort and Filter</h2>
 
         {/* Filter Buttons */}
         <div style={styles.filterButtonsRow}>
@@ -618,8 +676,8 @@ useEffect(() => {
                       <div key={giftCard.id} style={styles.tableRowContainer(index + vIndex, filteredGiftCardOrders.length, isMobile)}>
                         <div style={styles.tableRow(activeTab, isMobile)}>
                           <div>{giftCard.code}</div>
-                          <div>${order.totalPrice}</div>
-                          <div>{order.remainingBalance != null ? `$${order.remainingBalance}` : "—"}</div>
+                          <div>${formatDollarAmount(order.totalPrice)}</div>
+                          <div>{order.remainingBalance != null ? `$${formatDollarAmount(order.remainingBalance)}` : "—"}</div>
                           <div> {order.locationUsed?.length ? order.locationUsed.map((loc, idx) => ( <div key={idx}>{loc}</div>)): "—"}</div>
                           <div>{formatDates(order.redeemedAt) || "—"}</div>
                           <div style={styles.buttonContainer}>
@@ -650,7 +708,10 @@ useEffect(() => {
                 <input 
                   type="text" 
                   value={voucherSearchCode}
-                  onChange={(e) => setVoucherSearchCode(e.target.value.toUpperCase())}
+                  onChange={(e) => {
+                    const formatted = formatVoucherCode(e.target.value.toUpperCase());
+                    setVoucherSearchCode(formatted);
+                  }}
                   placeholder="XXXX-XXXX"
                   style={styles.popupInput(isMobile)}
                   maxLength={9}
@@ -694,7 +755,10 @@ useEffect(() => {
           <input 
             type="text" 
             value={giftCardSearchCode}
-            onChange={(e) => setGiftCardSearchCode(e.target.value.toUpperCase())}
+            onChange={(e) => {
+              const formatted = formatVoucherCode(e.target.value.toUpperCase());
+              setGiftCardSearchCode(formatted);
+            }}
             placeholder="XXXX-XXXX"
             style={styles.popupInput(isMobile)}
             maxLength={9}
@@ -741,7 +805,7 @@ useEffect(() => {
                 {isGiftCard && (
                   <>
                     <span style={styles.popupLabel(isMobile)}>Amount to Redeem:</span>
-                    <input type="text" value={amountToRedeem !== "" ? `$${amountToRedeem}` : ""} onChange={(e) => {const val = e.target.value.replace(/[^0-9.]/g, ""); setAmountToRedeem(val)}} placeholder="$XX,XX" style={styles.popupInput(isMobile)}/>
+                    <input type="text" value={amountToRedeem !== "" ? `$${amountToRedeem}` : ""} onChange={handleAmountChange} placeholder="$XX,XX" style={{...styles.popupInput(isMobile), borderColor: wasAmountReduced ? '#28a745' : styles.popupInput(isMobile).borderColor}}/>
                   </>
                 )}
               </div>
@@ -772,6 +836,7 @@ useEffect(() => {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 };
