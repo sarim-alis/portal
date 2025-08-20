@@ -103,4 +103,6 @@ model Customer {
   email     String?  @unique
   createdAt DateTime @default(now())
   orders    Order[]  @relation("CustomerOrders")
+  password   String?
+  role       String?
 }
