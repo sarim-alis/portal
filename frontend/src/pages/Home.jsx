@@ -473,14 +473,12 @@ const closeGiftCardSearchPopup = () => {
   });
 };
 
-// For vouchers, show ALL orders by default.
+// For vouchers, show USED status by default.
 useEffect(() => {
   if (!searchQuery.trim()) {
-    setFilteredOrders(orders); // Show all orders
-    // Previous filter logic (commented):
-    // const usedVouchers = orders.filter((order) => 
-    //   order.statusUse === false || order.vouchers?.some(voucher => voucher.status === 'USED'));
-    // setFilteredOrders(usedVouchers);
+    const usedVouchers = orders.filter((order) => 
+      order.statusUse === true || order.vouchers?.some(voucher => voucher.status === 'USED'));
+    setFilteredOrders(usedVouchers);
   } else {
     const filtered = orders.filter((order) => 
       order.vouchers.some((voucher) => 
@@ -588,63 +586,53 @@ useEffect(() => {
 
               {/* Table Rows */}
               {activeTab === "vouchers"
-                ? (() => {
-                    console.log("🟢 Table data fetch (vouchers):", filteredOrders);
-                    console.log("DEBUG orders structure:", orders);
-                    return filteredOrders.map((order, index) =>
-                      (order.vouchers && order.vouchers.length > 0
-                        ? order.vouchers.map((voucher, vIndex) => {
-                            const isUsed = order.statusUse === true || voucher.status === "USED";
-                            return (
-                              <div key={voucher.id} style={styles.tableRowContainer(index + vIndex, filteredOrders.length, isMobile)}>
-                                <div style={styles.tableRow(activeTab, isMobile)}>
-                                  <div>{voucher.code}</div>
-                                  <div>{order.lineItems[0]?.expire ? (() => {
-                                    const date = new Date(order.lineItems[0].expire);
-                                    const mm = String(date.getMonth() + 1).padStart(2, "0");
-                                    const dd = String(date.getDate()).padStart(2,"0");
-                                    const yyyy = date.getFullYear();
-                                    return `${mm}/${dd}/${yyyy}`;
-                                  })() : "--"}</div>
-                                  <div>{order.locationUsed || "—"}</div>
-                                  <div>{formatDates(order.redeemedAt) || "—"}</div>
-                                  <div>{isUsed ? "USED" : "VALID"}</div>
-                                  <div style={styles.buttonContainer}>
-                                    <button onClick={() => { if (!isUsed) handleUseVoucher(voucher, order)}} style={{...styles.useButton(isMobile), cursor: isUsed ? "not-allowed" : "pointer", opacity: isUsed ? 0.6 : 1}} disabled={isUsed}>
-                                      Use
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })
-                        : <div key={order.id || index} style={{textAlign: 'center', color: '#888', padding: '10px'}}>No vouchers</div>
-                      )
+                ? filteredOrders.map((order, index) =>
+                    order.vouchers.map((voucher, vIndex) => {
+                    const isUsed = order.statusUse === true || voucher.status === "USED";
+                  return (
+                      <div key={voucher.id} style={styles.tableRowContainer(index + vIndex, filteredOrders.length, isMobile)}>
+                        <div style={styles.tableRow(activeTab, isMobile)}>
+                          <div>{voucher.code}</div>
+                          <div>{order.lineItems[0]?.expire ? (() => {
+                            const date = new Date(order.lineItems[0].expire);
+                            const mm = String(date.getMonth() + 1).padStart(2, "0");
+                            const dd = String(date.getDate()).padStart(2,"0");
+                            const yyyy = date.getFullYear();
+                            return `${mm}/${dd}/${yyyy}`;
+                          })() : "--"}</div>
+                          <div>{order.locationUsed || "—"}</div>
+                          <div>{formatDates(order.redeemedAt) || "—"}</div>
+                          <div>{isUsed ? "USED" : "VALID"}</div>
+                          <div style={styles.buttonContainer}>
+                            <button onClick={() => { if (!isUsed) handleUseVoucher(voucher, order)}} style={{...styles.useButton(isMobile), cursor: isUsed ? "not-allowed" : "pointer", opacity: isUsed ? 0.6 : 1}} disabled={isUsed}>
+                              Use
+                            </button>
+                        </div>
+                      </div>
+                    </div>
                     );
-                  })()
-                : (() => {
-                    console.log("🟢 Table data fetch (giftcards):", filteredGiftCardOrders);
-                    return filteredGiftCardOrders.map((order, index) =>
-                      order.vouchers.map((giftCard, vIndex) => (
-                        <div key={giftCard.id} style={styles.tableRowContainer(index + vIndex, filteredGiftCardOrders.length, isMobile)}>
-                          <div style={styles.tableRow(activeTab, isMobile)}>
-                            <div>{giftCard.code}</div>
-                            <div>${order.totalPrice}</div>
-                            <div>{order.remainingBalance != null ? `$${order.remainingBalance}` : "—"}</div>
-                            <div> {order.locationUsed?.length ? order.locationUsed.map((loc, idx) => ( <div key={idx}>{loc}</div>)): "—"}</div>
-                            <div>{formatDates(order.redeemedAt) || "—"}</div>
-                            <div style={styles.buttonContainer}>
-                              {!giftCard.used && (
-                                <button onClick={() => handleUseGiftCard(giftCard, order)} style={styles.useButton(isMobile)}>
-                                  Use
-                                </button>
-                              )}
-                            </div>
+                  })
+                  )
+                : filteredGiftCardOrders.map((order, index) =>
+                    order.vouchers.map((giftCard, vIndex) => (
+                      <div key={giftCard.id} style={styles.tableRowContainer(index + vIndex, filteredGiftCardOrders.length, isMobile)}>
+                        <div style={styles.tableRow(activeTab, isMobile)}>
+                          <div>{giftCard.code}</div>
+                          <div>${order.totalPrice}</div>
+                          <div>{order.remainingBalance != null ? `$${order.remainingBalance}` : "—"}</div>
+                          <div> {order.locationUsed?.length ? order.locationUsed.map((loc, idx) => ( <div key={idx}>{loc}</div>)): "—"}</div>
+                          <div>{formatDates(order.redeemedAt) || "—"}</div>
+                          <div style={styles.buttonContainer}>
+                            {!giftCard.used && (
+                              <button onClick={() => handleUseGiftCard(giftCard, order)} style={styles.useButton(isMobile)}>
+                                Use
+                              </button>
+                            )}
                           </div>
                         </div>
-                      ))
-                    );
-                  })()}
+                      </div>
+                    ))
+                  )}
             </div>
           </div>
         </div>
