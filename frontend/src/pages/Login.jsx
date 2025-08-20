@@ -42,6 +42,7 @@ const Login = ({ onLogin }) => {
       toast.success('Login successful! 🎉');
       localStorage.setItem("isAuthenticated", "true");
       localStorage.setItem("userRole", data.user.role || "employee");
+      localStorage.setItem("userEmail", data.user.email);
       navigate("/");
       onLogin(); // Or store token/data if needed
     } else {

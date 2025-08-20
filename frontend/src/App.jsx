@@ -33,6 +33,7 @@ function App() {
     setIsAuthenticated(false);
     setRole(null);
     localStorage.removeItem("isAuthenticated");
+    localStorage.removeItem("userEmail");
     setRole(localStorage.getItem("userRole"));
   };
 
