@@ -325,20 +325,6 @@ useEffect(() => {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/vou`);
         console.log("📡 Vouchers response status:", response.status);
         console.log("📡 Vouchers response ok:", response.ok);
-        
-        const data = await response.json();
-        console.log("📦 Raw voucher orders data:", data);
-        console.log("📦 Total orders received:", data.length);
-
-        // Filter orders with type voucher.
-        const voucherOrders = data.filter((order) =>
-          order.lineItems.some((item) => item.type === '["voucher"]')
-        );
-
-        console.log("🎫 Filtered Voucher Orders:", voucherOrders);
-        console.log("🎫 Number of voucher orders:", voucherOrders.length);
-        
-        // Log each voucher order structure
         voucherOrders.forEach((order, index) => {
           console.log(`🎫 Voucher Order ${index + 1}:`, {
             id: order.id,
@@ -381,8 +367,7 @@ useEffect(() => {
 
         // Filter orders with type gift.
         const giftOrders = data.filter((order) =>
-          order.lineItems.some((item) => item.type === '["gift"]')
-        );
+          order.lineItems.some((item) => item.type === '["gift"]')        );
 
         console.log("🎟️ Filtered Gift Card Orders:", giftOrders);
         console.log("🎟️ Number of gift card orders:", giftOrders.length);
