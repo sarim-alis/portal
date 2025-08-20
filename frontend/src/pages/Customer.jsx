@@ -128,16 +128,16 @@ useEffect(() => {
                   {activeTab === "vouchers" ? (
                     <>
                       <div>Order #</div>
-                      <div>Gift Card Number</div>
-                      <div>Amount Used</div>
-                      <div>Remaining Balance</div>
+                      <div>Voucher Code</div>
+                      <div>Expiration Date</div>
                       <div>Location</div>
+                      <div>Usage Status</div>
                     </>
                   ) : (
                     <>
                       <div>Order #</div>
-                      <div>Voucher Code</div>
-                      <div>Expiration Date</div>
+                      <div>Gift Card Number</div>
+                      <div>Amount Used</div>
                       <div>Remaining Balance</div>
                       <div>Location</div>
                     </>
@@ -145,29 +145,19 @@ useEffect(() => {
                 </div>
               </div>
 
-              {/* Table Rows */}
+{/* Table Rows */}
 {activeTab === "vouchers"
   ? orders.map((voucher, index) => {
       const order = voucher.order;
+      const isUsed = order.statusUse === true || voucher.status === "USED";
       return (
-        <div
-          key={voucher.id}
-          style={styles.tableRowContainer(index, orders.length, isMobile)}
-        >
+        <div key={voucher.id} style={styles.tableRowContainer(index, orders.length, isMobile)}>
           <div style={styles.tableRow(activeTab, isMobile)}>
-            <div>{order.shopifyOrderId}</div>
+            <div>{order.shopifyOrderId ? `${order.shopifyOrderId.slice(0, 4)}-${order.shopifyOrderId.slice(4, 8)}-${order.shopifyOrderId.slice(8)}`: ""}</div>
             <div>{voucher.code}</div>
-            <div>{voucher.used ? "USED" : "VALID"}</div>
-            <div>
-              {order.remainingBalance != null
-                ? `$${order.remainingBalance}`
-                : "—"}
-            </div>
-            <div>
-              {order.locationUsed?.length
-                ? order.locationUsed.join(", ")
-                : "—"}
-            </div>
+            <div>{order.lineItems[0]?.expire ? new Date(order.lineItems[0].expire).toLocaleDateString(): "--"}</div>
+            <div>{order.locationUsed?.length ? order.locationUsed.join(", ") : "—"}</div>
+            <div><div>{isUsed ? "USED" : "VALID"}</div></div>
           </div>
         </div>
       );
@@ -175,28 +165,13 @@ useEffect(() => {
   : giftOrders.map((gift, index) => {
       const order = gift.order;
       return (
-        <div
-          key={gift.id}
-          style={styles.tableRowContainer(index, giftOrders.length, isMobile)}
-        >
+        <div key={gift.id} style={styles.tableRowContainer(index, giftOrders.length, isMobile)}>
           <div style={styles.tableRow(activeTab, isMobile)}>
-            <div>{order.shopifyOrderId}</div>
+            <div>{order.shopifyOrderId ? `${order.shopifyOrderId.slice(0, 4)}-${order.shopifyOrderId.slice(4, 8)}-${order.shopifyOrderId.slice(8)}`: ""}</div>
             <div>{gift.code}</div>
-            <div>
-              {order.lineItems[0]?.expire
-                ? new Date(order.lineItems[0].expire).toLocaleDateString()
-                : "--"}
-            </div>
-            <div>
-              {order.remainingBalance != null
-                ? `$${order.remainingBalance}`
-                : "—"}
-            </div>
-            <div>
-              {order.locationUsed?.length
-                ? order.locationUsed.join(", ")
-                : "—"}
-            </div>
+            <div>  {order.totalPrice != null ? `$${(order.totalPrice - (order.remainingBalance ?? order.totalPrice)).toFixed(2)}`: "—"}</div>
+            <div>{order.remainingBalance != null ? `$${order.remainingBalance}` : "—"}</div>
+            <div>{order.locationUsed?.length ? order.locationUsed.join(", "): "—"}</div>
           </div>
         </div>
       );
