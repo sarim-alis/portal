@@ -34,7 +34,7 @@ const styles = {
 
   filterEmptySpace: (isMobile) => ({
     minWidth: isMobile ? '0px' : '140px',
-    '@media (max-width: 768px)': {
+    '@media (maxWidth: 768px)': {
       display: 'none'
     }
   }),
