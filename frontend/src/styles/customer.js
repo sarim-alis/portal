@@ -1,24 +1,26 @@
 const styles = {
   // Main container styles
   mainContainer: (isMobile) => ({
-    backgroundColor: '#4a4a4a',
+    backgroundColor: '#fff',
     minHeight: '100vh',
     padding: isMobile ? '10px' : '20px',
-    fontFamily: 'Arial, sans-serif'
+    fontFamily: 'Arial, sans-serif',
+    color: '#111',
   }),
 
   contentContainer: (isMobile) => ({
-    backgroundColor: '#4a4a4a',
-    border: '2px solid #fff',
+    backgroundColor: '#fff',
+    border: '1.5px solid #bbb',
     borderRadius: '8px',
     padding: isMobile ? '10px' : '20px',
     margin: '0 auto',
-    maxWidth: isMobile ? '100%' : '1200px'
+    maxWidth: isMobile ? '100%' : '1200px',
+    color: '#111',
   }),
 
   // Header styles
   sortFilterHeader: {
-    color: '#fff',
+    color: '#111',
     marginBottom: '20px',
     fontSize: '18px',
     fontWeight: 'normal'
@@ -50,13 +52,17 @@ const styles = {
   }),
 
   filterButton: {
-    backgroundColor: 'transparent',
-    border: '2px solid #fff',
+    backgroundColor: 'rgb(134, 38, 51)',
+    border: '1.5px solid #bbb',
     color: '#fff',
     padding: '8px 16px',
     borderRadius: '4px',
     cursor: 'pointer',
-    fontSize: '14px'
+    fontSize: '14px',
+    transition: 'background 0.2s',
+  },
+  filterButtonHover: {
+    backgroundColor: 'rgb(100, 20, 35)',
   },
 
   searchInput: {
@@ -336,26 +342,34 @@ const styles = {
     backgroundColor: '#000',
     color: '#fff'
   },
-  topBar: {
-    width: "100%",
-    display: "flex",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    padding: "10px 20px",
-    background: "#4a4a4a",
-    position: "sticky",
+  header: {
+    width: '100%',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '16px 32px',
+    background: 'rgb(134, 38, 51)',
+    color: '#fff',
+    position: 'sticky',
     top: 0,
     zIndex: 1000,
+    marginBottom: '32px',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
   },
 
   logoutButton: {
-    padding: "12px 24px",
-    backgroundColor: "#4A90E2",
-    color: "white",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-    fontWeight: "500",
+    padding: '10px 24px',
+    backgroundColor: 'rgb(134, 38, 51)',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontWeight: '500',
+    fontSize: '16px',
+    transition: 'background 0.2s',
+  },
+  logoutButtonHover: {
+    backgroundColor: 'rgb(100, 20, 35)',
   },
 };
 

@@ -6,6 +6,9 @@ import styles from "../styles/home.js";
 
 // Frontend.
 const Home = ({ onLogout }) => {
+  // For button hover state
+  const [logoutHover, setLogoutHover] = useState(false);
+  const [filterHover, setFilterHover] = useState([false, false, false]);
   // States.
   const [activeTab, setActiveTab] = useState("vouchers");
   const [searchQuery, setSearchQuery] = useState("");
@@ -560,13 +563,19 @@ useEffect(() => {
 
   return (
     <div style={styles.mainContainer(isMobile)}>
-     <div style={{ position: "relative", minHeight: "100vh" }}>
-      {/* Top Bar */}
-      <div style={styles.topBar}>
-        <button onClick={onLogout} style={styles.logoutButton}>
+      {/* Custom Header */}
+      <div style={styles.header}>
+        <div style={{ fontWeight: 700, fontSize: 24, letterSpacing: 1 }}>Redemption Portal</div>
+        <button
+          onClick={onLogout}
+          style={logoutHover ? { ...styles.logoutButton, ...styles.logoutButtonHover } : styles.logoutButton}
+          onMouseEnter={() => setLogoutHover(true)}
+          onMouseLeave={() => setLogoutHover(false)}
+        >
           Logout
         </button>
       </div>
+      <div style={styles.contentContainer(isMobile)}>
 
       <div style={styles.contentContainer(isMobile)}>
         {/* Sort and Filter */}
@@ -578,14 +587,30 @@ useEffect(() => {
           <div style={styles.filterButtonsGrid(activeTab, isMobile)}>
             {activeTab === "vouchers" ? (
               <>
-                <button style={styles.filterButton}>Purchase Date</button>
-                <button style={styles.filterButton}>Location</button>
-                <button style={styles.filterButton}>Status</button>
+                <button
+                  style={filterHover[0] ? { ...styles.filterButton, ...styles.filterButtonHover } : styles.filterButton}
+                  onMouseEnter={() => setFilterHover([true, false, false])}
+                  onMouseLeave={() => setFilterHover([false, false, false])}
+                >Purchase Date</button>
+                <button
+                  style={filterHover[1] ? { ...styles.filterButton, ...styles.filterButtonHover } : styles.filterButton}
+                  onMouseEnter={() => setFilterHover([false, true, false])}
+                  onMouseLeave={() => setFilterHover([false, false, false])}
+                >Location</button>
+                <button
+                  style={filterHover[2] ? { ...styles.filterButton, ...styles.filterButtonHover } : styles.filterButton}
+                  onMouseEnter={() => setFilterHover([false, false, true])}
+                  onMouseLeave={() => setFilterHover([false, false, false])}
+                >Status</button>
                 <input type="text" placeholder="Search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={styles.searchInput}/>
               </>
             ) : (
               <>
-                <button style={styles.filterButton}>Purchase Date</button>
+                <button
+                  style={filterHover[0] ? { ...styles.filterButton, ...styles.filterButtonHover } : styles.filterButton}
+                  onMouseEnter={() => setFilterHover([true, false, false])}
+                  onMouseLeave={() => setFilterHover([false, false, false])}
+                >Purchase Date</button>
                 <input type="text" placeholder="Search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={styles.searchInput}/>
               </>
             )}

@@ -6,6 +6,9 @@ import styles from "../styles/customer.js";
 
 // Frontend.
 const Customer = ({ onLogout }) => {
+  // For button hover state
+  const [logoutHover, setLogoutHover] = useState(false);
+  const [filterHover, setFilterHover] = useState([false]);
   // States.
   const [activeTab, setActiveTab] = useState("vouchers");
   const [searchQuery, setSearchQuery] = useState("");
@@ -43,7 +46,8 @@ useEffect(() => {
       // ✅ Separate vouchers
       const voucherOrders = data.filter(
         (voucher) =>
-          voucher.order?.lineItems?.some(
+          Array.isArray(voucher.order?.lineItems) &&
+          voucher.order.lineItems.some(
             (item) => item.type === '["voucher"]'
           )
       );
@@ -51,7 +55,8 @@ useEffect(() => {
       // ✅ Separate gifts
       const giftOrders = data.filter(
         (voucher) =>
-          voucher.order?.lineItems?.some(
+          Array.isArray(voucher.order?.lineItems) &&
+          voucher.order.lineItems.some(
             (item) => item.type === '["gift"]'
           )
       );
@@ -72,28 +77,32 @@ useEffect(() => {
 
   return (
     <div style={styles.mainContainer(isMobile)}>
-     <div style={{ position: "relative", minHeight: "100vh" }}>
-      {/* Top Bar */}
-      <div style={styles.topBar}>
-        <button onClick={onLogout} style={styles.logoutButton}>
+      {/* Custom Header */}
+      <div style={styles.header}>
+        <div style={{ fontWeight: 700, fontSize: 24, letterSpacing: 1 }}>Redemption Portal</div>
+        <button
+          onClick={onLogout}
+          style={logoutHover ? { ...styles.logoutButton, ...styles.logoutButtonHover } : styles.logoutButton}
+          onMouseEnter={() => setLogoutHover(true)}
+          onMouseLeave={() => setLogoutHover(false)}
+        >
           Logout
         </button>
       </div>
+      <div style={{ position: "relative", minHeight: "100vh" }}>
 
       <div style={styles.contentContainer(isMobile)}>
         {/* Filter Buttons */}
         <div style={styles.filterButtonsRow}>
           <div style={styles.filterEmptySpace(isMobile)}></div>
           <div style={styles.filterButtonsGrid(activeTab, isMobile)}>
-            {activeTab === "vouchers" ? (
-              <>
-                <input type="text" placeholder="Search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={styles.searchInput}/>
-              </>
-            ) : (
-              <>
-                <input type="text" placeholder="Search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={styles.searchInput}/>
-              </>
-            )}
+            <input
+              type="text"
+              placeholder="Search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={styles.searchInput}
+            />
           </div>
         </div>
 
