@@ -85,9 +85,9 @@ const styles = {
   }),
 
   mobileTab: (isActive) => ({
-    backgroundColor: isActive ? '#4A90E2' : 'transparent',
-    border: '2px solid #fff',
-    color: '#fff',
+    backgroundColor: isActive ? 'rgb(134, 38, 51)' : 'transparent',
+    border: '1.5px solid #bbb',
+    color: isActive ? '#fff' : '#111',
     padding: '12px 24px',
     cursor: 'pointer',
     fontSize: '14px',
@@ -95,7 +95,7 @@ const styles = {
     textAlign: 'center',
     transition: 'background-color 0.2s',
     flex: 1,
-    maxWidth: '150px'
+    maxWidth: '150px',
   }),
 
   // Main content layout styles
@@ -114,15 +114,15 @@ const styles = {
   }),
 
   leftTab: (isActive) => ({
-    backgroundColor: isActive ? '#4A90E2' : 'transparent',
-    border: '2px solid #fff',
-    color: '#fff',
+    backgroundColor: isActive ? 'rgb(134, 38, 51)' : 'transparent',
+    border: '1.5px solid #bbb',
+    color: isActive ? '#fff' : '#111',
     padding: '12px 16px',
     cursor: 'pointer',
     fontSize: '14px',
     borderRadius: '4px',
     textAlign: 'center',
-    transition: 'background-color 0.2s'
+    transition: 'background-color 0.2s',
   }),
 
   // Right side content styles
