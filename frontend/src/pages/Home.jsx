@@ -307,7 +307,7 @@ useEffect(() => {
 
         // Filter orders with type voucher.
         const voucherOrders = data.filter((order) =>
-          order.lineItems.some((item) => item.type === '["voucher"]')
+          Array.isArray(order.lineItems) && order.lineItems.some((item) => item.type === '["voucher"]')
         );
 
         console.log("🎫 Filtered Voucher Orders:", voucherOrders);
@@ -331,7 +331,7 @@ useEffect(() => {
 
         // Filter orders with type gift.
         const giftOrders = data.filter((order) =>
-          order.lineItems.some((item) => item.type === '["gift"]')
+          Array.isArray(order.lineItems) && order.lineItems.some((item) => item.type === '["gift"]')
         );
 
         console.log("🎟️ Filtered Gift Card Orders:", giftOrders);
