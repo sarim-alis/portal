@@ -132,14 +132,15 @@ const styles = {
 
   // Table styles
   tableContainer: {
-    border: '2px solid #fff',
+    border: '1.5px solid #bbb',
     borderRadius: '4px',
-    overflowX: 'auto'
+    overflowX: 'auto',
+    background: '#fff',
   },
 
   tableHeaderContainer: (isMobile) => ({
     padding: isMobile ? '0 10px' : '0 140px 0 80px',
-    backgroundColor: '#4a4a4a'
+    backgroundColor: '#fff',
   }),
 
   tableHeader: (activeTab, isMobile) => ({
@@ -147,13 +148,13 @@ const styles = {
     gridTemplateColumns: activeTab === 'vouchers' ? 
       (isMobile ? '120px 80px 100px 80px 80px 60px' : '1fr 1fr 1fr 1fr 1fr 100px') :
       (isMobile ? '120px 80px 100px 100px 80px 60px' : '1fr 1fr 1fr 1fr 1fr 100px'),
-    backgroundColor: '#4a4a4a',
-    borderBottom: '1px solid #fff',
+    backgroundColor: '#fff',
+    borderBottom: '1.5px solid #bbb',
     padding: '12px 0',
-    color: '#fff',
+    color: '#111',
     fontSize: isMobile ? '12px' : '14px',
     fontWeight: 'bold',
-    minWidth: isMobile ? '640px' : 'auto'
+    minWidth: isMobile ? '640px' : 'auto',
   }),
 
   // Table row styles
@@ -161,7 +162,7 @@ const styles = {
     padding: index === dataLength - 1 ? 
       (isMobile ? '0 10px 12px 10px' : '0 140px 12px 80px') : 
       (isMobile ? '0 10px 0 10px' : '0 140px 0 80px'),
-    backgroundColor: '#4a4a4a'
+    backgroundColor: '#fff',
   }),
 
   tableRow: (activeTab, isMobile) => ({
@@ -169,13 +170,13 @@ const styles = {
     gridTemplateColumns: activeTab === 'vouchers' ? 
       (isMobile ? '120px 80px 100px 80px 80px 60px' : '1fr 1fr 1fr 1fr 1fr 100px') :
       (isMobile ? '120px 80px 100px 100px 80px 60px' : '1fr 1fr 1fr 1fr 1fr 100px'),
-    backgroundColor: '#4a4a4a',
-    borderBottom: '1px solid #fff',
+    backgroundColor: '#fff',
+    borderBottom: '1.5px solid #bbb',
     padding: '12px 0',
-    color: '#fff',
+    color: '#111',
     fontSize: isMobile ? '12px' : '14px',
     alignItems: 'center',
-    minWidth: isMobile ? '640px' : 'auto'
+    minWidth: isMobile ? '640px' : 'auto',
   }),
 
   // Button container styles
