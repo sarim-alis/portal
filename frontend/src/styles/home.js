@@ -1,14 +1,14 @@
 const styles = {
   // Main container styles
   mainContainer: (isMobile) => ({
-    backgroundColor: '#4a4a4a',
+    backgroundColor: 'white',
     minHeight: '100vh',
     padding: isMobile ? '10px' : '20px',
     fontFamily: 'Arial, sans-serif'
   }),
 
   contentContainer: (isMobile) => ({
-    backgroundColor: '#4a4a4a',
+    backgroundColor: 'white',
     border: '2px solid #fff',
     borderRadius: '8px',
     padding: isMobile ? '10px' : '20px',
@@ -339,20 +339,30 @@ const styles = {
   topBar: {
     width: "100%",
     display: "flex",
-    justifyContent: "flex-end",
+    justifyContent: "space-between",
     alignItems: "center",
     padding: "10px 20px",
-    background: "#4a4a4a",
+    background: "#862633",
     position: "sticky",
     top: 0,
     zIndex: 1000,
   },
+  leftGroup: {
+    display: "flex",
+    alignItems: "center",
+    gap: "15px", 
+  },
+  redemption: {
+    color: "white",
+    fontSize: "24px",
+    fontWeight: 700,
+  },
 
   logoutButton: {
     padding: "12px 24px",
-    backgroundColor: "#4A90E2",
+    backgroundColor: "rgba(0, 0, 0, 0.45)",
     color: "white",
-    border: "none",
+    border: "1px solid black",
     borderRadius: "6px",
     cursor: "pointer",
     fontWeight: "500",

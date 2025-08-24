@@ -563,6 +563,12 @@ useEffect(() => {
      <div style={{ position: "relative", minHeight: "100vh" }}>
       {/* Top Bar */}
       <div style={styles.topBar}>
+        <div style={styles.leftGroup}>
+          <a href="https://redemptionsolution.myshopify.com" target="_blank">
+           <img src="https://res.cloudinary.com/dgk3gaml0/image/upload/v1755837350/lxkizea7xfe7omtekg5r.png" alt="Logo" style={{height: '50px'}}/>
+          </a>
+        <h1 style={styles.redemption}>Voucher Redemption Portal</h1>
+        </div>
         <button onClick={onLogout} style={styles.logoutButton}>
           Logout
         </button>
