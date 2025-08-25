@@ -568,6 +568,21 @@ useEffect(() => {
   }
 }, [searchQuery, giftCardOrders]);
 
+// If a location is selected, filter. Otherwise, show all filteredOrders.
+const locationFilteredOrders =
+  selectedLocation && selectedLocation !== "" && selectedLocation !== "Select your location"
+    ? filteredOrders.filter(order =>
+        order.vouchers.some(voucher =>
+          voucher.locationUsed?.includes(selectedLocation) ||
+          order.locationUsed?.includes(selectedLocation)
+        )
+      )
+    : filteredOrders; // show all orders by default
+
+
+
+
+
 
 
   return (
@@ -596,8 +611,23 @@ useEffect(() => {
           <div style={styles.filterButtonsGrid(activeTab, isMobile)}>
             {activeTab === "vouchers" ? (
               <>
+                {/* <button style={styles.filterButton}>Location</button> */}
                 <button style={styles.filterButton}>Purchase Date</button>
-                <button style={styles.filterButton}>Location</button>
+                {/* Location Dropdown */}
+<select
+  value={selectedLocation}
+  onChange={(e) => setSelectedLocation(e.target.value)}
+  style={{ ...styles.filterButton, padding: "6px", cursor: "pointer" }}
+>
+  <option value="">Locations</option>
+  {locations.map((loc) => (
+    <option key={loc.id} value={loc.name}>
+      {loc.name}
+    </option>
+  ))}
+</select>
+
+
                 <button style={styles.filterButton}>Status</button>
                 <input
                   type="text"
@@ -688,11 +718,11 @@ useEffect(() => {
 
               {/* Table Rows */}
               {activeTab === "vouchers"
-                ? filteredOrders.map((order, index) =>
+                ? locationFilteredOrders.map((order, index) =>
                     order.vouchers.map((voucher, vIndex) => {
                     const isUsed = order.statusUse === true || voucher.status === "USED";
                   return (
-                      <div key={voucher.id} style={styles.tableRowContainer(index + vIndex, filteredOrders.length, isMobile)}>
+                      <div key={voucher.id} style={styles.tableRowContainer(index + vIndex, locationFilteredOrders.length, isMobile)}>
                         <div style={{...styles.tableRow(activeTab, isMobile), color: isUsed ? "#aaa" : "#000"}}>
                           <div>{voucher.code}</div>
                           <div>{order.lineItems[0]?.expire ? (() => {
