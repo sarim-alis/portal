@@ -114,17 +114,17 @@ const handleAmountChange = (e) => {
   }, []);
 
   // Show search popup when switching to vouchers tab.
-  useEffect(() => {
-    if (activeTab === "vouchers") {
-      setShowSearchPopup(true);
-    }
-  }, [activeTab]);
+//   useEffect(() => {
+//     if (activeTab === "vouchers") {
+//       setShowSearchPopup(true);
+//     }
+//   }, [activeTab]);
 
-  useEffect(() => {
-  if (activeTab === "giftcards") {
-    setShowGiftCardSearchPopup(true);
-  }
-}, [activeTab]);
+//   useEffect(() => {
+//   if (activeTab === "giftcards") {
+//     setShowGiftCardSearchPopup(true);
+//   }
+// }, [activeTab]);
 
   // Validate voucher in real-time as user types.
   useEffect(() => {
