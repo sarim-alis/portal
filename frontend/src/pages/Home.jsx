@@ -274,10 +274,10 @@ const handleTabChange = (tab) => {
     const usedVouchers = orders.filter((order) => 
       order.statusUse === true || order.vouchers?.some(voucher => voucher.status === 'USED'));
     setFilteredOrders(usedVouchers);
-    setShowSearchPopup(true);
+    // setShowSearchPopup(true);
   } else if (tab === "giftcards") {
     setFilteredGiftCardOrders([]);
-    setShowGiftCardSearchPopup(true);
+    // setShowGiftCardSearchPopup(true);
   }
 };
 
@@ -610,6 +610,7 @@ useEffect(() => {
                     if (val.length > 4) val = val.slice(0, 4) + '-' + val.slice(4);
                     setSearchQuery(val);
                   }}
+                  onFocus={() => setShowSearchPopup(true)} 
                   style={styles.searchInput}
                 />
               </>
@@ -627,6 +628,7 @@ useEffect(() => {
                     if (val.length > 4) val = val.slice(0, 4) + '-' + val.slice(4);
                     setSearchQuery(val);
                   }}
+                  onFocus={() => setShowGiftCardSearchPopup(true)} 
                   style={styles.searchInput}
                 />
               </>

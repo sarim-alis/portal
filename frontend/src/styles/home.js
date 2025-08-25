@@ -21,8 +21,9 @@ const styles = {
   sortFilterHeader: {
     color: 'black',
     marginBottom: '20px',
-    fontSize: '18px',
-    fontWeight: 'normal'
+    fontSize: '24px',
+    fontWeight: 'normal',
+    textAlign: 'center',
   },
 
   // Filter section styles
