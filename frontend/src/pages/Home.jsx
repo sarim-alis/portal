@@ -601,7 +601,7 @@ useEffect(() => {
                 <button style={styles.filterButton}>Status</button>
                 <input
                   type="text"
-                  placeholder="Search Code (XXXX-XXXX)"
+                  placeholder="Search"
                   value={searchQuery}
                   maxLength={9}
                   onChange={(e) => {
