@@ -1,26 +1,25 @@
 const styles = {
   // Main container styles
   mainContainer: (isMobile) => ({
-    backgroundColor: '#fff',
+    backgroundColor: 'white',
     minHeight: '100vh',
     padding: isMobile ? '10px' : '20px',
-    fontFamily: 'Arial, sans-serif',
-    color: '#111',
+    fontFamily: 'Arial, sans-serif'
   }),
 
   contentContainer: (isMobile) => ({
-    backgroundColor: '#fff',
-    border: '1.5px solid #bbb',
+    backgroundColor: 'white',
+    border: '2px solid #fff',
     borderRadius: '8px',
     padding: isMobile ? '10px' : '20px',
-    margin: '0 auto',
+    margin: '40px auto',
     maxWidth: isMobile ? '100%' : '1200px',
-    color: '#111',
+    border: "1.5px solid rgb(187, 187, 187)",
   }),
 
   // Header styles
   sortFilterHeader: {
-    color: '#111',
+    color: 'black',
     marginBottom: '20px',
     fontSize: '18px',
     fontWeight: 'normal'
@@ -52,22 +51,18 @@ const styles = {
   }),
 
   filterButton: {
-    backgroundColor: 'rgb(134, 38, 51)',
-    border: '1.5px solid #bbb',
+    backgroundColor: '#862633',
+    border: '1.5px solid rgb(187, 187, 187)',
     color: '#fff',
     padding: '8px 16px',
     borderRadius: '4px',
     cursor: 'pointer',
-    fontSize: '14px',
-    transition: 'background 0.2s',
-  },
-  filterButtonHover: {
-    backgroundColor: 'rgb(100, 20, 35)',
+    fontSize: '14px'
   },
 
   searchInput: {
     backgroundColor: 'transparent',
-    border: '2px solid #fff',
+    border: '1.5px solid rgb(187, 187, 187)',
     color: 'white !important',
     padding: '8px 16px',
     borderRadius: '4px',
@@ -85,9 +80,9 @@ const styles = {
   }),
 
   mobileTab: (isActive) => ({
-    backgroundColor: isActive ? 'rgb(134, 38, 51)' : 'transparent',
-    border: '1.5px solid #bbb',
-    color: isActive ? '#fff' : '#111',
+    backgroundColor: isActive ? '#862633' : 'transparent',
+    border: '2px solid #fff',
+    color: isActive ? 'white' : 'black',
     padding: '12px 24px',
     cursor: 'pointer',
     fontSize: '14px',
@@ -95,7 +90,7 @@ const styles = {
     textAlign: 'center',
     transition: 'background-color 0.2s',
     flex: 1,
-    maxWidth: '150px',
+    maxWidth: '150px'
   }),
 
   // Main content layout styles
@@ -114,15 +109,15 @@ const styles = {
   }),
 
   leftTab: (isActive) => ({
-    backgroundColor: isActive ? 'rgb(134, 38, 51)' : 'transparent',
-    border: '1.5px solid #bbb',
-    color: isActive ? '#fff' : '#111',
+    backgroundColor: isActive ? '#862633' : 'transparent',
+    border: '1.5px solid rgb(187, 187, 187)',
+    color: isActive ? 'white' : 'black',
     padding: '12px 16px',
     cursor: 'pointer',
     fontSize: '14px',
     borderRadius: '4px',
     textAlign: 'center',
-    transition: 'background-color 0.2s',
+    transition: 'background-color 0.2s'
   }),
 
   // Right side content styles
@@ -132,15 +127,15 @@ const styles = {
 
   // Table styles
   tableContainer: {
-    border: '1.5px solid #bbb',
+    border: '1.5px solid rgb(187, 187, 187)',
     borderRadius: '4px',
     overflowX: 'auto',
-    background: '#fff',
+    background: "white",
   },
 
   tableHeaderContainer: (isMobile) => ({
     padding: isMobile ? '0 10px' : '0 140px 0 80px',
-    backgroundColor: '#fff',
+    backgroundColor: 'white',
   }),
 
   tableHeader: (activeTab, isMobile) => ({
@@ -148,13 +143,13 @@ const styles = {
     gridTemplateColumns: activeTab === 'vouchers' ? 
       (isMobile ? '120px 80px 100px 80px 80px 60px' : '1fr 1fr 1fr 1fr 1fr 100px') :
       (isMobile ? '120px 80px 100px 100px 80px 60px' : '1fr 1fr 1fr 1fr 1fr 100px'),
-    backgroundColor: '#fff',
-    borderBottom: '1.5px solid #bbb',
+    backgroundColor: 'white',
+    borderBottom: '1.5px solid rgb(187, 187, 187)',
     padding: '12px 0',
-    color: '#111',
+    color: 'black',
     fontSize: isMobile ? '12px' : '14px',
     fontWeight: 'bold',
-    minWidth: isMobile ? '640px' : 'auto',
+    minWidth: isMobile ? '640px' : 'auto'
   }),
 
   // Table row styles
@@ -162,7 +157,7 @@ const styles = {
     padding: index === dataLength - 1 ? 
       (isMobile ? '0 10px 12px 10px' : '0 140px 12px 80px') : 
       (isMobile ? '0 10px 0 10px' : '0 140px 0 80px'),
-    backgroundColor: '#fff',
+    backgroundColor: 'white'
   }),
 
   tableRow: (activeTab, isMobile) => ({
@@ -170,13 +165,13 @@ const styles = {
     gridTemplateColumns: activeTab === 'vouchers' ? 
       (isMobile ? '120px 80px 100px 80px 80px 60px' : '1fr 1fr 1fr 1fr 1fr 100px') :
       (isMobile ? '120px 80px 100px 100px 80px 60px' : '1fr 1fr 1fr 1fr 1fr 100px'),
-    backgroundColor: '#fff',
-    borderBottom: '1.5px solid #bbb',
+    backgroundColor: 'white',
+    borderBottom: '1px solid #fff',
     padding: '12px 0',
-    color: '#111',
+    color: 'black',
     fontSize: isMobile ? '12px' : '14px',
     alignItems: 'center',
-    minWidth: isMobile ? '640px' : 'auto',
+    minWidth: isMobile ? '640px' : 'auto'
   }),
 
   // Button container styles
@@ -343,34 +338,38 @@ const styles = {
     backgroundColor: '#000',
     color: '#fff'
   },
-  header: {
-    width: '100%',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '16px 32px',
-    background: 'rgb(134, 38, 51)',
-    color: '#fff',
-    position: 'sticky',
+  topBar: {
+    width: "100%",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "16px 32px",
+    background: "#862633",
+    position: "sticky",
     top: 0,
     zIndex: 1000,
-    marginBottom: '32px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+    borderRadius: "8px",
+    marginBottom: "32px"
+  },
+  leftGroup: {
+    display: "flex",
+    alignItems: "center",
+    gap: "15px", 
+  },
+  redemption: {
+    color: "white",
+    fontSize: "24px",
+    fontWeight: 700,
   },
 
   logoutButton: {
-    padding: '10px 24px',
-    backgroundColor: 'rgb(134, 38, 51)',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontWeight: '500',
-    fontSize: '16px',
-    transition: 'background 0.2s',
-  },
-  logoutButtonHover: {
-    backgroundColor: 'rgb(100, 20, 35)',
+    padding: "12px 24px",
+    backgroundColor: "rgba(0, 0, 0, 0.45)",
+    color: "white",
+    border: "1px solid black",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontWeight: "500",
   },
 };
 
