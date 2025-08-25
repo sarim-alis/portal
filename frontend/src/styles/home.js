@@ -341,11 +341,12 @@ const styles = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: "10px 20px",
+    padding: "16px 32px",
     background: "#862633",
     position: "sticky",
     top: 0,
     zIndex: 1000,
+    borderRadius: "8px"
   },
   leftGroup: {
     display: "flex",
