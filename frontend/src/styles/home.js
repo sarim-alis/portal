@@ -12,13 +12,14 @@ const styles = {
     border: '2px solid #fff',
     borderRadius: '8px',
     padding: isMobile ? '10px' : '20px',
-    margin: '0 auto',
-    maxWidth: isMobile ? '100%' : '1200px'
+    margin: '40px auto',
+    maxWidth: isMobile ? '100%' : '1200px',
+    border: "1.5px solid rgb(187, 187, 187)",
   }),
 
   // Header styles
   sortFilterHeader: {
-    color: '#fff',
+    color: 'black',
     marginBottom: '20px',
     fontSize: '18px',
     fontWeight: 'normal'
@@ -50,8 +51,8 @@ const styles = {
   }),
 
   filterButton: {
-    backgroundColor: 'transparent',
-    border: '2px solid #fff',
+    backgroundColor: '#862633',
+    border: '1.5px solid rgb(187, 187, 187)',
     color: '#fff',
     padding: '8px 16px',
     borderRadius: '4px',
@@ -79,9 +80,9 @@ const styles = {
   }),
 
   mobileTab: (isActive) => ({
-    backgroundColor: isActive ? '#4A90E2' : 'transparent',
+    backgroundColor: isActive ? '#862633' : 'transparent',
     border: '2px solid #fff',
-    color: '#fff',
+    color: isActive ? 'white' : 'black',
     padding: '12px 24px',
     cursor: 'pointer',
     fontSize: '14px',
@@ -108,9 +109,9 @@ const styles = {
   }),
 
   leftTab: (isActive) => ({
-    backgroundColor: isActive ? '#4A90E2' : 'transparent',
-    border: '2px solid #fff',
-    color: '#fff',
+    backgroundColor: isActive ? '#862633' : 'transparent',
+    border: '1.5px solid rgb(187, 187, 187)',
+    color: isActive ? 'white' : 'black',
     padding: '12px 16px',
     cursor: 'pointer',
     fontSize: '14px',
@@ -126,14 +127,15 @@ const styles = {
 
   // Table styles
   tableContainer: {
-    border: '2px solid #fff',
+    border: '1.5px solid rgb(187, 187, 187)',
     borderRadius: '4px',
-    overflowX: 'auto'
+    overflowX: 'auto',
+    background: "white",
   },
 
   tableHeaderContainer: (isMobile) => ({
     padding: isMobile ? '0 10px' : '0 140px 0 80px',
-    backgroundColor: '#4a4a4a'
+    backgroundColor: 'white',
   }),
 
   tableHeader: (activeTab, isMobile) => ({
@@ -141,10 +143,10 @@ const styles = {
     gridTemplateColumns: activeTab === 'vouchers' ? 
       (isMobile ? '120px 80px 100px 80px 80px 60px' : '1fr 1fr 1fr 1fr 1fr 100px') :
       (isMobile ? '120px 80px 100px 100px 80px 60px' : '1fr 1fr 1fr 1fr 1fr 100px'),
-    backgroundColor: '#4a4a4a',
-    borderBottom: '1px solid #fff',
+    backgroundColor: 'white',
+    borderBottom: '1.5px solid rgb(187, 187, 187)',
     padding: '12px 0',
-    color: '#fff',
+    color: 'black',
     fontSize: isMobile ? '12px' : '14px',
     fontWeight: 'bold',
     minWidth: isMobile ? '640px' : 'auto'
