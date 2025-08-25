@@ -667,7 +667,7 @@ useEffect(() => {
                     const isUsed = order.statusUse === true || voucher.status === "USED";
                   return (
                       <div key={voucher.id} style={styles.tableRowContainer(index + vIndex, filteredOrders.length, isMobile)}>
-                        <div style={styles.tableRow(activeTab, isMobile)}>
+                        <div style={{...styles.tableRow(activeTab, isMobile), color: isUsed ? "#aaa" : "#000"}}>
                           <div>{voucher.code}</div>
                           <div>{order.lineItems[0]?.expire ? (() => {
                             const date = new Date(order.lineItems[0].expire);
@@ -680,7 +680,7 @@ useEffect(() => {
                           <div>{formatDates(order.redeemedAt) || "—"}</div>
                           <div>{isUsed ? "USED" : "VALID"}</div>
                           <div style={styles.buttonContainer}>
-                            <button onClick={() => { if (!isUsed) handleUseVoucher(voucher, order)}} style={{...styles.useButton(isMobile), cursor: isUsed ? "not-allowed" : "pointer", opacity: isUsed ? 0.6 : 1}} disabled={isUsed}>
+                            <button onClick={() => { if (!isUsed) handleUseVoucher(voucher, order); }} style={{ ...styles.useButton(isMobile), cursor: isUsed ? "not-allowed" : "pointer", backgroundColor: isUsed ? "#d3d3d3" : "#000", color: isUsed ? "#666" : "#fff", opacity: isUsed ? 1 : 1}} disabled={isUsed}>
                               Use
                             </button>
                         </div>
