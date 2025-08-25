@@ -62,7 +62,7 @@ const styles = {
 
   searchInput: {
     backgroundColor: 'transparent',
-    border: '2px solid #fff',
+    border: '1.5px solid rgb(187, 187, 187)',
     color: 'white !important',
     padding: '8px 16px',
     borderRadius: '4px',
