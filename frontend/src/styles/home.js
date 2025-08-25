@@ -22,7 +22,8 @@ const styles = {
     color: 'black',
     marginBottom: '20px',
     fontSize: '18px',
-    fontWeight: 'normal'
+    fontWeight: 'normal',
+    textAlign: 'center'
   },
 
   // Filter section styles

@@ -62,7 +62,7 @@ const Login = ({ onLogin }) => {
 
   return (
     <div>
-        <h1 className="text-3xl text-center font-bold text-[#808080] m-4 mb-8">Login</h1>
+        <h1 className="text-3xl text-center font-bold text-[#808080] m-4 mb-8">Employee Voucher Portal</h1>
       <div style={styles.container}>
       <Formik initialValues={initialValues} validationSchema={Schema} onSubmit={handleSubmit}>
         <Form style={styles.form}>

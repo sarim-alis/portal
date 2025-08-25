@@ -6,6 +6,9 @@ import styles from "../styles/home.js";
 
 // Frontend.
 const Home = ({ onLogout }) => {
+  // For button hover state
+  const [logoutHover, setLogoutHover] = useState(false);
+  const [filterHover, setFilterHover] = useState([false, false, false]);
   // States.
   const [activeTab, setActiveTab] = useState("vouchers");
   const [searchQuery, setSearchQuery] = useState("");
@@ -297,22 +300,6 @@ useEffect(() => {
     fetchLocations();
 }, []);
 
-const hasType = (order, target) => {
-  if (!Array.isArray(order.lineItems)) return false;
-
-  return order.lineItems.some((item) => {
-    let type = item.type;
-    if (typeof type === "string") {
-      try {
-        type = JSON.parse(type); // e.g. ["voucher"]
-      } catch {
-        return false;
-      }
-    }
-    return Array.isArray(type) && type.includes(target);
-  });
-};
-
   // Fetch orders with vouchers.
   useEffect(() => {
     const fetchOrdersWithVouchers = async () => {
@@ -322,7 +309,9 @@ const hasType = (order, target) => {
         console.log("📦 Orders with Vouchers:", data);
 
         // Filter orders with type voucher.
-        const voucherOrders = data.filter((order) => hasType(order, "voucher"));
+        const voucherOrders = data.filter((order) =>
+          Array.isArray(order.lineItems) && order.lineItems.some((item) => item.type === '["voucher"]')
+        );
 
         console.log("🎫 Filtered Voucher Orders:", voucherOrders);
         setOrders(voucherOrders);
@@ -344,7 +333,9 @@ const hasType = (order, target) => {
         console.log("🎁 Orders with Gift Cards:", data);
 
         // Filter orders with type gift.
-        const giftOrders = data.filter((order) => hasType(order, "gift"));
+        const giftOrders = data.filter((order) =>
+          Array.isArray(order.lineItems) && order.lineItems.some((item) => item.type === '["gift"]')
+        );
 
         console.log("🎟️ Filtered Gift Card Orders:", giftOrders);
         setGiftCardOrders(giftOrders);
@@ -572,19 +563,19 @@ useEffect(() => {
 
   return (
     <div style={styles.mainContainer(isMobile)}>
-     <div style={{ position: "relative", minHeight: "100vh" }}>
-      {/* Top Bar */}
-      <div style={styles.topBar}>
-        <div style={styles.leftGroup}>
-          <a href="https://redemptionsolution.myshopify.com" target="_blank">
-           <img src="https://res.cloudinary.com/dgk3gaml0/image/upload/v1755837350/lxkizea7xfe7omtekg5r.png" alt="Logo" style={{height: '50px'}}/>
-          </a>
-        <h1 style={styles.redemption}>Voucher Redemption Portal</h1>
-        </div>
-        <button onClick={onLogout} style={styles.logoutButton}>
+      {/* Custom Header */}
+      <div style={styles.header}>
+        <div style={{ fontWeight: 700, fontSize: 24, letterSpacing: 1 }}>Redemption Portal</div>
+        <button
+          onClick={onLogout}
+          style={logoutHover ? { ...styles.logoutButton, ...styles.logoutButtonHover } : styles.logoutButton}
+          onMouseEnter={() => setLogoutHover(true)}
+          onMouseLeave={() => setLogoutHover(false)}
+        >
           Logout
         </button>
       </div>
+      <div style={styles.contentContainer(isMobile)}>
 
       <div style={styles.contentContainer(isMobile)}>
         {/* Sort and Filter */}
@@ -596,15 +587,57 @@ useEffect(() => {
           <div style={styles.filterButtonsGrid(activeTab, isMobile)}>
             {activeTab === "vouchers" ? (
               <>
-                <button style={styles.filterButton}>Purchase Date</button>
-                <button style={styles.filterButton}>Location</button>
-                <button style={styles.filterButton}>Status</button>
-                <input type="text" placeholder="Search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={styles.searchInput}/>
+                <button
+                  style={filterHover[0] ? { ...styles.filterButton, ...styles.filterButtonHover } : styles.filterButton}
+                  onMouseEnter={() => setFilterHover([true, false, false])}
+                  onMouseLeave={() => setFilterHover([false, false, false])}
+                >Purchase Date</button>
+                <button
+                  style={filterHover[1] ? { ...styles.filterButton, ...styles.filterButtonHover } : styles.filterButton}
+                  onMouseEnter={() => setFilterHover([false, true, false])}
+                  onMouseLeave={() => setFilterHover([false, false, false])}
+                >Location</button>
+                <button
+                  style={filterHover[2] ? { ...styles.filterButton, ...styles.filterButtonHover } : styles.filterButton}
+                  onMouseEnter={() => setFilterHover([false, false, true])}
+                  onMouseLeave={() => setFilterHover([false, false, false])}
+                >Status</button>
+                <input
+                  type="text"
+                  placeholder="Search"
+                  value={searchQuery}
+                  maxLength={9}
+                  onChange={(e) => {
+                    // Only allow uppercase alphanumeric, auto-insert dash after 4 chars
+                    let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+                    if (val.length > 8) val = val.slice(0, 8);
+                    if (val.length > 4) val = val.slice(0, 4) + '-' + val.slice(4);
+                    setSearchQuery(val);
+                  }}
+                  style={styles.searchInput}
+                />
               </>
             ) : (
               <>
-                <button style={styles.filterButton}>Purchase Date</button>
-                <input type="text" placeholder="Search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={styles.searchInput}/>
+                <button
+                  style={filterHover[0] ? { ...styles.filterButton, ...styles.filterButtonHover } : styles.filterButton}
+                  onMouseEnter={() => setFilterHover([true, false, false])}
+                  onMouseLeave={() => setFilterHover([false, false, false])}
+                >Purchase Date</button>
+                <input
+                  type="text"
+                  placeholder="Search"
+                  value={searchQuery}
+                  maxLength={9}
+                  onChange={(e) => {
+                    // Only allow uppercase alphanumeric, auto-insert dash after 4 chars
+                    let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+                    if (val.length > 8) val = val.slice(0, 8);
+                    if (val.length > 4) val = val.slice(0, 4) + '-' + val.slice(4);
+                    setSearchQuery(val);
+                  }}
+                  style={styles.searchInput}
+                />
               </>
             )}
           </div>
@@ -667,7 +700,7 @@ useEffect(() => {
                     const isUsed = order.statusUse === true || voucher.status === "USED";
                   return (
                       <div key={voucher.id} style={styles.tableRowContainer(index + vIndex, filteredOrders.length, isMobile)}>
-                        <div style={{...styles.tableRow(activeTab, isMobile), color: isUsed ? "#aaa" : "#000"}}>
+                        <div style={styles.tableRow(activeTab, isMobile)}>
                           <div>{voucher.code}</div>
                           <div>{order.lineItems[0]?.expire ? (() => {
                             const date = new Date(order.lineItems[0].expire);
@@ -680,7 +713,7 @@ useEffect(() => {
                           <div>{formatDates(order.redeemedAt) || "—"}</div>
                           <div>{isUsed ? "USED" : "VALID"}</div>
                           <div style={styles.buttonContainer}>
-                            <button onClick={() => { if (!isUsed) handleUseVoucher(voucher, order); }} style={{ ...styles.useButton(isMobile), cursor: isUsed ? "not-allowed" : "pointer", backgroundColor: isUsed ? "#d3d3d3" : "#000", color: isUsed ? "#666" : "#fff", opacity: isUsed ? 1 : 1}} disabled={isUsed}>
+                            <button onClick={() => { if (!isUsed) handleUseVoucher(voucher, order)}} style={{...styles.useButton(isMobile), cursor: isUsed ? "not-allowed" : "pointer", opacity: isUsed ? 0.6 : 1}} disabled={isUsed}>
                               Use
                             </button>
                         </div>
