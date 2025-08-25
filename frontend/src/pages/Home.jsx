@@ -542,10 +542,10 @@ useEffect(() => {
       order.statusUse === true || order.vouchers?.some(voucher => voucher.status === 'USED'));
     setFilteredOrders(usedVouchers);
   } else {
+    const code = searchQuery.replace(/[^A-Z0-9]/g, '');
     const filtered = orders.filter((order) => 
-      order.vouchers.some((voucher) => 
-        voucher.code.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        order.shopifyOrderId.includes(searchQuery)
+      order.vouchers.some((voucher) =>
+        voucher.code.replace(/[^A-Z0-9]/g, '').includes(code)
       )
     );
     setFilteredOrders(filtered);
@@ -558,10 +558,10 @@ useEffect(() => {
   if (!searchQuery.trim()) {
     setFilteredGiftCardOrders([]);
   } else {
+    const code = searchQuery.replace(/[^A-Z0-9]/g, '');
     const filtered = giftCardOrders.filter((order) => 
-      order.vouchers.some((giftCard) => 
-        giftCard.code.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        order.shopifyOrderId.includes(searchQuery)
+      order.vouchers.some((giftCard) =>
+        giftCard.code.replace(/[^A-Z0-9]/g, '').includes(code)
       )
     );
     setFilteredGiftCardOrders(filtered);
@@ -599,12 +599,36 @@ useEffect(() => {
                 <button style={styles.filterButton}>Purchase Date</button>
                 <button style={styles.filterButton}>Location</button>
                 <button style={styles.filterButton}>Status</button>
-                <input type="text" placeholder="Search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={styles.searchInput}/>
+                <input
+                  type="text"
+                  placeholder="Search Code (XXXX-XXXX)"
+                  value={searchQuery}
+                  maxLength={9}
+                  onChange={(e) => {
+                    let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+                    if (val.length > 8) val = val.slice(0, 8);
+                    if (val.length > 4) val = val.slice(0, 4) + '-' + val.slice(4);
+                    setSearchQuery(val);
+                  }}
+                  style={styles.searchInput}
+                />
               </>
             ) : (
               <>
                 <button style={styles.filterButton}>Purchase Date</button>
-                <input type="text" placeholder="Search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={styles.searchInput}/>
+                <input
+                  type="text"
+                  placeholder="Search Code (XXXX-XXXX)"
+                  value={searchQuery}
+                  maxLength={9}
+                  onChange={(e) => {
+                    let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+                    if (val.length > 8) val = val.slice(0, 8);
+                    if (val.length > 4) val = val.slice(0, 4) + '-' + val.slice(4);
+                    setSearchQuery(val);
+                  }}
+                  style={styles.searchInput}
+                />
               </>
             )}
           </div>
