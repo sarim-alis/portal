@@ -157,7 +157,7 @@ const styles = {
     padding: index === dataLength - 1 ? 
       (isMobile ? '0 10px 12px 10px' : '0 140px 12px 80px') : 
       (isMobile ? '0 10px 0 10px' : '0 140px 0 80px'),
-    backgroundColor: '#4a4a4a'
+    backgroundColor: 'white'
   }),
 
   tableRow: (activeTab, isMobile) => ({
@@ -165,10 +165,10 @@ const styles = {
     gridTemplateColumns: activeTab === 'vouchers' ? 
       (isMobile ? '120px 80px 100px 80px 80px 60px' : '1fr 1fr 1fr 1fr 1fr 100px') :
       (isMobile ? '120px 80px 100px 100px 80px 60px' : '1fr 1fr 1fr 1fr 1fr 100px'),
-    backgroundColor: '#4a4a4a',
+    backgroundColor: 'white',
     borderBottom: '1px solid #fff',
     padding: '12px 0',
-    color: '#fff',
+    color: 'black',
     fontSize: isMobile ? '12px' : '14px',
     alignItems: 'center',
     minWidth: isMobile ? '640px' : 'auto'
@@ -348,7 +348,8 @@ const styles = {
     position: "sticky",
     top: 0,
     zIndex: 1000,
-    borderRadius: "8px"
+    borderRadius: "8px",
+    marginBottom: "32px"
   },
   leftGroup: {
     display: "flex",

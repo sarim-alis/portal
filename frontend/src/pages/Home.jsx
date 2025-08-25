@@ -297,6 +297,22 @@ useEffect(() => {
     fetchLocations();
 }, []);
 
+const hasType = (order, target) => {
+  if (!Array.isArray(order.lineItems)) return false;
+
+  return order.lineItems.some((item) => {
+    let type = item.type;
+    if (typeof type === "string") {
+      try {
+        type = JSON.parse(type); // e.g. ["voucher"]
+      } catch {
+        return false;
+      }
+    }
+    return Array.isArray(type) && type.includes(target);
+  });
+};
+
   // Fetch orders with vouchers.
   useEffect(() => {
     const fetchOrdersWithVouchers = async () => {
@@ -306,9 +322,7 @@ useEffect(() => {
         console.log("📦 Orders with Vouchers:", data);
 
         // Filter orders with type voucher.
-        const voucherOrders = data.filter((order) =>
-          order.lineItems.some((item) => item.type === '["voucher"]')
-        );
+        const voucherOrders = data.filter((order) => hasType(order, "voucher"));
 
         console.log("🎫 Filtered Voucher Orders:", voucherOrders);
         setOrders(voucherOrders);
@@ -330,9 +344,7 @@ useEffect(() => {
         console.log("🎁 Orders with Gift Cards:", data);
 
         // Filter orders with type gift.
-        const giftOrders = data.filter((order) =>
-          order.lineItems.some((item) => item.type === '["gift"]')
-        );
+        const giftOrders = data.filter((order) => hasType(order, "gift"));
 
         console.log("🎟️ Filtered Gift Card Orders:", giftOrders);
         setGiftCardOrders(giftOrders);
