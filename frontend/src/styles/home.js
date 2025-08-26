@@ -58,7 +58,8 @@ const styles = {
     padding: '8px 16px',
     borderRadius: '4px',
     cursor: 'pointer',
-    fontSize: '14px'
+    fontSize: '14px',
+    textAlign: 'center',
   },
 
   searchInput: {
