@@ -35,6 +35,7 @@ const Home = ({ onLogout }) => {
     message: "",
     color: "#fff"
   });
+  const [selectedDateRange, setSelectedDateRange] = useState("");
 
 const formatDates = (value) => {
   if (!value) return "—";
@@ -579,10 +580,52 @@ const locationFilteredOrders =
       )
     : filteredOrders; // show all orders by default
 
+    const now = new Date();
 
+const dateFilteredOrders = selectedDateRange
+  ? locationFilteredOrders.filter(order => {
+      if (!order.processedAt) return false;
+      const orderDate = new Date(order.processedAt);
 
+      switch (selectedDateRange) {
+        case "1d":
+          return (now - orderDate) <= 24 * 60 * 60 * 1000; // 1 day
+        case "1w":
+          return (now - orderDate) <= 7 * 24 * 60 * 60 * 1000; // 1 week
+        case "1m":
+          return (now - orderDate) <= 30 * 24 * 60 * 60 * 1000; // 1 month
+        case "6m":
+          return (now - orderDate) <= 182 * 24 * 60 * 60 * 1000; // ~6 months
+        case "1y":
+          return (now - orderDate) <= 365 * 24 * 60 * 60 * 1000; // 1 year
+        default:
+          return true;
+      }
+    })
+  : locationFilteredOrders;
 
+// For gift cards
+const dateFilteredGiftCardOrders = selectedDateRange
+  ? filteredGiftCardOrders.filter(order => {
+      if (!order.processedAt) return false;
+      const orderDate = new Date(order.processedAt);
 
+      switch (selectedDateRange) {
+        case "1d":
+          return (now - orderDate) <= 24 * 60 * 60 * 1000;
+        case "1w":
+          return (now - orderDate) <= 7 * 24 * 60 * 60 * 1000;
+        case "1m":
+          return (now - orderDate) <= 30 * 24 * 60 * 60 * 1000;
+        case "6m":
+          return (now - orderDate) <= 182 * 24 * 60 * 60 * 1000;
+        case "1y":
+          return (now - orderDate) <= 365 * 24 * 60 * 60 * 1000;
+        default:
+          return true;
+      }
+    })
+  : filteredGiftCardOrders;
 
 
   return (
@@ -612,26 +655,38 @@ const locationFilteredOrders =
             {activeTab === "vouchers" ? (
               <>
                 {/* <button style={styles.filterButton}>Location</button> */}
-                <button style={styles.filterButton}>Purchase Date</button>
+                <select
+  value={selectedDateRange}
+  onChange={(e) => setSelectedDateRange(e.target.value)}
+  style={{ ...styles.filterButton, padding: "6px", cursor: "pointer", textAlign: "center" }}
+>
+  <option value="">Purchase Date</option>
+  <option value="1d">Last Day</option>
+  <option value="1w">Last Week</option>
+  <option value="1m">Last Month</option>
+  <option value="6m">Last 6 Months</option>
+  <option value="1y">Last 1 Year</option>
+</select>
+
                 {/* Location Dropdown */}
 <select
   value={selectedLocation}
   onChange={(e) => setSelectedLocation(e.target.value)}
   style={{ ...styles.filterButton, padding: "6px", cursor: "pointer" }}
 >
-  <option value="">Locations</option>
+  <option value="" style={{textAlign: 'center'}}>Locations</option>
   {locations.map((loc) => (
-    <option key={loc.id} value={loc.name}>
+    <option key={loc.id} value={loc.name} style={{textAlign: 'center'}}>
       {loc.name}
     </option>
   ))}
 </select>
 
 
-                <button style={styles.filterButton}>Status</button>
+                {/* <button style={styles.filterButton}>Status</button> */}
                 <input
                   type="text"
-                  placeholder="Search"
+                  placeholder="Search Code (XXXX-XXXX)"
                   value={searchQuery}
                   maxLength={9}
                   onChange={(e) => {
@@ -646,7 +701,18 @@ const locationFilteredOrders =
               </>
             ) : (
               <>
-                <button style={styles.filterButton}>Purchase Date</button>
+                <select
+  value={selectedDateRange}
+  onChange={(e) => setSelectedDateRange(e.target.value)}
+  style={{ ...styles.filterButton, padding: "6px", cursor: "pointer", textAlign: "center" }}
+>
+  <option value="">Purchase Date</option>
+  <option value="1d">Last Day</option>
+  <option value="1w">Last Week</option>
+  <option value="1m">Last Month</option>
+  <option value="6m">Last 6 Months</option>
+  <option value="1y">Last 1 Year</option>
+</select>
                 <input
                   type="text"
                   placeholder="Search Code (XXXX-XXXX)"
@@ -718,7 +784,7 @@ const locationFilteredOrders =
 
               {/* Table Rows */}
               {activeTab === "vouchers"
-                ? locationFilteredOrders.map((order, index) =>
+                ? dateFilteredOrders.map((order, index) =>
                     order.vouchers.map((voucher, vIndex) => {
                     const isUsed = order.statusUse === true || voucher.status === "USED";
                   return (
@@ -745,7 +811,7 @@ const locationFilteredOrders =
                     );
                   })
                   )
-                : filteredGiftCardOrders.map((order, index) =>
+                : dateFilteredGiftCardOrders.map((order, index) =>
                     order.vouchers.map((giftCard, vIndex) => (
                       <div key={giftCard.id} style={styles.tableRowContainer(index + vIndex, filteredGiftCardOrders.length, isMobile)}>
                         <div style={styles.tableRow(activeTab, isMobile)}>

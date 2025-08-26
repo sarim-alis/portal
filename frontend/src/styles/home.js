@@ -22,7 +22,7 @@ const styles = {
     color: 'black',
     marginBottom: '20px',
     fontSize: '24px',
-    fontWeight: 'normal',
+    fontWeight: 'bold',
     textAlign: 'center',
   },
 
@@ -44,8 +44,8 @@ const styles = {
   filterButtonsGrid: (activeTab, isMobile) => ({
     display: 'grid',
     gridTemplateColumns: activeTab === 'vouchers' ? 
-      (isMobile ? '1fr' : '1fr 1fr 1fr 2fr') : 
-      (isMobile ? '1fr' : '1fr 3fr'),
+      (isMobile ? '1fr' : '1fr 1fr 1fr') : 
+      (isMobile ? '1fr' : '1fr 2fr'),
     gap: '10px',
     flex: 1,
     minWidth: 0
@@ -58,7 +58,8 @@ const styles = {
     padding: '8px 16px',
     borderRadius: '4px',
     cursor: 'pointer',
-    fontSize: '14px'
+    fontSize: '14px',
+    textAlign: 'center',
   },
 
   searchInput: {
