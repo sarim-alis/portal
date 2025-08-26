@@ -674,7 +674,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
   onChange={(e) => setSelectedLocation(e.target.value)}
   style={{ ...styles.filterButton, padding: "6px", cursor: "pointer" }}
 >
-  <option value="" style={{textAlign: 'center'}}>Locations</option>
+  <option value="" style={{textAlign: 'center'}}>All Locations</option>
   {locations.map((loc) => (
     <option key={loc.id} value={loc.name} style={{textAlign: 'center'}}>
       {loc.name}
