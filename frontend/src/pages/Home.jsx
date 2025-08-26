@@ -619,19 +619,19 @@ const locationFilteredOrders =
   onChange={(e) => setSelectedLocation(e.target.value)}
   style={{ ...styles.filterButton, padding: "6px", cursor: "pointer" }}
 >
-  <option value="">Locations</option>
+  <option value="" style={{textAlign: 'center'}}>Locations</option>
   {locations.map((loc) => (
-    <option key={loc.id} value={loc.name}>
+    <option key={loc.id} value={loc.name} style={{textAlign: 'center'}}>
       {loc.name}
     </option>
   ))}
 </select>
 
 
-                <button style={styles.filterButton}>Status</button>
+                {/* <button style={styles.filterButton}>Status</button> */}
                 <input
                   type="text"
-                  placeholder="Search"
+                  placeholder="Search Code (XXXX-XXXX)"
                   value={searchQuery}
                   maxLength={9}
                   onChange={(e) => {
