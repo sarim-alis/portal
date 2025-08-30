@@ -34,6 +34,7 @@ model Voucher {
   shopifyOrderId String
   emailSent      Boolean  @default(false)
   order          Order    @relation(fields: [shopifyOrderId], references: [shopifyOrderId])
+  username      String[] @default([])
 }
 
 model Product {
