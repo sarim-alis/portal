@@ -35,6 +35,7 @@ function App() {
     localStorage.removeItem("isAuthenticated");
     localStorage.removeItem("userEmail");
     localStorage.removeItem("userRole")
+    localStorage.removeItem("username");
   };
 
   return (

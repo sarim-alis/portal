@@ -43,6 +43,8 @@ const Login = ({ onLogin }) => {
       localStorage.setItem("isAuthenticated", "true");
       localStorage.setItem("userRole", data.user.role || "employee");
       localStorage.setItem("userEmail", data.user.email);
+      localStorage.setItem("username", data.user.username);
+      localStorage.setItem("name", data.user.name || "");
       navigate("/");
       onLogin(); // Or store token/data if needed
     } else {
