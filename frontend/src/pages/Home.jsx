@@ -37,74 +37,37 @@ const Home = ({ onLogout }) => {
   });
   const [selectedDateRange, setSelectedDateRange] = useState("");
 
+
+// Format date.
 const formatDates = (value) => {
   if (!value) return "—";
-
   const arr = Array.isArray(value) ? value : [value];
-
-  const formatted = arr
-    .map((d) => {
-      const dt = d instanceof Date ? d : new Date(d);
-      if (Number.isNaN(dt.getTime())) return null;
-      return dt.toLocaleDateString();
-    })
-    .filter(Boolean);
-
+  const formatted = arr.map((d) => {const dt = d instanceof Date ? d : new Date(d); if (Number.isNaN(dt.getTime())) return null; return dt.toLocaleDateString();}).filter(Boolean);
   if (!formatted.length) return "—";
-
-  // Join with <br /> and return as React fragment.
   return formatted.reduce((acc, date, i) => {
     if (i === 0) return [date];
     return [...acc, <br key={i} />, date];
   }, []);
 };
 
-// formatVoucherCode.
-const formatVoucherCode = (value) => {
-  const cleanValue = value.replace(/[^A-Z0-9]/g, '');
-  if (cleanValue.length <= 4) {
-    return cleanValue;
-  }
-  
-  const truncated = cleanValue.substring(0, 8);
-  return truncated.substring(0, 4) + '-' + truncated.substring(4);
-};
+// Format voucher code.
+const formatVoucherCode = (value) => {const cleanValue = value.replace(/[^A-Z0-9]/g, '');if (cleanValue.length <= 4) {return cleanValue;}const truncated = cleanValue.substring(0, 8);return truncated.substring(0, 4) + '-' + truncated.substring(4);};
 
-// formatDollarAmount.
-const formatDollarAmount = (amount) => {
-  if (amount === null || amount === undefined || amount === "") return "—";
-  const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-  if (isNaN(numericAmount)) return "—";
-  return numericAmount.toFixed(2);
-};
+// Format dollar amount.
+const formatDollarAmount = (amount) => {if (amount === null || amount === undefined || amount === "") return "—";const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;if (isNaN(numericAmount)) return "—";return numericAmount.toFixed(2);};
 
-// handleAmountChange.
+// Handle amount change.
 const handleAmountChange = (e) => {
   let val = e.target.value.replace(/[$,]/g, "").replace(/[^0-9.]/g, "");
-  
   const decimalCount = (val.match(/\./g) || []).length;
-  if (decimalCount > 1) {
-    val = val.substring(0, val.lastIndexOf('.'));
-  }
-
+  if (decimalCount > 1) {val = val.substring(0, val.lastIndexOf('.'));}
   const decimalIndex = val.indexOf('.');
-  if (decimalIndex !== -1 && val.length > decimalIndex + 3) {
-    val = val.substring(0, decimalIndex + 3);
-  }
-  
+  if (decimalIndex !== -1 && val.length > decimalIndex + 3) {val = val.substring(0, decimalIndex + 3);}
   const numericValue = parseFloat(val);
   const maxBalance = selectedVoucher?.remainingBalance ?? selectedVoucher?.totalPrice ?? 0;
-  setWasAmountReduced(false);
-  
+  setWasAmountReduced(false);  
   // If entered amount exceeds max balance, automatically reduce to max.
-  if (!isNaN(numericValue) && numericValue > maxBalance) {
-    const formattedMaxBalance = formatDollarAmount(maxBalance);
-    setAmountToRedeem(formattedMaxBalance);
-    setWasAmountReduced(true);
-    toast.info(`Amount reduced to maximum available balance: $${formattedMaxBalance}`);
-  } else {
-    setAmountToRedeem(val);
-  }
+  if (!isNaN(numericValue) && numericValue > maxBalance) {const formattedMaxBalance = formatDollarAmount(maxBalance);setAmountToRedeem(formattedMaxBalance);setWasAmountReduced(true);toast.info(`Amount reduced to maximum available balance: $${formattedMaxBalance}`);} else {setAmountToRedeem(val);}
 };
 
   // Handle resize.
@@ -113,19 +76,6 @@ const handleAmountChange = (e) => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
-  // Show search popup when switching to vouchers tab.
-//   useEffect(() => {
-//     if (activeTab === "vouchers") {
-//       setShowSearchPopup(true);
-//     }
-//   }, [activeTab]);
-
-//   useEffect(() => {
-//   if (activeTab === "giftcards") {
-//     setShowGiftCardSearchPopup(true);
-//   }
-// }, [activeTab]);
 
   // Validate voucher in real-time as user types.
   useEffect(() => {
@@ -137,28 +87,13 @@ const handleAmountChange = (e) => {
       });
       return;
     }
-
     const formattedCode = voucherSearchCode.replace(/[^A-Z0-9]/g, '');
     
     // Find matching order.
-    const matchingOrder = orders.find(order =>
-      order.vouchers.some(voucher =>
-        voucher.code.replace(/[^A-Z0-9]/g, '') === formattedCode
-      )
-    );
+    const matchingOrder = orders.find(order => order.vouchers.some(voucher => voucher.code.replace(/[^A-Z0-9]/g, '') === formattedCode));
 
-    if (!matchingOrder) {
-      setVoucherValidation({
-        status: 'invalid',
-        message: "Invalid voucher number",
-        color: "#dc3545"
-      });
-      return;
-    }
-
-    const voucher = matchingOrder.vouchers.find(v =>
-      v.code.replace(/[^A-Z0-9]/g, '') === formattedCode
-    );
+    if (!matchingOrder) { setVoucherValidation({ status: 'invalid', message: "Invalid voucher number", color: "#dc3545"});return;}
+    const voucher = matchingOrder.vouchers.find(v => v.code.replace(/[^A-Z0-9]/g, '') === formattedCode);
 
     // Check expiration.
     const expireDate = matchingOrder.lineItems[0]?.expire;
@@ -174,35 +109,18 @@ const handleAmountChange = (e) => {
           const yyyy = date.getFullYear();
           return `${mm}/${dd}/${yyyy}`;
         })();
-        
-        setVoucherValidation({
-          status: 'expired',
-          message: `Voucher expired on ${formattedExpireDate}`,
-          color: "#fd7e14"
-        });
+        setVoucherValidation({status: 'expired', message: `Voucher expired on ${formattedExpireDate}`, color: "#fd7e14"});
         return;
       }
     }
 
     // Voucher is valid.
-    setVoucherValidation({
-      status: 'valid',
-      message: "Valid voucher",
-      color: "#28a745"
-    });
-
+    setVoucherValidation({status: 'valid', message: "Valid voucher", color: "#28a745"});
   }, [voucherSearchCode, orders]);
 
-  // Set gift card validation.
+// Set gift card validation.
 useEffect(() => {
-  if (!giftCardSearchCode.trim()) {
-    setGiftCardValidation({
-      status: null,
-      message: "Enter 4-digit code format (XXXX-XXXX)",
-      color: "white"
-    });
-    return;
-  }
+  if (!giftCardSearchCode.trim()) {setGiftCardValidation({status: null, message: "Enter 4-digit code format (XXXX-XXXX)", color: "white"});return;}
 
   const formattedCode = giftCardSearchCode.replace(/[^A-Z0-9]/g, '');
   
