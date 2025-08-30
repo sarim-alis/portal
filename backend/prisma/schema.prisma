@@ -77,22 +77,25 @@ model Order {
 }
 
 model Location {
-  id        String     @id @default(cuid())
-  name      String
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  employees Employee[] @relation("EmployeeLocations")
+  id        String   @id @default(cuid())
+  name      String   @unique
+  market    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  employees Employee[]
 }
 
 model Employee {
-  id        String     @id @default(cuid())
-  username  String     @unique
-  email     String?    @unique
-  address   String?
+  id        String      @id @default(cuid())
+  username  String      @unique
+  email     String?     @unique
   password  String?
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
-  locations Location[] @relation("EmployeeLocations")
+
+  locationId String
+  location   Location  @relation(fields: [locationId], references: [id])
 }
 
 model Customer {
