@@ -79,15 +79,7 @@ const handleAmountChange = (e) => {
 
   // Validate voucher in real-time as user types.
   useEffect(() => {
-    if (!voucherSearchCode.trim()) {
-      setVoucherValidation({
-        status: null,
-        message: "Enter 4-digit code format (XXXX-XXXX)",
-        color: "#fff"
-      });
-      return;
-    }
-    const formattedCode = voucherSearchCode.replace(/[^A-Z0-9]/g, '');
+    if (!voucherSearchCode.trim()) { setVoucherValidation({status: null, message: "Enter 4-digit code format (XXXX-XXXX)", color: "#fff"});return;} const formattedCode = voucherSearchCode.replace(/[^A-Z0-9]/g, '');
     
     // Find matching order.
     const matchingOrder = orders.find(order => order.vouchers.some(voucher => voucher.code.replace(/[^A-Z0-9]/g, '') === formattedCode));
@@ -103,14 +95,8 @@ const handleAmountChange = (e) => {
       
       if (expirationDate < currentDate) {
         const formattedExpireDate = (() => {
-          const date = new Date(expireDate);
-          const mm = String(date.getMonth() + 1).padStart(2, "0");
-          const dd = String(date.getDate()).padStart(2, "0");
-          const yyyy = date.getFullYear();
-          return `${mm}/${dd}/${yyyy}`;
-        })();
-        setVoucherValidation({status: 'expired', message: `Voucher expired on ${formattedExpireDate}`, color: "#fd7e14"});
-        return;
+          const date = new Date(expireDate); const mm = String(date.getMonth() + 1).padStart(2, "0"); const dd = String(date.getDate()).padStart(2, "0"); const yyyy = date.getFullYear(); return `${mm}/${dd}/${yyyy}`;})();
+        setVoucherValidation({status: 'expired', message: `Voucher expired on ${formattedExpireDate}`, color: "#fd7e14"});return;
       }
     }
 
@@ -131,31 +117,13 @@ useEffect(() => {
     )
   );
 
-  if (!matchingOrder) {
-    setGiftCardValidation({
-      status: 'invalid',
-      message: "Invalid gift card number",
-      color: "#dc3545"
-    });
-    return;
-  }
+  if (!matchingOrder) {setGiftCardValidation({status: 'invalid', message: "Invalid gift card number", color: "#dc3545"});return;}
 
   // Check if gift card is already used.
-  if (matchingOrder.remainingBalance === 0) {
-    setGiftCardValidation({
-      status: 'used',
-      message: "Gift card has been fully used",
-      color: "#6c757d"
-    });
-    return;
-  }
+  if (matchingOrder.remainingBalance === 0) { setGiftCardValidation({ status: 'used', message: "Gift card has been fully used", color: "#6c757d"});return;}
 
   // Gift card is valid.
-  setGiftCardValidation({
-    status: 'valid',
-    message: "Valid gift card",
-    color: "#28a745"
-  });
+  setGiftCardValidation({ status: 'valid', message: "Valid gift card", color: "#28a745"});
 
 }, [giftCardSearchCode, giftCardOrders]);
 

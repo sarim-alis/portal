@@ -75,6 +75,7 @@ model Order {
   statusUse         Boolean   @default(false)
   customer          Customer? @relation("CustomerOrders", fields: [customerId], references: [id])
   vouchers          Voucher[]
+  username          String[] @default([])
 }
 
 model Location {
