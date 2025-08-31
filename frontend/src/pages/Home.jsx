@@ -469,7 +469,7 @@ const locationFilteredOrders =
           order.locationUsed?.includes(selectedLocation)
         )
       )
-    : filteredOrders; // show all orders by default
+    : filteredOrders;
 
     const now = new Date();
 
@@ -479,18 +479,12 @@ const dateFilteredOrders = selectedDateRange
       const orderDate = new Date(order.processedAt);
 
       switch (selectedDateRange) {
-        case "1d":
-          return (now - orderDate) <= 24 * 60 * 60 * 1000; // 1 day
-        case "1w":
-          return (now - orderDate) <= 7 * 24 * 60 * 60 * 1000; // 1 week
-        case "1m":
-          return (now - orderDate) <= 30 * 24 * 60 * 60 * 1000; // 1 month
-        case "6m":
-          return (now - orderDate) <= 182 * 24 * 60 * 60 * 1000; // ~6 months
-        case "1y":
-          return (now - orderDate) <= 365 * 24 * 60 * 60 * 1000; // 1 year
-        default:
-          return true;
+        case "1d": return (now - orderDate) <= 24 * 60 * 60 * 1000;
+        case "1w": return (now - orderDate) <= 7 * 24 * 60 * 60 * 1000;
+        case "1m": return (now - orderDate) <= 30 * 24 * 60 * 60 * 1000;
+        case "6m": return (now - orderDate) <= 182 * 24 * 60 * 60 * 1000;
+        case "1y": return (now - orderDate) <= 365 * 24 * 60 * 60 * 1000;
+        default:   return true;
       }
     })
   : locationFilteredOrders;
@@ -502,18 +496,12 @@ const dateFilteredGiftCardOrders = selectedDateRange
       const orderDate = new Date(order.processedAt);
 
       switch (selectedDateRange) {
-        case "1d":
-          return (now - orderDate) <= 24 * 60 * 60 * 1000;
-        case "1w":
-          return (now - orderDate) <= 7 * 24 * 60 * 60 * 1000;
-        case "1m":
-          return (now - orderDate) <= 30 * 24 * 60 * 60 * 1000;
-        case "6m":
-          return (now - orderDate) <= 182 * 24 * 60 * 60 * 1000;
-        case "1y":
-          return (now - orderDate) <= 365 * 24 * 60 * 60 * 1000;
-        default:
-          return true;
+        case "1d": return (now - orderDate) <= 24 * 60 * 60 * 1000;
+        case "1w": return (now - orderDate) <= 7 * 24 * 60 * 60 * 1000;
+        case "1m": return (now - orderDate) <= 30 * 24 * 60 * 60 * 1000;
+        case "6m": return (now - orderDate) <= 182 * 24 * 60 * 60 * 1000;
+        case "1y": return (now - orderDate) <= 365 * 24 * 60 * 60 * 1000;
+        default:   return true;
       }
     })
   : filteredGiftCardOrders;
@@ -543,109 +531,47 @@ const dateFilteredGiftCardOrders = selectedDateRange
         <div style={styles.filterButtonsRow}>
           <div style={styles.filterEmptySpace(isMobile)}></div>
           <div style={styles.filterButtonsGrid(activeTab, isMobile)}>
-            {activeTab === "vouchers" ? (
-              <>
-                {/* <button style={styles.filterButton}>Location</button> */}
-                <select
-  value={selectedDateRange}
-  onChange={(e) => setSelectedDateRange(e.target.value)}
-  style={{ ...styles.filterButton, padding: "6px", cursor: "pointer", textAlign: "center" }}
->
-  <option value="">Purchase Date</option>
-  <option value="1d">Last Day</option>
-  <option value="1w">Last Week</option>
-  <option value="1m">Last Month</option>
-  <option value="6m">Last 6 Months</option>
-  <option value="1y">Last 1 Year</option>
+{activeTab === "vouchers" ? (
+<>
+<select value={selectedDateRange} onChange={(e) => setSelectedDateRange(e.target.value)} style={{ ...styles.filterButton, padding: "6px", cursor: "pointer", textAlign: "center" }}>
+<option value="">Purchase Date</option><option value="1d">Last Day</option><option value="1w">Last Week</option><option value="1m">Last Month</option><option value="6m">Last 6 Months</option><option value="1y">Last 1 Year</option>
 </select>
 
-                {/* Location Dropdown */}
-<select
-  value={selectedLocation}
-  onChange={(e) => setSelectedLocation(e.target.value)}
-  style={{ ...styles.filterButton, padding: "6px", cursor: "pointer" }}
->
+{/* Location Dropdown */}
+<select value={selectedLocation} onChange={(e) => setSelectedLocation(e.target.value)} style={{ ...styles.filterButton, padding: "6px", cursor: "pointer" }}>
   <option value="" style={{textAlign: 'center'}}>All Locations</option>
-  {locations.map((loc) => (
-    <option key={loc.id} value={loc.name} style={{textAlign: 'center'}}>
-      {loc.name}
-    </option>
-  ))}
+  {locations.map((loc) => (<option key={loc.id} value={loc.name} style={{textAlign: 'center'}}>{loc.name}</option>))}
 </select>
 
 
-                {/* <button style={styles.filterButton}>Status</button> */}
-                <input
-                  type="text"
-                  placeholder="Search Code (XXXX-XXXX)"
-                  value={searchQuery}
-                  maxLength={9}
-                  onChange={(e) => {
-                    let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
-                    if (val.length > 8) val = val.slice(0, 8);
-                    if (val.length > 4) val = val.slice(0, 4) + '-' + val.slice(4);
-                    setSearchQuery(val);
-                  }}
-                  onFocus={() => setShowSearchPopup(true)} 
-                  style={styles.searchInput}
-                />
-              </>
-            ) : (
-              <>
-                <select
-  value={selectedDateRange}
-  onChange={(e) => setSelectedDateRange(e.target.value)}
-  style={{ ...styles.filterButton, padding: "6px", cursor: "pointer", textAlign: "center" }}
->
-  <option value="">Purchase Date</option>
-  <option value="1d">Last Day</option>
-  <option value="1w">Last Week</option>
-  <option value="1m">Last Month</option>
-  <option value="6m">Last 6 Months</option>
-  <option value="1y">Last 1 Year</option>
+<input type="text" placeholder="Search Code (XXXX-XXXX)" value={searchQuery} maxLength={9} onChange={(e) => { let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""); if (val.length > 8) val = val.slice(0, 8); if (val.length > 4) val = val.slice(0, 4) + '-' + val.slice(4); setSearchQuery(val);}} onFocus={() => setShowSearchPopup(true)}  style={styles.searchInput}/>
+</>
+) : (
+<>
+<select value={selectedDateRange} onChange={(e) => setSelectedDateRange(e.target.value)} style={{ ...styles.filterButton, padding: "6px", cursor: "pointer", textAlign: "center" }}>
+  <option value="">Purchase Date</option><option value="1d">Last Day</option><option value="1w">Last Week</option><option value="1m">Last Month</option><option value="6m">Last 6 Months</option><option value="1y">Last 1 Year</option>
 </select>
-                <input
-                  type="text"
-                  placeholder="Search Code (XXXX-XXXX)"
-                  value={searchQuery}
-                  maxLength={9}
-                  onChange={(e) => {
-                    let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
-                    if (val.length > 8) val = val.slice(0, 8);
-                    if (val.length > 4) val = val.slice(0, 4) + '-' + val.slice(4);
-                    setSearchQuery(val);
-                  }}
-                  onFocus={() => setShowGiftCardSearchPopup(true)} 
-                  style={styles.searchInput}
-                />
-              </>
-            )}
-          </div>
-        </div>
+<input type="text" placeholder="Search Code (XXXX-XXXX)" value={searchQuery} maxLength={9} onChange={(e) => { let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""); if (val.length > 8) val = val.slice(0, 8); if (val.length > 4) val = val.slice(0, 4) + '-' + val.slice(4); setSearchQuery(val);}} onFocus={() => setShowGiftCardSearchPopup(true)}  style={styles.searchInput}/>
+</>
+)}
+  </div>
+</div>
 
         {/* Mobile Tabs */}
         <div style={styles.mobileTabsContainer(isMobile)}>
-          <button onClick={() => handleTabChange("vouchers")} style={styles.mobileTab(activeTab === "vouchers")}>
-            Vouchers
-          </button>
-          <button onClick={() => handleTabChange("giftcards")} style={styles.mobileTab(activeTab === "giftcards")}>
-            Gift Cards
-          </button>
+          <button onClick={() => handleTabChange("vouchers")} style={styles.mobileTab(activeTab === "vouchers")}>Vouchers</button>
+          <button onClick={() => handleTabChange("giftcards")} style={styles.mobileTab(activeTab === "giftcards")}>Gift Cards</button>
         </div>
 
-        {/* Main Content Layout */}
+        {/* Layout */}
         <div style={styles.mainContentLayout(isMobile)}>
-          {/* Left Side Tabs */}
+          {/* Tabs */}
           <div style={styles.leftTabsContainer(isMobile)}>
-            <button onClick={() => handleTabChange("vouchers")} style={styles.leftTab(activeTab === "vouchers")}>
-              Vouchers
-            </button>
-            <button onClick={() => handleTabChange("giftcards")} style={styles.leftTab(activeTab === "giftcards")}>
-              Gift Cards
-            </button>
+            <button onClick={() => handleTabChange("vouchers")} style={styles.leftTab(activeTab === "vouchers")}>Vouchers</button>
+            <button onClick={() => handleTabChange("giftcards")} style={styles.leftTab(activeTab === "giftcards")}>Gift Cards</button>
           </div>
 
-          {/* Right Side Content */}
+          {/* Table */}
           <div style={styles.rightSideContent}>
             <div style={styles.tableContainer}>
               {/* Header */}
@@ -653,23 +579,11 @@ const dateFilteredGiftCardOrders = selectedDateRange
                 <div style={styles.tableHeader(activeTab, isMobile)}>
                   {activeTab === "vouchers" ? (
                     <>
-                      <div>Voucher Code</div>
-                      <div>Expiration</div>
-                      <div>Location</div>
-                      <div>Use Date</div>
-                      <div>Status</div>
-                      <div>Used By</div>
-                      <div></div>
+                      <div>Voucher Code</div><div>Expiration</div><div>Location</div><div>Use Date</div><div>Status</div><div>Used By</div><div></div>
                     </>
                   ) : (
                     <>
-                      <div>Gift Code</div>
-                      <div>Value</div>
-                      <div>Remaining </div>
-                      <div>Location</div>
-                      <div>Use Date</div>
-                      <div>Used By</div>
-                      <div></div>
+                      <div>Gift Code</div><div>Value</div><div>Remaining </div><div>Location</div><div>Use Date</div><div>Used By</div><div></div>
                     </>
                   )}
                 </div>
@@ -684,13 +598,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                       <div key={voucher.id} style={styles.tableRowContainer(index + vIndex, locationFilteredOrders.length, isMobile)}>
                         <div style={{...styles.tableRow(activeTab, isMobile), color: isUsed ? "#aaa" : "#000"}}>
                           <div>{voucher.code}</div>
-                          <div>{order.lineItems[0]?.expire ? (() => {
-                            const date = new Date(order.lineItems[0].expire);
-                            const mm = String(date.getMonth() + 1).padStart(2, "0");
-                            const dd = String(date.getDate()).padStart(2,"0");
-                            const yyyy = date.getFullYear();
-                            return `${mm}/${dd}/${yyyy}`;
-                          })() : "--"}</div>
+                          <div>{order.lineItems[0]?.expire ? (() => {const date = new Date(order.lineItems[0].expire);const mm = String(date.getMonth() + 1).padStart(2, "0");const dd = String(date.getDate()).padStart(2,"0");const yyyy = date.getFullYear();return `${mm}/${dd}/${yyyy}`})() : "--"}</div>
                           <div>{order.locationUsed || "—"}</div>
                           <div>{formatDates(order.redeemedAt) || "—"}</div>
                           <div>{isUsed ? "USED" : "VALID"}</div>
