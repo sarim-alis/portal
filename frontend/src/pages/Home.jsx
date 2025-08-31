@@ -36,6 +36,7 @@ const Home = ({ onLogout }) => {
     color: "#fff"
   });
   const [selectedDateRange, setSelectedDateRange] = useState("");
+  const [employeeName, setEmployeeName] = useState(""); // new state for typed name
 
 
 // Format date.
@@ -302,6 +303,8 @@ const handleRedeemGiftCard = async () => {
     }
 
     try {
+      const username = localStorage.getItem("username");
+      const selectedLocation = localStorage.getItem("name");
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/api/vou/redeem`,
         {
@@ -312,7 +315,8 @@ const handleRedeemGiftCard = async () => {
             redeemAmount: parseFloat(amountToRedeem), 
             locationUsed: [selectedLocation],
             redeemedAt: [new Date().toISOString()],
-            useDate: new Date().toISOString()
+            useDate: new Date().toISOString(),
+            username,
           }),
         }
       );
@@ -327,7 +331,8 @@ const handleRedeemGiftCard = async () => {
                   ...order, 
                   remainingBalance: data.updatedOrder.remainingBalance, 
                   locationUsed: data.updatedOrder.locationUsed, 
-                  redeemedAt: data.updatedOrder.redeemedAt
+                  redeemedAt: data.updatedOrder.redeemedAt,
+                  username: data.updatedOrder.username,
                 } 
               : order
           )
@@ -648,20 +653,22 @@ const dateFilteredGiftCardOrders = selectedDateRange
                 <div style={styles.tableHeader(activeTab, isMobile)}>
                   {activeTab === "vouchers" ? (
                     <>
-                      <div>Order Number</div>
+                      <div>Voucher Code</div>
                       <div>Expiration</div>
-                      <div>Location Used</div>
+                      <div>Location</div>
                       <div>Use Date</div>
                       <div>Status</div>
+                      <div>Used By</div>
                       <div></div>
                     </>
                   ) : (
                     <>
-                      <div>Gift Card Code</div>
+                      <div>Gift Code</div>
                       <div>Value</div>
-                      <div>Remaining Value</div>
-                      <div>Location Used</div>
+                      <div>Remaining </div>
+                      <div>Location</div>
                       <div>Use Date</div>
+                      <div>Used By</div>
                       <div></div>
                     </>
                   )}
@@ -687,6 +694,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                           <div>{order.locationUsed || "—"}</div>
                           <div>{formatDates(order.redeemedAt) || "—"}</div>
                           <div>{isUsed ? "USED" : "VALID"}</div>
+                          <div>{order.username?.length ? order.username.map((user, idx) => <div key={idx}>{user}</div>) : "—"}</div>
                           <div style={styles.buttonContainer}>
                             <button onClick={() => { if (!isUsed) handleUseVoucher(voucher, order); }} style={{ ...styles.useButton(isMobile), cursor: isUsed ? "not-allowed" : "pointer", backgroundColor: isUsed ? "#d3d3d3" : "#000", color: isUsed ? "#666" : "#fff", opacity: isUsed ? 1 : 1}} disabled={isUsed}>
                               Use
@@ -706,6 +714,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                           <div>{order.remainingBalance != null ? `$${formatDollarAmount(order.remainingBalance)}` : "—"}</div>
                           <div> {order.locationUsed?.length ? order.locationUsed.map((loc, idx) => ( <div key={idx}>{loc}</div>)): "—"}</div>
                           <div>{formatDates(order.redeemedAt) || "—"}</div>
+                          <div>{order.username?.length ? order.username.map((user, idx) => <div key={idx}>{user}</div>) : "—"}</div>
                           <div style={styles.buttonContainer}>
                             {!giftCard.used && (
                               <button onClick={() => handleUseGiftCard(giftCard, order)} style={styles.useButton(isMobile)}>
@@ -837,15 +846,14 @@ const dateFilteredGiftCardOrders = selectedDateRange
               </div>
 
               <div style={styles.popupFlexContainers(isMobile)}>
-                <span style={styles.popupLabel(isMobile)}>Location:</span>
-                <select value={selectedLocation} onChange={(e) => setSelectedLocation(e.target.value)} style={styles.popupSelect(isMobile)}>
-                  <option value="Select your location" disabled>Select your location</option>
-                  {locations.map((location) => (
-                    <option key={location.id} value={location.name} style={styles.selectOption}>
-                      {location.name}
-                    </option>
-                  ))}
-                </select>
+                <span style={styles.popupLabel(isMobile)}>Name:</span>
+                <input
+    type="text"
+    value={employeeName}
+    onChange={(e) => setEmployeeName(e.target.value)}
+    placeholder="Enter name"
+    style={styles.popupInput(isMobile)}
+  />
                 {isGiftCard && (
                   <>
                     <span style={styles.popupLabel(isMobile)}>Remaining Balance:</span>

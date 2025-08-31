@@ -49,10 +49,10 @@ export const getCustomerVouchers = async (req, res) => {
 
 export const redeemByCode = async (req, res) => {
   try {
-    const { code, redeemAmount, locationUsed } = req.body;
+    const { code, redeemAmount, locationUsed, username } = req.body;
 
-    if (!code || !redeemAmount || redeemAmount <= 0 || !locationUsed) {
-      return res.status(400).json({ error: "Invalid code or redeemAmount" });
+    if (!code || !redeemAmount || redeemAmount <= 0 || !locationUsed || !username) {
+      return res.status(400).json({ error: "Invalid code or redeemAmount or username" });
     }
 
     // Find voucher and related order.
@@ -85,6 +85,7 @@ export const redeemByCode = async (req, res) => {
         remainingBalance: newBalance,
         locationUsed: { push: locationUsed },
         redeemedAt: { push: new Date() },
+        username: { push: username },
       },
     });
 
