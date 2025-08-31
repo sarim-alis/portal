@@ -293,18 +293,21 @@ const handleUseGiftCard = (giftCard, order) => {
 
 // Handle redeem gift card.
 const handleRedeemGiftCard = async () => {
-    if (
-      !selectedVoucher ||
-      !amountToRedeem ||
-      selectedLocation === "Select your location"
-    ) {
-      toast.info("Please enter amount and select a location.");
+    if (!selectedVoucher || !amountToRedeem || !employeeName) {
+      toast.info("Please enter amount and name.");
       return;
     }
 
     try {
-      const username = localStorage.getItem("username");
-      const selectedLocation = localStorage.getItem("name");
+      const loggedInUsername = localStorage.getItem("username");
+      const locationName = localStorage.getItem("name");
+
+       // Validate username.
+      if (employeeName !== loggedInUsername) {
+        toast.error("You can only redeem using your own username.");
+      return;
+      }
+
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/api/vou/redeem`,
         {
@@ -313,10 +316,10 @@ const handleRedeemGiftCard = async () => {
           body: JSON.stringify({
             code: selectedVoucher.code, 
             redeemAmount: parseFloat(amountToRedeem), 
-            locationUsed: [selectedLocation],
+            locationUsed: [locationName],
             redeemedAt: [new Date().toISOString()],
             useDate: new Date().toISOString(),
-            username,
+            username: loggedInUsername,
           }),
         }
       );
@@ -764,7 +767,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                 )}
               </div>
               <div style={styles.redemButt}>
-                <button onClick={isGiftCard ? handleRedeemGiftCard : handleMarkVoucherAsUsed} style={styles.redeemButts(isMobile)}>
+                <button onClick={isGiftCard ? handleRedeemGiftCard : handleMarkVoucherAsUsed} style={{...styles.redeemButts(isMobile), cursor: employeeName.trim() !== localStorage.getItem("username") ? "not-allowed" : "pointer", opacity: employeeName.trim() !== localStorage.getItem("username") ? 0.5 : 1}} disabled={employeeName.trim() !== localStorage.getItem("username")}>
                   Redeem
                 </button>
               </div>
