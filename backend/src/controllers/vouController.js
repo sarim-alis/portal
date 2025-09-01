@@ -71,7 +71,7 @@ export const redeemByCode = async (req, res) => {
     const newBalance = currentBalance - redeemAmount;
 
     // Update order with new remaining balance.
-    const updatedOrder = await prisma.order.update({where: { id: order.id }, data: {remainingBalance: newBalance, locationUsed: { push: locationUsed }, redeemedAt: { push: new Date() }, username: { push: username }}});
+    const updatedOrder = await prisma.order.update({where: { id: order.id }, data: {remainingBalance: newBalance, cashHistory: { push: redeemAmount }, locationUsed: { push: locationUsed }, redeemedAt: { push: new Date() }, username: { push: username }}});
     res.json({message: "Redeemed successfully", code, updatedOrder});
 
   } catch (error) {console.error("Error redeeming voucher:", error); res.status(500).json({ error: "Internal server error" })}

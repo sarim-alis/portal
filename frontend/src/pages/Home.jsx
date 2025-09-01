@@ -286,6 +286,7 @@ const handleUseGiftCard = (giftCard, order) => {
     remainingBalance: order.remainingBalance,
     orderId: order.id,
     location: order.location,
+    cashHistory: order.cashHistory || [],
   });
   setIsGiftCard(true);
   setShowPopup(true);
@@ -336,6 +337,7 @@ const handleRedeemGiftCard = async () => {
                   locationUsed: data.updatedOrder.locationUsed, 
                   redeemedAt: data.updatedOrder.redeemedAt,
                   username: data.updatedOrder.username,
+                  cashHistory: data.updatedOrder.cashHistory,
                 } 
               : order
           )
@@ -596,7 +598,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                     </>
                   ) : (
                     <>
-                      <div>Gift Code</div><div>Value</div><div>Remaining </div><div>Location</div><div>Use Date</div><div>Used By</div><div></div>
+                      <div>Gift Code</div><div>Value</div><div>History </div><div>Location</div><div>Use Date</div><div>Used By</div><div></div>
                     </>
                   )}
                 </div>
@@ -632,7 +634,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                         <div style={styles.tableRow(activeTab, isMobile)}>
                           <div>{giftCard.code}</div>
                           <div>${formatDollarAmount(order.totalPrice)}</div>
-                          <div>{order.remainingBalance != null ? `$${formatDollarAmount(order.remainingBalance)}` : "—"}</div>
+                          <div> {order.cashHistory.map((amt, idx) => (<div key={idx}>${formatDollarAmount(amt)}</div>))}</div>
                           <div> {order.locationUsed?.length ? order.locationUsed.map((loc, idx) => ( <div key={idx}>{loc}</div>)): "—"}</div>
                           <div>{formatDates(order.redeemedAt) || "—"}</div>
                           <div>{order.username?.length ? order.username.map((user, idx) => <div key={idx}>{user}</div>) : "—"}</div>
@@ -772,7 +774,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                 {isGiftCard && (
                   <>
                     <span style={styles.popupLabel(isMobile)}>Remaining Balance:</span>
-                    <input type="text" value={selectedVoucher?.remainingBalance != null ? `$${selectedVoucher.remainingBalance}` : `$${selectedVoucher?.totalPrice || "0.00"}`} style={styles.popupReadonlyInput(isMobile)}/>
+                    <input type="text" value={selectedVoucher?.remainingBalance != null ? `$${formatDollarAmount(selectedVoucher.remainingBalance)}` : `$${formatDollarAmount(selectedVoucher?.totalPrice || 0)}`} style={styles.popupReadonlyInput(isMobile)}/>
                   </>
                 )}
               </div>
