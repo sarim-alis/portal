@@ -69,7 +69,8 @@ model Order {
   lineItems         Json?
   processedAt       DateTime
   customerId        String?
-  remainingBalance  Float[]   @default([])
+  remainingBalance  Float?
+  cashHistory       Float[]   @default([])
   locationUsed      String[]
   redeemedAt        DateTime[]
   statusUse         Boolean   @default(false)
