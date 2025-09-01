@@ -302,7 +302,7 @@ const handleRedeemGiftCard = async () => {
       const loggedInUsername = localStorage.getItem("username");
       const locationName = localStorage.getItem("name");
 
-       // Validate username.
+      // Validate username.
       if (employeeName !== loggedInUsername) {
         toast.error("You can only redeem using your own username.");
       return;
@@ -353,18 +353,27 @@ const handleRedeemGiftCard = async () => {
 
 // Handle mark voucher as used.
 const handleMarkVoucherAsUsed = async () => {
-    if (!selectedVoucher || !selectedLocation || selectedLocation === "Select your location") {
-      toast.info("Please select a location.");
+    if (!selectedVoucher || !employeeName) {
+      toast.info("Please enter name.");
       return;
     }
 
     try {
+      const loggedInUsername = localStorage.getItem("username");
+      const locationName = localStorage.getItem("name");
+
+      // Validate username.
+      if (employeeName !== loggedInUsername) {
+        toast.error("You can only redeem using your own username.");
+      return;
+      }
+
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/api/vou/redeems`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({code: selectedVoucher.code, locationUsed: selectedLocation}),
+          body: JSON.stringify({code: selectedVoucher.code, locationUsed: [locationName], redeemedAt: [new Date().toISOString()], useDate: new Date().toISOString(), username: loggedInUsername}),
         }
       );
 
@@ -378,8 +387,9 @@ const handleMarkVoucherAsUsed = async () => {
               ? {
                   ...order, 
                   statusUse: true, 
-                  locationUsed: [selectedLocation], 
-                  redeemedAt: [new Date().toISOString()],
+                  locationUsed: data.updatedOrder.locationUsed, 
+                  redeemedAt: data.updatedOrder.redeemedAt,
+                  username: data.updatedOrder.username,
                 } 
               : order
           )
