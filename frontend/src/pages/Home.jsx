@@ -36,75 +36,39 @@ const Home = ({ onLogout }) => {
     color: "#fff"
   });
   const [selectedDateRange, setSelectedDateRange] = useState("");
+  const [employeeName, setEmployeeName] = useState(""); // new state for typed name
 
+
+// Format date.
 const formatDates = (value) => {
   if (!value) return "—";
-
   const arr = Array.isArray(value) ? value : [value];
-
-  const formatted = arr
-    .map((d) => {
-      const dt = d instanceof Date ? d : new Date(d);
-      if (Number.isNaN(dt.getTime())) return null;
-      return dt.toLocaleDateString();
-    })
-    .filter(Boolean);
-
+  const formatted = arr.map((d) => {const dt = d instanceof Date ? d : new Date(d); if (Number.isNaN(dt.getTime())) return null; return dt.toLocaleDateString();}).filter(Boolean);
   if (!formatted.length) return "—";
-
-  // Join with <br /> and return as React fragment.
   return formatted.reduce((acc, date, i) => {
     if (i === 0) return [date];
     return [...acc, <br key={i} />, date];
   }, []);
 };
 
-// formatVoucherCode.
-const formatVoucherCode = (value) => {
-  const cleanValue = value.replace(/[^A-Z0-9]/g, '');
-  if (cleanValue.length <= 4) {
-    return cleanValue;
-  }
-  
-  const truncated = cleanValue.substring(0, 8);
-  return truncated.substring(0, 4) + '-' + truncated.substring(4);
-};
+// Format voucher code.
+const formatVoucherCode = (value) => {const cleanValue = value.replace(/[^A-Z0-9]/g, '');if (cleanValue.length <= 4) {return cleanValue;}const truncated = cleanValue.substring(0, 8);return truncated.substring(0, 4) + '-' + truncated.substring(4);};
 
-// formatDollarAmount.
-const formatDollarAmount = (amount) => {
-  if (amount === null || amount === undefined || amount === "") return "—";
-  const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-  if (isNaN(numericAmount)) return "—";
-  return numericAmount.toFixed(2);
-};
+// Format dollar amount.
+const formatDollarAmount = (amount) => {if (amount === null || amount === undefined || amount === "") return "—";const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;if (isNaN(numericAmount)) return "—";return numericAmount.toFixed(2);};
 
-// handleAmountChange.
+// Handle amount change.
 const handleAmountChange = (e) => {
   let val = e.target.value.replace(/[$,]/g, "").replace(/[^0-9.]/g, "");
-  
   const decimalCount = (val.match(/\./g) || []).length;
-  if (decimalCount > 1) {
-    val = val.substring(0, val.lastIndexOf('.'));
-  }
-
+  if (decimalCount > 1) {val = val.substring(0, val.lastIndexOf('.'));}
   const decimalIndex = val.indexOf('.');
-  if (decimalIndex !== -1 && val.length > decimalIndex + 3) {
-    val = val.substring(0, decimalIndex + 3);
-  }
-  
+  if (decimalIndex !== -1 && val.length > decimalIndex + 3) {val = val.substring(0, decimalIndex + 3);}
   const numericValue = parseFloat(val);
   const maxBalance = selectedVoucher?.remainingBalance ?? selectedVoucher?.totalPrice ?? 0;
-  setWasAmountReduced(false);
-  
+  setWasAmountReduced(false);  
   // If entered amount exceeds max balance, automatically reduce to max.
-  if (!isNaN(numericValue) && numericValue > maxBalance) {
-    const formattedMaxBalance = formatDollarAmount(maxBalance);
-    setAmountToRedeem(formattedMaxBalance);
-    setWasAmountReduced(true);
-    toast.info(`Amount reduced to maximum available balance: $${formattedMaxBalance}`);
-  } else {
-    setAmountToRedeem(val);
-  }
+  if (!isNaN(numericValue) && numericValue > maxBalance) {const formattedMaxBalance = formatDollarAmount(maxBalance);setAmountToRedeem(formattedMaxBalance);setWasAmountReduced(true);toast.info(`Amount reduced to maximum available balance: $${formattedMaxBalance}`);} else {setAmountToRedeem(val);}
 };
 
   // Handle resize.
@@ -114,51 +78,15 @@ const handleAmountChange = (e) => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Show search popup when switching to vouchers tab.
-//   useEffect(() => {
-//     if (activeTab === "vouchers") {
-//       setShowSearchPopup(true);
-//     }
-//   }, [activeTab]);
-
-//   useEffect(() => {
-//   if (activeTab === "giftcards") {
-//     setShowGiftCardSearchPopup(true);
-//   }
-// }, [activeTab]);
-
   // Validate voucher in real-time as user types.
   useEffect(() => {
-    if (!voucherSearchCode.trim()) {
-      setVoucherValidation({
-        status: null,
-        message: "Enter 4-digit code format (XXXX-XXXX)",
-        color: "#fff"
-      });
-      return;
-    }
-
-    const formattedCode = voucherSearchCode.replace(/[^A-Z0-9]/g, '');
+    if (!voucherSearchCode.trim()) { setVoucherValidation({status: null, message: "Enter 4-digit code format (XXXX-XXXX)", color: "#fff"});return;} const formattedCode = voucherSearchCode.replace(/[^A-Z0-9]/g, '');
     
     // Find matching order.
-    const matchingOrder = orders.find(order =>
-      order.vouchers.some(voucher =>
-        voucher.code.replace(/[^A-Z0-9]/g, '') === formattedCode
-      )
-    );
+    const matchingOrder = orders.find(order => order.vouchers.some(voucher => voucher.code.replace(/[^A-Z0-9]/g, '') === formattedCode));
 
-    if (!matchingOrder) {
-      setVoucherValidation({
-        status: 'invalid',
-        message: "Invalid voucher number",
-        color: "#dc3545"
-      });
-      return;
-    }
-
-    const voucher = matchingOrder.vouchers.find(v =>
-      v.code.replace(/[^A-Z0-9]/g, '') === formattedCode
-    );
+    if (!matchingOrder) { setVoucherValidation({ status: 'invalid', message: "Invalid voucher number", color: "#dc3545"});return;}
+    const voucher = matchingOrder.vouchers.find(v => v.code.replace(/[^A-Z0-9]/g, '') === formattedCode);
 
     // Check expiration.
     const expireDate = matchingOrder.lineItems[0]?.expire;
@@ -168,41 +96,18 @@ const handleAmountChange = (e) => {
       
       if (expirationDate < currentDate) {
         const formattedExpireDate = (() => {
-          const date = new Date(expireDate);
-          const mm = String(date.getMonth() + 1).padStart(2, "0");
-          const dd = String(date.getDate()).padStart(2, "0");
-          const yyyy = date.getFullYear();
-          return `${mm}/${dd}/${yyyy}`;
-        })();
-        
-        setVoucherValidation({
-          status: 'expired',
-          message: `Voucher expired on ${formattedExpireDate}`,
-          color: "#fd7e14"
-        });
-        return;
+          const date = new Date(expireDate); const mm = String(date.getMonth() + 1).padStart(2, "0"); const dd = String(date.getDate()).padStart(2, "0"); const yyyy = date.getFullYear(); return `${mm}/${dd}/${yyyy}`;})();
+        setVoucherValidation({status: 'expired', message: `Voucher expired on ${formattedExpireDate}`, color: "#fd7e14"});return;
       }
     }
 
     // Voucher is valid.
-    setVoucherValidation({
-      status: 'valid',
-      message: "Valid voucher",
-      color: "#28a745"
-    });
-
+    setVoucherValidation({status: 'valid', message: "Valid voucher", color: "#28a745"});
   }, [voucherSearchCode, orders]);
 
-  // Set gift card validation.
+// Set gift card validation.
 useEffect(() => {
-  if (!giftCardSearchCode.trim()) {
-    setGiftCardValidation({
-      status: null,
-      message: "Enter 4-digit code format (XXXX-XXXX)",
-      color: "white"
-    });
-    return;
-  }
+  if (!giftCardSearchCode.trim()) {setGiftCardValidation({status: null, message: "Enter 4-digit code format (XXXX-XXXX)", color: "white"});return;}
 
   const formattedCode = giftCardSearchCode.replace(/[^A-Z0-9]/g, '');
   
@@ -213,31 +118,13 @@ useEffect(() => {
     )
   );
 
-  if (!matchingOrder) {
-    setGiftCardValidation({
-      status: 'invalid',
-      message: "Invalid gift card number",
-      color: "#dc3545"
-    });
-    return;
-  }
+  if (!matchingOrder) {setGiftCardValidation({status: 'invalid', message: "Invalid gift card number", color: "#dc3545"});return;}
 
   // Check if gift card is already used.
-  if (matchingOrder.remainingBalance === 0) {
-    setGiftCardValidation({
-      status: 'used',
-      message: "Gift card has been fully used",
-      color: "#6c757d"
-    });
-    return;
-  }
+  if (matchingOrder.remainingBalance === 0) { setGiftCardValidation({ status: 'used', message: "Gift card has been fully used", color: "#6c757d"});return;}
 
   // Gift card is valid.
-  setGiftCardValidation({
-    status: 'valid',
-    message: "Valid gift card",
-    color: "#28a745"
-  });
+  setGiftCardValidation({ status: 'valid', message: "Valid gift card", color: "#28a745"});
 
 }, [giftCardSearchCode, giftCardOrders]);
 
@@ -399,6 +286,7 @@ const handleUseGiftCard = (giftCard, order) => {
     remainingBalance: order.remainingBalance,
     orderId: order.id,
     location: order.location,
+    cashHistory: order.cashHistory || [],
   });
   setIsGiftCard(true);
   setShowPopup(true);
@@ -406,16 +294,21 @@ const handleUseGiftCard = (giftCard, order) => {
 
 // Handle redeem gift card.
 const handleRedeemGiftCard = async () => {
-    if (
-      !selectedVoucher ||
-      !amountToRedeem ||
-      selectedLocation === "Select your location"
-    ) {
-      toast.info("Please enter amount and select a location.");
+    if (!selectedVoucher || !amountToRedeem || !employeeName) {
+      toast.info("Please enter amount and name.");
       return;
     }
 
     try {
+      const loggedInUsername = localStorage.getItem("username");
+      const locationName = localStorage.getItem("name");
+
+      // Validate username.
+      if (employeeName !== loggedInUsername) {
+        toast.error("You can only redeem using your own username.");
+      return;
+      }
+
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/api/vou/redeem`,
         {
@@ -424,9 +317,10 @@ const handleRedeemGiftCard = async () => {
           body: JSON.stringify({
             code: selectedVoucher.code, 
             redeemAmount: parseFloat(amountToRedeem), 
-            locationUsed: [selectedLocation],
+            locationUsed: [locationName],
             redeemedAt: [new Date().toISOString()],
-            useDate: new Date().toISOString()
+            useDate: new Date().toISOString(),
+            username: loggedInUsername,
           }),
         }
       );
@@ -441,7 +335,9 @@ const handleRedeemGiftCard = async () => {
                   ...order, 
                   remainingBalance: data.updatedOrder.remainingBalance, 
                   locationUsed: data.updatedOrder.locationUsed, 
-                  redeemedAt: data.updatedOrder.redeemedAt
+                  redeemedAt: data.updatedOrder.redeemedAt,
+                  username: data.updatedOrder.username,
+                  cashHistory: data.updatedOrder.cashHistory,
                 } 
               : order
           )
@@ -459,18 +355,27 @@ const handleRedeemGiftCard = async () => {
 
 // Handle mark voucher as used.
 const handleMarkVoucherAsUsed = async () => {
-    if (!selectedVoucher || !selectedLocation || selectedLocation === "Select your location") {
-      toast.info("Please select a location.");
+    if (!selectedVoucher || !employeeName) {
+      toast.info("Please enter name.");
       return;
     }
 
     try {
+      const loggedInUsername = localStorage.getItem("username");
+      const locationName = localStorage.getItem("name");
+
+      // Validate username.
+      if (employeeName !== loggedInUsername) {
+        toast.error("You can only redeem using your own username.");
+      return;
+      }
+
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/api/vou/redeems`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({code: selectedVoucher.code, locationUsed: selectedLocation}),
+          body: JSON.stringify({code: selectedVoucher.code, locationUsed: [locationName], redeemedAt: [new Date().toISOString()], useDate: new Date().toISOString(), username: loggedInUsername}),
         }
       );
 
@@ -484,8 +389,9 @@ const handleMarkVoucherAsUsed = async () => {
               ? {
                   ...order, 
                   statusUse: true, 
-                  locationUsed: [selectedLocation], 
-                  redeemedAt: [new Date().toISOString()],
+                  locationUsed: data.updatedOrder.locationUsed, 
+                  redeemedAt: data.updatedOrder.redeemedAt,
+                  username: data.updatedOrder.username,
                 } 
               : order
           )
@@ -578,7 +484,7 @@ const locationFilteredOrders =
           order.locationUsed?.includes(selectedLocation)
         )
       )
-    : filteredOrders; // show all orders by default
+    : filteredOrders;
 
     const now = new Date();
 
@@ -588,18 +494,12 @@ const dateFilteredOrders = selectedDateRange
       const orderDate = new Date(order.processedAt);
 
       switch (selectedDateRange) {
-        case "1d":
-          return (now - orderDate) <= 24 * 60 * 60 * 1000; // 1 day
-        case "1w":
-          return (now - orderDate) <= 7 * 24 * 60 * 60 * 1000; // 1 week
-        case "1m":
-          return (now - orderDate) <= 30 * 24 * 60 * 60 * 1000; // 1 month
-        case "6m":
-          return (now - orderDate) <= 182 * 24 * 60 * 60 * 1000; // ~6 months
-        case "1y":
-          return (now - orderDate) <= 365 * 24 * 60 * 60 * 1000; // 1 year
-        default:
-          return true;
+        case "1d": return (now - orderDate) <= 24 * 60 * 60 * 1000;
+        case "1w": return (now - orderDate) <= 7 * 24 * 60 * 60 * 1000;
+        case "1m": return (now - orderDate) <= 30 * 24 * 60 * 60 * 1000;
+        case "6m": return (now - orderDate) <= 182 * 24 * 60 * 60 * 1000;
+        case "1y": return (now - orderDate) <= 365 * 24 * 60 * 60 * 1000;
+        default:   return true;
       }
     })
   : locationFilteredOrders;
@@ -611,18 +511,12 @@ const dateFilteredGiftCardOrders = selectedDateRange
       const orderDate = new Date(order.processedAt);
 
       switch (selectedDateRange) {
-        case "1d":
-          return (now - orderDate) <= 24 * 60 * 60 * 1000;
-        case "1w":
-          return (now - orderDate) <= 7 * 24 * 60 * 60 * 1000;
-        case "1m":
-          return (now - orderDate) <= 30 * 24 * 60 * 60 * 1000;
-        case "6m":
-          return (now - orderDate) <= 182 * 24 * 60 * 60 * 1000;
-        case "1y":
-          return (now - orderDate) <= 365 * 24 * 60 * 60 * 1000;
-        default:
-          return true;
+        case "1d": return (now - orderDate) <= 24 * 60 * 60 * 1000;
+        case "1w": return (now - orderDate) <= 7 * 24 * 60 * 60 * 1000;
+        case "1m": return (now - orderDate) <= 30 * 24 * 60 * 60 * 1000;
+        case "6m": return (now - orderDate) <= 182 * 24 * 60 * 60 * 1000;
+        case "1y": return (now - orderDate) <= 365 * 24 * 60 * 60 * 1000;
+        default:   return true;
       }
     })
   : filteredGiftCardOrders;
@@ -652,109 +546,47 @@ const dateFilteredGiftCardOrders = selectedDateRange
         <div style={styles.filterButtonsRow}>
           <div style={styles.filterEmptySpace(isMobile)}></div>
           <div style={styles.filterButtonsGrid(activeTab, isMobile)}>
-            {activeTab === "vouchers" ? (
-              <>
-                {/* <button style={styles.filterButton}>Location</button> */}
-                <select
-  value={selectedDateRange}
-  onChange={(e) => setSelectedDateRange(e.target.value)}
-  style={{ ...styles.filterButton, padding: "6px", cursor: "pointer", textAlign: "center" }}
->
-  <option value="">Purchase Date</option>
-  <option value="1d">Last Day</option>
-  <option value="1w">Last Week</option>
-  <option value="1m">Last Month</option>
-  <option value="6m">Last 6 Months</option>
-  <option value="1y">Last 1 Year</option>
+{activeTab === "vouchers" ? (
+<>
+<select value={selectedDateRange} onChange={(e) => setSelectedDateRange(e.target.value)} style={{ ...styles.filterButton, padding: "6px", cursor: "pointer", textAlign: "center" }}>
+<option value="">Purchase Date</option><option value="1d">Last Day</option><option value="1w">Last Week</option><option value="1m">Last Month</option><option value="6m">Last 6 Months</option><option value="1y">Last 1 Year</option>
 </select>
 
-                {/* Location Dropdown */}
-<select
-  value={selectedLocation}
-  onChange={(e) => setSelectedLocation(e.target.value)}
-  style={{ ...styles.filterButton, padding: "6px", cursor: "pointer" }}
->
-  <option value="" style={{textAlign: 'center'}}>Locations</option>
-  {locations.map((loc) => (
-    <option key={loc.id} value={loc.name} style={{textAlign: 'center'}}>
-      {loc.name}
-    </option>
-  ))}
+{/* Location Dropdown */}
+<select value={selectedLocation} onChange={(e) => setSelectedLocation(e.target.value)} style={{ ...styles.filterButton, padding: "6px", cursor: "pointer" }}>
+  <option value="" style={{textAlign: 'center'}}>All Locations</option>
+  {locations.map((loc) => (<option key={loc.id} value={loc.name} style={{textAlign: 'center'}}>{loc.name}</option>))}
 </select>
 
 
-                {/* <button style={styles.filterButton}>Status</button> */}
-                <input
-                  type="text"
-                  placeholder="Search Code (XXXX-XXXX)"
-                  value={searchQuery}
-                  maxLength={9}
-                  onChange={(e) => {
-                    let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
-                    if (val.length > 8) val = val.slice(0, 8);
-                    if (val.length > 4) val = val.slice(0, 4) + '-' + val.slice(4);
-                    setSearchQuery(val);
-                  }}
-                  onFocus={() => setShowSearchPopup(true)} 
-                  style={styles.searchInput}
-                />
-              </>
-            ) : (
-              <>
-                <select
-  value={selectedDateRange}
-  onChange={(e) => setSelectedDateRange(e.target.value)}
-  style={{ ...styles.filterButton, padding: "6px", cursor: "pointer", textAlign: "center" }}
->
-  <option value="">Purchase Date</option>
-  <option value="1d">Last Day</option>
-  <option value="1w">Last Week</option>
-  <option value="1m">Last Month</option>
-  <option value="6m">Last 6 Months</option>
-  <option value="1y">Last 1 Year</option>
+<input type="text" placeholder="Search Code (XXXX-XXXX)" value={searchQuery} maxLength={9} onChange={(e) => { let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""); if (val.length > 8) val = val.slice(0, 8); if (val.length > 4) val = val.slice(0, 4) + '-' + val.slice(4); setSearchQuery(val);}} onFocus={() => setShowSearchPopup(true)}  style={styles.searchInput}/>
+</>
+) : (
+<>
+<select value={selectedDateRange} onChange={(e) => setSelectedDateRange(e.target.value)} style={{ ...styles.filterButton, padding: "6px", cursor: "pointer", textAlign: "center" }}>
+  <option value="">Purchase Date</option><option value="1d">Last Day</option><option value="1w">Last Week</option><option value="1m">Last Month</option><option value="6m">Last 6 Months</option><option value="1y">Last 1 Year</option>
 </select>
-                <input
-                  type="text"
-                  placeholder="Search Code (XXXX-XXXX)"
-                  value={searchQuery}
-                  maxLength={9}
-                  onChange={(e) => {
-                    let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
-                    if (val.length > 8) val = val.slice(0, 8);
-                    if (val.length > 4) val = val.slice(0, 4) + '-' + val.slice(4);
-                    setSearchQuery(val);
-                  }}
-                  onFocus={() => setShowGiftCardSearchPopup(true)} 
-                  style={styles.searchInput}
-                />
-              </>
-            )}
-          </div>
-        </div>
+<input type="text" placeholder="Search Code (XXXX-XXXX)" value={searchQuery} maxLength={9} onChange={(e) => { let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""); if (val.length > 8) val = val.slice(0, 8); if (val.length > 4) val = val.slice(0, 4) + '-' + val.slice(4); setSearchQuery(val);}} onFocus={() => setShowGiftCardSearchPopup(true)}  style={styles.searchInput}/>
+</>
+)}
+  </div>
+</div>
 
         {/* Mobile Tabs */}
         <div style={styles.mobileTabsContainer(isMobile)}>
-          <button onClick={() => handleTabChange("vouchers")} style={styles.mobileTab(activeTab === "vouchers")}>
-            Vouchers
-          </button>
-          <button onClick={() => handleTabChange("giftcards")} style={styles.mobileTab(activeTab === "giftcards")}>
-            Gift Cards
-          </button>
+          <button onClick={() => handleTabChange("vouchers")} style={styles.mobileTab(activeTab === "vouchers")}>Vouchers</button>
+          <button onClick={() => handleTabChange("giftcards")} style={styles.mobileTab(activeTab === "giftcards")}>Gift Cards</button>
         </div>
 
-        {/* Main Content Layout */}
+        {/* Layout */}
         <div style={styles.mainContentLayout(isMobile)}>
-          {/* Left Side Tabs */}
+          {/* Tabs */}
           <div style={styles.leftTabsContainer(isMobile)}>
-            <button onClick={() => handleTabChange("vouchers")} style={styles.leftTab(activeTab === "vouchers")}>
-              Vouchers
-            </button>
-            <button onClick={() => handleTabChange("giftcards")} style={styles.leftTab(activeTab === "giftcards")}>
-              Gift Cards
-            </button>
+            <button onClick={() => handleTabChange("vouchers")} style={styles.leftTab(activeTab === "vouchers")}>Vouchers</button>
+            <button onClick={() => handleTabChange("giftcards")} style={styles.leftTab(activeTab === "giftcards")}>Gift Cards</button>
           </div>
 
-          {/* Right Side Content */}
+          {/* Table */}
           <div style={styles.rightSideContent}>
             <div style={styles.tableContainer}>
               {/* Header */}
@@ -762,21 +594,11 @@ const dateFilteredGiftCardOrders = selectedDateRange
                 <div style={styles.tableHeader(activeTab, isMobile)}>
                   {activeTab === "vouchers" ? (
                     <>
-                      <div>Order Number</div>
-                      <div>Expiration</div>
-                      <div>Location Used</div>
-                      <div>Use Date</div>
-                      <div>Status</div>
-                      <div></div>
+                      <div>Voucher Code</div><div>Expiration</div><div>Location</div><div>Use Date</div><div>Status</div><div>Used By</div><div></div>
                     </>
                   ) : (
                     <>
-                      <div>Gift Card Code</div>
-                      <div>Value</div>
-                      <div>Remaining Value</div>
-                      <div>Location Used</div>
-                      <div>Use Date</div>
-                      <div></div>
+                      <div>Gift Code</div><div>Value</div><div>History </div><div>Location</div><div>Use Date</div><div>Used By</div><div></div>
                     </>
                   )}
                 </div>
@@ -791,16 +613,11 @@ const dateFilteredGiftCardOrders = selectedDateRange
                       <div key={voucher.id} style={styles.tableRowContainer(index + vIndex, locationFilteredOrders.length, isMobile)}>
                         <div style={{...styles.tableRow(activeTab, isMobile), color: isUsed ? "#aaa" : "#000"}}>
                           <div>{voucher.code}</div>
-                          <div>{order.lineItems[0]?.expire ? (() => {
-                            const date = new Date(order.lineItems[0].expire);
-                            const mm = String(date.getMonth() + 1).padStart(2, "0");
-                            const dd = String(date.getDate()).padStart(2,"0");
-                            const yyyy = date.getFullYear();
-                            return `${mm}/${dd}/${yyyy}`;
-                          })() : "--"}</div>
+                          <div>{order.lineItems[0]?.expire ? (() => {const date = new Date(order.lineItems[0].expire);const mm = String(date.getMonth() + 1).padStart(2, "0");const dd = String(date.getDate()).padStart(2,"0");const yyyy = date.getFullYear();return `${mm}/${dd}/${yyyy}`})() : "--"}</div>
                           <div>{order.locationUsed || "—"}</div>
                           <div>{formatDates(order.redeemedAt) || "—"}</div>
                           <div>{isUsed ? "USED" : "VALID"}</div>
+                          <div>{order.username?.length ? order.username.map((user, idx) => <div key={idx}>{user}</div>) : "—"}</div>
                           <div style={styles.buttonContainer}>
                             <button onClick={() => { if (!isUsed) handleUseVoucher(voucher, order); }} style={{ ...styles.useButton(isMobile), cursor: isUsed ? "not-allowed" : "pointer", backgroundColor: isUsed ? "#d3d3d3" : "#000", color: isUsed ? "#666" : "#fff", opacity: isUsed ? 1 : 1}} disabled={isUsed}>
                               Use
@@ -817,9 +634,10 @@ const dateFilteredGiftCardOrders = selectedDateRange
                         <div style={styles.tableRow(activeTab, isMobile)}>
                           <div>{giftCard.code}</div>
                           <div>${formatDollarAmount(order.totalPrice)}</div>
-                          <div>{order.remainingBalance != null ? `$${formatDollarAmount(order.remainingBalance)}` : "—"}</div>
+                          <div> {order.cashHistory.map((amt, idx) => (<div key={idx}>${formatDollarAmount(amt)}</div>))}</div>
                           <div> {order.locationUsed?.length ? order.locationUsed.map((loc, idx) => ( <div key={idx}>{loc}</div>)): "—"}</div>
                           <div>{formatDates(order.redeemedAt) || "—"}</div>
+                          <div>{order.username?.length ? order.username.map((user, idx) => <div key={idx}>{user}</div>) : "—"}</div>
                           <div style={styles.buttonContainer}>
                             {!giftCard.used && (
                               <button onClick={() => handleUseGiftCard(giftCard, order)} style={styles.useButton(isMobile)}>
@@ -951,24 +769,17 @@ const dateFilteredGiftCardOrders = selectedDateRange
               </div>
 
               <div style={styles.popupFlexContainers(isMobile)}>
-                <span style={styles.popupLabel(isMobile)}>Location:</span>
-                <select value={selectedLocation} onChange={(e) => setSelectedLocation(e.target.value)} style={styles.popupSelect(isMobile)}>
-                  <option value="Select your location" disabled>Select your location</option>
-                  {locations.map((location) => (
-                    <option key={location.id} value={location.name} style={styles.selectOption}>
-                      {location.name}
-                    </option>
-                  ))}
-                </select>
+                <span style={styles.popupLabel(isMobile)}>Name:</span>
+                <input type="text" value={employeeName} onChange={(e) => setEmployeeName(e.target.value)} placeholder="Enter name" style={styles.popupInput(isMobile)}/>
                 {isGiftCard && (
                   <>
                     <span style={styles.popupLabel(isMobile)}>Remaining Balance:</span>
-                    <input type="text" value={selectedVoucher?.remainingBalance != null ? `$${selectedVoucher.remainingBalance}` : `$${selectedVoucher?.totalPrice || "0.00"}`} style={styles.popupReadonlyInput(isMobile)}/>
+                    <input type="text" value={selectedVoucher?.remainingBalance != null ? `$${formatDollarAmount(selectedVoucher.remainingBalance)}` : `$${formatDollarAmount(selectedVoucher?.totalPrice || 0)}`} style={styles.popupReadonlyInput(isMobile)}/>
                   </>
                 )}
               </div>
               <div style={styles.redemButt}>
-                <button onClick={isGiftCard ? handleRedeemGiftCard : handleMarkVoucherAsUsed} style={styles.redeemButts(isMobile)}>
+                <button onClick={isGiftCard ? handleRedeemGiftCard : handleMarkVoucherAsUsed} style={{...styles.redeemButts(isMobile), cursor: employeeName.trim() !== localStorage.getItem("username") ? "not-allowed" : "pointer", opacity: employeeName.trim() !== localStorage.getItem("username") ? 0.5 : 1}} disabled={employeeName.trim() !== localStorage.getItem("username")}>
                   Redeem
                 </button>
               </div>

@@ -143,8 +143,8 @@ const styles = {
   tableHeader: (activeTab, isMobile) => ({
     display: 'grid',
     gridTemplateColumns: activeTab === 'vouchers' ? 
-      (isMobile ? '120px 80px 100px 80px 80px 60px' : '1fr 1fr 1fr 1fr 1fr 100px') :
-      (isMobile ? '120px 80px 100px 100px 80px 60px' : '1fr 1fr 1fr 1fr 1fr 100px'),
+      (isMobile ? '120px 80px 100px 80px 80px 80px 60px' : '1fr 1fr 1fr 1fr 1fr 1fr 100px') :
+      (isMobile ? '120px 80px 100px 100px 80px 80px 60px' : '1fr 1fr 1fr 1fr 1fr 1fr 100px'),
     backgroundColor: 'white',
     borderBottom: '1.5px solid rgb(187, 187, 187)',
     padding: '12px 0',
@@ -159,14 +159,14 @@ const styles = {
     padding: index === dataLength - 1 ? 
       (isMobile ? '0 10px 12px 10px' : '0 140px 12px 80px') : 
       (isMobile ? '0 10px 0 10px' : '0 140px 0 80px'),
-    backgroundColor: 'white'
+    backgroundColor: 'white',
   }),
 
   tableRow: (activeTab, isMobile) => ({
     display: 'grid',
     gridTemplateColumns: activeTab === 'vouchers' ? 
-      (isMobile ? '120px 80px 100px 80px 80px 60px' : '1fr 1fr 1fr 1fr 1fr 100px') :
-      (isMobile ? '120px 80px 100px 100px 80px 60px' : '1fr 1fr 1fr 1fr 1fr 100px'),
+      (isMobile ? '120px 80px 100px 80px 80px 80px 60px' : '1fr 1fr 1fr 1fr 1fr 1fr 100px') :
+      (isMobile ? '120px 80px 100px 100px 80px 80px 60px' : '1fr 1fr 1fr 1fr 1fr 1fr 100px'),
     backgroundColor: 'white',
     borderBottom: '1px solid #fff',
     padding: '12px 0',

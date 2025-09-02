@@ -7,13 +7,13 @@ export const loginEmployee = async (req, res) => {
 
   try {
     // 1️⃣ Check employee first.
-    let user = await prisma.employee.findUnique({ where: { email } });
+    let user = await prisma.employee.findUnique({ where: { email }, include: { location: true }, });
 
     if (user && user.password === password) {
     // Employee login (no role).
       return res.status(200).json({
         message: 'Login successful',
-        user: { id: user.id, email: user.email, name: user.name}})
+        user: { id: user.id, email: user.email, username: user.username, locationId: user.locationId, name: user.location?.name || null,}})
     }
 
     // 2️⃣ If not employee, check customer.
