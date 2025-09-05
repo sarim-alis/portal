@@ -594,11 +594,11 @@ const dateFilteredGiftCardOrders = selectedDateRange
                 <div style={styles.tableHeader(activeTab, isMobile)}>
                   {activeTab === "vouchers" ? (
                     <>
-                      <div>Voucher Code</div><div>Expiration</div><div>Location</div><div>Use Date</div><div>Status</div><div>Used By</div><div></div>
+                      <div>Product</div><div>Code</div><div>Expire</div><div>Location</div><div>Use Date</div><div>Status</div><div>Used By</div><div></div>
                     </>
                   ) : (
                     <>
-                      <div>Gift Code</div><div>Value</div><div>History </div><div>Location</div><div>Use Date</div><div>Used By</div><div></div>
+                      <div>Product</div><div>Code</div><div>Value</div><div>History </div><div>Location</div><div>Use Date</div><div>Used By</div><div></div>
                     </>
                   )}
                 </div>
@@ -612,6 +612,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                   return (
                       <div key={voucher.id} style={styles.tableRowContainer(index + vIndex, locationFilteredOrders.length, isMobile)}>
                         <div style={{...styles.tableRow(activeTab, isMobile), color: isUsed ? "#aaa" : "#000"}}>
+                          <div>{voucher.productTitle}</div>
                           <div>{voucher.code}</div>
                           <div>{order.lineItems[0]?.expire ? (() => {const date = new Date(order.lineItems[0].expire);const mm = String(date.getMonth() + 1).padStart(2, "0");const dd = String(date.getDate()).padStart(2,"0");const yyyy = date.getFullYear();return `${mm}/${dd}/${yyyy}`})() : "--"}</div>
                           <div>{order.locationUsed || "—"}</div>
@@ -632,6 +633,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                     order.vouchers.map((giftCard, vIndex) => (
                       <div key={giftCard.id} style={styles.tableRowContainer(index + vIndex, filteredGiftCardOrders.length, isMobile)}>
                         <div style={styles.tableRow(activeTab, isMobile)}>
+                          <div>{giftCard.productTitle}</div>
                           <div>{giftCard.code}</div>
                           <div>${formatDollarAmount(order.totalPrice)}</div>
                           <div> {order.cashHistory.map((amt, idx) => (<div key={idx}>${formatDollarAmount(amt)}</div>))}</div>
