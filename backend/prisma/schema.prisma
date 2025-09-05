@@ -1,12 +1,15 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
 generator client {
   provider = "prisma-client-js"
 }
-
+// Note that some adapters may set a maximum length for the String type by default, please ensure your strings are long
+// enough when changing adapters.
+// See https://www.prisma.io/docs/orm/reference/prisma-schema-reference#string for more information
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      =  env("DATABASE_URL")
 }
-
 model Session {
   id            String    @id
   shop          String
@@ -24,71 +27,67 @@ model Session {
   collaborator  Boolean?  @default(false)
   emailVerified Boolean?  @default(false)
 }
-
 model Voucher {
-  id             String   @id @default(uuid())
-  code           String   @unique
-  customerEmail  String
-  createdAt      DateTime @default(now())
-  used           Boolean  @default(false)
+  id            String   @id @default(uuid())
+  code          String   @unique
   shopifyOrderId String
+  customerEmail String
+  productTitle  String?  // Product title for this specific voucher
+  type          String?  // Type of voucher (gift, voucher, etc.)
+  used          Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  order         Order    @relation(fields: [shopifyOrderId], references: [shopifyOrderId])
   emailSent      Boolean  @default(false)
-  order          Order    @relation(fields: [shopifyOrderId], references: [shopifyOrderId])
   username      String[] @default([])
 }
-
 model Product {
-  id             String    @id @default(cuid())
-  title          String
-  description    String?
-  vendor         String?
-  status         String
-  totalInventory Int
-  categoryId     String?
-  categoryName   String?
-  createdAt      DateTime  @default(now())
-  imageAlt       String?
-  imageUrl       String?
-  shopifyId      String    @unique
-  type           String?
-  expire         DateTime?
+  id              String   @id @default(cuid())
+  shopifyId       String   @unique
+  title           String
+  description     String?
+  vendor          String?
+  status          String
+  imageUrl        String?
+  imageAlt        String?
+  totalInventory  Int
+  categoryId      String?
+  categoryName    String?
+  type            String? 
+  createdAt       DateTime @default(now())
+  expire          DateTime? @default(now())
 }
-
 model Order {
-  id                String    @id @default(cuid())
-  shopifyOrderId    String    @unique
+  id                String   @id @default(cuid())
+  shopifyOrderId    String   @unique
   customerEmail     String?
-  totalPrice        Float
-  currency          String
-  status            String
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
   customerName      String?
-  fulfillmentStatus String?
-  itemQuantity      Int
-  lineItems         Json?
-  processedAt       DateTime
-  customerId        String?
+  totalPrice        Float
   remainingBalance  Float?
   cashHistory       Float[]   @default([])
+  currency          String
+  status            String
+  fulfillmentStatus String?
+  itemQuantity      Int
+  processedAt       DateTime
+  lineItems         Json?    // Store line items as JSON
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  vouchers          Voucher[] // Relation to vouchers
+  customerId        String?
+  customer          Customer? @relation("CustomerOrders", fields: [customerId], references: [id])
   locationUsed      String[]
   redeemedAt        DateTime[]
-  statusUse         Boolean   @default(false)
-  customer          Customer? @relation("CustomerOrders", fields: [customerId], references: [id])
-  vouchers          Voucher[]
+  statusUse         Boolean  @default(false)
   username          String[] @default([])
 }
-
 model Location {
   id        String   @id @default(cuid())
   name      String   @unique
   market    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   employees Employee[]
 }
-
 model Employee {
   id        String      @id @default(cuid())
   username  String      @unique
@@ -96,19 +95,17 @@ model Employee {
   password  String?
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
-
   locationId String
   location   Location  @relation(fields: [locationId], references: [id])
 }
-
 model Customer {
-  id        String   @id @default(cuid())
-  shopifyId String?  @unique
-  firstName String?
-  lastName  String?
-  email     String?  @unique
-  createdAt DateTime @default(now())
-  orders    Order[]  @relation("CustomerOrders")
+  id         String   @id @default(cuid())
+  shopifyId  String?   @unique                // Shopify Customer ID (GraphQL ID)
+  firstName  String?
+  lastName   String?
+  email      String?  @unique
+  createdAt  DateTime @default(now())
+  orders     Order[]  @relation("CustomerOrders")
   password   String?
   role       String?
 }
