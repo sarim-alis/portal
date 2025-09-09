@@ -178,6 +178,12 @@ const handleGiftCardSearch = () => {
 const handleTabChange = (tab) => {
   setActiveTab(tab);
   setSearchQuery("");
+  // Clear popup state when switching tabs
+  setShowPopup(false);
+  setSelectedVoucher(null);
+  setAmountToRedeem("");
+  setIsGiftCard(false);
+  setWasAmountReduced(false);
   if (tab === "vouchers") {
     const usedVouchers = orders.filter((order) => 
       order.statusUse === true || order.vouchers?.some(voucher => voucher.status === 'USED'));
