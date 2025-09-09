@@ -291,9 +291,10 @@ const handleVoucherSearch = () => {
       )
     );
 
-    setFilteredOrders(filtered);
-    setSearchQuery(voucherSearchCode);
-    setShowSearchPopup(false);
+  console.log("🔍 Voucher search results:", filtered);
+  setFilteredOrders(filtered);
+  setSearchQuery(voucherSearchCode);
+  setShowSearchPopup(false);
   };
 
 // Handle use voucher.
