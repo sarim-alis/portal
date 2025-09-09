@@ -86,18 +86,28 @@ const handleAmountChange = (e) => {
     const matchingOrder = orders.find(order => order.vouchers.some(voucher => voucher.code.replace(/[^A-Z0-9]/g, '') === formattedCode));
 
     if (!matchingOrder) { setVoucherValidation({ status: 'invalid', message: "Invalid voucher number", color: "#dc3545"});return;}
+
     const voucher = matchingOrder.vouchers.find(v => v.code.replace(/[^A-Z0-9]/g, '') === formattedCode);
 
-    // Check expiration.
-    const expireDate = matchingOrder.lineItems[0]?.expire;
-    if (expireDate) {
-      const expirationDate = new Date(expireDate);
+    // Check expiration using voucher.expire (from Voucher table), fix for space in datetime
+    const expireDate = voucher?.expire;
+    let safeExpireDate = expireDate ? expireDate.replace(' ', 'T') : null;
+    if (safeExpireDate) {
+      const expirationDate = new Date(safeExpireDate);
       const currentDate = new Date();
-      
-      if (expirationDate < currentDate) {
-        const formattedExpireDate = (() => {
-          const date = new Date(expireDate); const mm = String(date.getMonth() + 1).padStart(2, "0"); const dd = String(date.getDate()).padStart(2, "0"); const yyyy = date.getFullYear(); return `${mm}/${dd}/${yyyy}`;})();
-        setVoucherValidation({status: 'expired', message: `Voucher expired on ${formattedExpireDate}`, color: "#fd7e14"});return;
+      // Check for invalid or default 1970 date
+      if (!isNaN(expirationDate.getTime()) && expirationDate.getFullYear() > 1971) {
+        if (expirationDate < currentDate) {
+          const formattedExpireDate = (() => {
+            const date = new Date(safeExpireDate);
+            const mm = String(date.getMonth() + 1).padStart(2, "0");
+            const dd = String(date.getDate()).padStart(2, "0");
+            const yyyy = date.getFullYear();
+            return `${mm}/${dd}/${yyyy}`;
+          })();
+          setVoucherValidation({status: 'expired', message: `Voucher expired on ${formattedExpireDate}`, color: "#fd7e14"});
+          return;
+        }
       }
     }
 
@@ -614,7 +624,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                         <div style={{...styles.tableRow(activeTab, isMobile), color: isUsed ? "#aaa" : "#000"}}>
                           <div>{voucher.productTitle}</div>
                           <div>{voucher.code}</div>
-                          <div>{order.lineItems[0]?.expire ? (() => {const date = new Date(order.lineItems[0].expire);const mm = String(date.getMonth() + 1).padStart(2, "0");const dd = String(date.getDate()).padStart(2,"0");const yyyy = date.getFullYear();return `${mm}/${dd}/${yyyy}`})() : "--"}</div>
+                          <div>{voucher.expire ? (() => {const safeExpire = voucher.expire.replace(' ', 'T'); const date = new Date(safeExpire); if (isNaN(date.getTime())) return "--"; const mm = String(date.getMonth() + 1).padStart(2, "0"); const dd = String(date.getDate()).padStart(2, "0"); const yyyy = date.getFullYear(); return `${mm}/${dd}/${yyyy}`})() : "--"}</div>
                           <div>{order.locationUsed || "—"}</div>
                           <div>{formatDates(order.redeemedAt) || "—"}</div>
                           <div>{isUsed ? "USED" : "VALID"}</div>
