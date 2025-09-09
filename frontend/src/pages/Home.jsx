@@ -627,7 +627,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                   return (
                       <div key={voucher.id} style={styles.tableRowContainer(index + vIndex, locationFilteredOrders.length, isMobile)}>
                         <div style={{...styles.tableRow(activeTab, isMobile), color: isUsed ? "#aaa" : "#000"}}>
-                          <div>{voucher.productTitle  || "—"}</div>
+                          <div style={{minWidth: "120px"}}>{voucher.productTitle  || "—"}</div>
                           <div>{voucher.code  || "—"}</div>
                           <div>{voucher.expire ? (() => {const safeExpire = voucher.expire.replace(' ', 'T');const date = new Date(safeExpire);if (isNaN(date.getTime())) return "—";const mm = String(date.getMonth() + 1).padStart(2, "0");const dd = String(date.getDate()).padStart(2, "0");const yyyy = date.getFullYear();return `${mm}/${dd}/${yyyy}`})() : "—"}</div>
                           <div>{order.locationUsed || "—"}</div>
