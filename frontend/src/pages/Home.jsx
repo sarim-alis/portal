@@ -36,7 +36,12 @@ const Home = ({ onLogout }) => {
     color: "#fff"
   });
   const [selectedDateRange, setSelectedDateRange] = useState("");
-  const [employeeName, setEmployeeName] = useState(""); // new state for typed name
+  const [employeeName, setEmployeeName] = useState(() => localStorage.getItem("username") || "");
+
+  useEffect(() => {
+    const stored = localStorage.getItem("username") || "";
+    setEmployeeName(stored);
+  }, []);
 
 
 // Format date.
@@ -787,7 +792,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
 
               <div style={styles.popupFlexContainers(isMobile)}>
                 <span style={styles.popupLabel(isMobile)}>Name:</span>
-                <input type="text" value={employeeName} onChange={(e) => setEmployeeName(e.target.value)} placeholder="Enter name" style={styles.popupInput(isMobile)}/>
+                <input type="text" value={employeeName} readOnly placeholder="Enter name" style={styles.popupInput(isMobile)}/>
                 {isGiftCard && (
                   <>
                     <span style={styles.popupLabel(isMobile)}>Remaining Balance:</span>
