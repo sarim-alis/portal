@@ -500,7 +500,7 @@ const locationFilteredOrders =
   selectedLocation && selectedLocation !== "" && selectedLocation !== "Select your location"
     ? filteredOrders.filter(order =>
         order.vouchers.some(voucher =>
-          voucher.locationUsed?.includes(selectedLocation) ||
+          voucher.usedLocation?.includes(selectedLocation) ||
           order.locationUsed?.includes(selectedLocation)
         )
       )
