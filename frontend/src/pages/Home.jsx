@@ -36,7 +36,12 @@ const Home = ({ onLogout }) => {
     color: "#fff"
   });
   const [selectedDateRange, setSelectedDateRange] = useState("");
-  const [employeeName, setEmployeeName] = useState(""); // new state for typed name
+  const [employeeName, setEmployeeName] = useState(() => localStorage.getItem("username") || "");
+
+  useEffect(() => {
+    const stored = localStorage.getItem("username") || "";
+    setEmployeeName(stored);
+  }, []);
 
 
 // Format date.
@@ -86,18 +91,33 @@ const handleAmountChange = (e) => {
     const matchingOrder = orders.find(order => order.vouchers.some(voucher => voucher.code.replace(/[^A-Z0-9]/g, '') === formattedCode));
 
     if (!matchingOrder) { setVoucherValidation({ status: 'invalid', message: "Invalid voucher number", color: "#dc3545"});return;}
+
     const voucher = matchingOrder.vouchers.find(v => v.code.replace(/[^A-Z0-9]/g, '') === formattedCode);
 
-    // Check expiration.
-    const expireDate = matchingOrder.lineItems[0]?.expire;
-    if (expireDate) {
-      const expirationDate = new Date(expireDate);
-      const currentDate = new Date();
-      
-      if (expirationDate < currentDate) {
-        const formattedExpireDate = (() => {
-          const date = new Date(expireDate); const mm = String(date.getMonth() + 1).padStart(2, "0"); const dd = String(date.getDate()).padStart(2, "0"); const yyyy = date.getFullYear(); return `${mm}/${dd}/${yyyy}`;})();
-        setVoucherValidation({status: 'expired', message: `Voucher expired on ${formattedExpireDate}`, color: "#fd7e14"});return;
+
+    // Check expiration by comparing voucher.expire with voucher.createdAt
+    const expireDate = voucher?.expire;
+    const createdAt = voucher?.createdAt;
+    let safeExpireDate = expireDate ? expireDate.replace(' ', 'T') : null;
+    let safeCreatedAt = createdAt ? createdAt.replace(' ', 'T') : null;
+    if (safeExpireDate && safeCreatedAt) {
+      const expirationDate = new Date(safeExpireDate);
+      const createdDate = new Date(safeCreatedAt);
+      // Check for invalid or default 1970 date
+      if (!isNaN(expirationDate.getTime()) && !isNaN(createdDate.getTime()) && expirationDate.getFullYear() > 1971) {
+        if (expirationDate < new Date()) {
+          const diffMs = expirationDate - createdDate;
+          const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+          const formattedExpireDate = (() => {
+            const date = new Date(safeExpireDate);
+            const mm = String(date.getMonth() + 1).padStart(2, "0");
+            const dd = String(date.getDate()).padStart(2, "0");
+            const yyyy = date.getFullYear();
+            return `${mm}/${dd}/${yyyy}`;
+          })();
+          setVoucherValidation({status: 'expired', message: `Voucher expired on ${formattedExpireDate} (${diffDays} days after purchase)`, color: "#fd7e14"});
+          return;
+        }
       }
     }
 
@@ -158,6 +178,12 @@ const handleGiftCardSearch = () => {
 const handleTabChange = (tab) => {
   setActiveTab(tab);
   setSearchQuery("");
+  // Clear popup state when switching tabs
+  setShowPopup(false);
+  setSelectedVoucher(null);
+  setAmountToRedeem("");
+  setIsGiftCard(false);
+  setWasAmountReduced(false);
   if (tab === "vouchers") {
     const usedVouchers = orders.filter((order) => 
       order.statusUse === true || order.vouchers?.some(voucher => voucher.status === 'USED'));
@@ -265,9 +291,10 @@ const handleVoucherSearch = () => {
       )
     );
 
-    setFilteredOrders(filtered);
-    setSearchQuery(voucherSearchCode);
-    setShowSearchPopup(false);
+  console.log("🔍 Voucher search results:", filtered);
+  setFilteredOrders(filtered);
+  setSearchQuery(voucherSearchCode);
+  setShowSearchPopup(false);
   };
 
 // Handle use voucher.
@@ -480,7 +507,7 @@ const locationFilteredOrders =
   selectedLocation && selectedLocation !== "" && selectedLocation !== "Select your location"
     ? filteredOrders.filter(order =>
         order.vouchers.some(voucher =>
-          voucher.locationUsed?.includes(selectedLocation) ||
+          voucher.usedLocation?.includes(selectedLocation) ||
           order.locationUsed?.includes(selectedLocation)
         )
       )
@@ -612,9 +639,9 @@ const dateFilteredGiftCardOrders = selectedDateRange
                   return (
                       <div key={voucher.id} style={styles.tableRowContainer(index + vIndex, locationFilteredOrders.length, isMobile)}>
                         <div style={{...styles.tableRow(activeTab, isMobile), color: isUsed ? "#aaa" : "#000"}}>
-                          <div>{voucher.productTitle}</div>
-                          <div>{voucher.code}</div>
-                          <div>{order.lineItems[0]?.expire ? (() => {const date = new Date(order.lineItems[0].expire);const mm = String(date.getMonth() + 1).padStart(2, "0");const dd = String(date.getDate()).padStart(2,"0");const yyyy = date.getFullYear();return `${mm}/${dd}/${yyyy}`})() : "--"}</div>
+                          <div style={{minWidth: "120px"}}>{voucher.productTitle  || "—"}</div>
+                          <div>{voucher.code  || "—"}</div>
+                          <div>{voucher.expire ? (() => {const safeExpire = voucher.expire.replace(' ', 'T');const date = new Date(safeExpire);if (isNaN(date.getTime())) return "—";const mm = String(date.getMonth() + 1).padStart(2, "0");const dd = String(date.getDate()).padStart(2, "0");const yyyy = date.getFullYear();return `${mm}/${dd}/${yyyy}`})() : "—"}</div>
                           <div>{order.locationUsed || "—"}</div>
                           <div>{formatDates(order.redeemedAt) || "—"}</div>
                           <div>{isUsed ? "USED" : "VALID"}</div>
@@ -772,7 +799,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
 
               <div style={styles.popupFlexContainers(isMobile)}>
                 <span style={styles.popupLabel(isMobile)}>Name:</span>
-                <input type="text" value={employeeName} onChange={(e) => setEmployeeName(e.target.value)} placeholder="Enter name" style={styles.popupInput(isMobile)}/>
+                <input type="text" value={employeeName} readOnly placeholder="Enter name" style={styles.popupInput(isMobile)}/>
                 {isGiftCard && (
                   <>
                     <span style={styles.popupLabel(isMobile)}>Remaining Balance:</span>

@@ -136,7 +136,7 @@ const styles = {
   },
 
   tableHeaderContainer: (isMobile) => ({
-    padding: isMobile ? '0 10px' : '0 140px 0 80px',
+    padding: isMobile ? '0 10px' : '0 100px 0 40px',
     backgroundColor: 'white',
   }),
 
@@ -157,8 +157,8 @@ const styles = {
   // Table row styles
   tableRowContainer: (index, dataLength, isMobile) => ({
     padding: index === dataLength - 1 ? 
-      (isMobile ? '0 10px 12px 10px' : '0 140px 12px 80px') : 
-      (isMobile ? '0 10px 0 10px' : '0 140px 0 80px'),
+      (isMobile ? '0 10px 12px 10px' : '0 100px 20px 40px') : 
+      (isMobile ? '0 10px 0 10px' : '0 100px 20px 40px'),
     backgroundColor: 'white',
   }),
 
