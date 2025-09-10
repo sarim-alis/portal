@@ -97,7 +97,7 @@ export const redeemByCodes = async (req, res) => {
     if (voucher.usedLocation) { return res.status(400).json({ error: "Voucher already used" });}
 
     // Updated voucher with status used.
-    const updatedVoucher = await prisma.voucher.update({where: { id: voucher.id }, data: { used: true, usedLocation: usedLocation, username: { push: username } }});
+    const updatedVoucher = await prisma.voucher.update({where: { id: voucher.id }, data: { used: true, usedLocation: usedLocation, redeemedAt: { push: new Date() }, username: { push: username } }});
     res.json({message: "Voucher marked as used successfully", code, updatedVoucher});
 
   } catch (error) {console.error("Error marking voucher as used:", error); res.status(500).json({ error: "Internal server error" })}
