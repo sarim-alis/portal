@@ -77,28 +77,28 @@ export const redeemByCode = async (req, res) => {
   } catch (error) {console.error("Error redeeming voucher:", error); res.status(500).json({ error: "Internal server error" })}
 };
 
+// Gift.🎁
 export const redeemByCodes = async (req, res) => {
   try {
-    const { code, locationUsed, username } = req.body;
+    const { code, usedLocation, username } = req.body;
 
-    if (!code || !locationUsed || !username) {
-      return res.status(400).json({ error: "Code, location and username are required" });
-    }
+    if (!code || !usedLocation || !username) { return res.status(400).json({ error: "Code, location and username are required" });}
 
     // Find voucher and related order.
-    const voucher = await prisma.voucher.findUnique({where: { code },include: { order: true },});
+    const voucher = await prisma.voucher.findUnique({where: { code }, include: { order: { include: { vouchers: true }}}});
 
     if (!voucher) { return res.status(404).json({ error: "Voucher not found" })}
+    if (!voucher.order) { return res.status(404).json({ error: "Order not found for this voucher" });}
 
     const order = voucher.order;
     if (!order) { return res.status(404).json({ error: "Order not found for this voucher" })}
 
     // Check if already used.
-    if (order.statusUse) { return res.status(400).json({ error: "Voucher already used" })}
+    if (voucher.usedLocation) { return res.status(400).json({ error: "Voucher already used" });}
 
-    // Update order with status used.
-    const updatedOrder = await prisma.order.update({where: { id: order.id }, data: { statusUse: true, locationUsed: { push: locationUsed }, redeemedAt: { push: new Date() }, username: { push: username }}});
-    res.json({message: "Voucher marked as used successfully",code,updatedOrder});
+    // Updated voucher with status used.
+    const updatedVoucher = await prisma.voucher.update({where: { id: voucher.id }, data: { used: true, usedLocation: usedLocation, username: { push: username } }});
+    res.json({message: "Voucher marked as used successfully", code, updatedVoucher});
 
   } catch (error) {console.error("Error marking voucher as used:", error); res.status(500).json({ error: "Internal server error" })}
 };
