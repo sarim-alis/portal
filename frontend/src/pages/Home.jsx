@@ -1,6 +1,8 @@
 // Imports.
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
+import { Table } from "antd";
+import "antd/dist/reset.css";
 import styles from "../styles/home.js";
 
 
