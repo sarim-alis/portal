@@ -1,5 +1,33 @@
 // Imports.
 import React, { useState, useEffect } from "react";
+
+// Custom style for Use button to override AntD Table resets
+const customBtnStyle = `
+.custom-use-btn {
+  padding: 6px 18px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 15px;
+  border: none;
+  transition: background 0.2s, color 0.2s;
+  background: #000;
+  color: #fff;
+  margin: 0 2px;
+}
+.custom-use-btn[disabled], .custom-use-btn:disabled {
+  background: #d3d3d3 !important;
+  color: #666 !important;
+  cursor: not-allowed !important;
+  opacity: 1 !important;
+}
+`;
+
+if (typeof document !== 'undefined' && !document.getElementById('custom-use-btn-style')) {
+  const style = document.createElement('style');
+  style.id = 'custom-use-btn-style';
+  style.innerHTML = customBtnStyle;
+  document.head.appendChild(style);
+}
 import { toast } from "react-toastify";
 import { Table } from "antd";
 import "antd/dist/reset.css";
@@ -618,68 +646,94 @@ const dateFilteredGiftCardOrders = selectedDateRange
           {/* Table */}
           <div style={styles.rightSideContent}>
             <div style={styles.tableContainer}>
-              {/* Header */}
-              <div style={styles.tableHeaderContainer(isMobile)}>
-                <div style={styles.tableHeader(activeTab, isMobile)}>
-                  {activeTab === "vouchers" ? (
-                    <>
-                      <div>Product</div><div>Code</div><div>Expire</div><div>Location</div><div>Use Date</div><div>Status</div><div>Used By</div><div></div>
-                    </>
-                  ) : (
-                    <>
-                      <div>Product</div><div>Code</div><div>Value</div><div>History </div><div>Location</div><div>Use Date</div><div>Used By</div><div></div>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Table Rows */}
-              {activeTab === "vouchers"
-                ? dateFilteredOrders.map((order, index) =>
-                    order.vouchers.map((voucher, vIndex) => {
-                    const isUsed = order.statusUse === true || voucher.status === "USED";
-                  return (
-                      <div key={voucher.id} style={styles.tableRowContainer(index + vIndex, locationFilteredOrders.length, isMobile)}>
-                        <div style={{...styles.tableRow(activeTab, isMobile), color: isUsed ? "#aaa" : "#000"}}>
-                          <div style={{minWidth: "120px"}}>{voucher.productTitle  || "—"}</div>
-                          <div>{voucher.code  || "—"}</div>
-                          <div>{voucher.expire ? (() => {const safeExpire = voucher.expire.replace(' ', 'T');const date = new Date(safeExpire);if (isNaN(date.getTime())) return "—";const mm = String(date.getMonth() + 1).padStart(2, "0");const dd = String(date.getDate()).padStart(2, "0");const yyyy = date.getFullYear();return `${mm}/${dd}/${yyyy}`})() : "—"}</div>
-                          <div>{order.locationUsed || "—"}</div>
-                          <div>{formatDates(order.redeemedAt) || "—"}</div>
-                          <div>{isUsed ? "USED" : "VALID"}</div>
-                          <div>{order.username?.length ? order.username.map((user, idx) => <div key={idx}>{user}</div>) : "—"}</div>
+              <Table
+                dataSource={activeTab === "vouchers"
+                  ? dateFilteredOrders.flatMap((order, index) =>
+                      order.vouchers.map((voucher, vIndex) => {
+                        const isUsed = order.statusUse === true || voucher.status === "USED";
+                        return {
+                          key: voucher.id,
+                          product: voucher.productTitle || "—",
+                          code: voucher.code || "—",
+                          expire: voucher.expire ? (() => {const safeExpire = voucher.expire.replace(' ', 'T');const date = new Date(safeExpire);if (isNaN(date.getTime())) return "—";const mm = String(date.getMonth() + 1).padStart(2, "0");const dd = String(date.getDate()).padStart(2, "0");const yyyy = date.getFullYear();return `${mm}/${dd}/${yyyy}`})() : "—",
+                          location: order.locationUsed || "—",
+                          useDate: formatDates(order.redeemedAt) || "—",
+                          status: isUsed ? "USED" : "VALID",
+                          usedBy: order.username?.length ? order.username.map((user, idx) => <div key={idx}>{user}</div>) : "—",
+                          action: { isUsed, voucher, order },
+                        };
+                      })
+                    )
+                  : dateFilteredGiftCardOrders.flatMap((order, index) =>
+                      order.vouchers.map((giftCard, vIndex) => ({
+                        key: giftCard.id,
+                        product: giftCard.productTitle,
+                        code: giftCard.code,
+                        value: `$${formatDollarAmount(order.totalPrice)}`,
+                        history: order.cashHistory.map((amt, idx) => <div key={idx}>${formatDollarAmount(amt)}</div>),
+                        location: order.locationUsed?.length ? order.locationUsed.map((loc, idx) => (<div key={idx}>{loc}</div>)) : "—",
+                        useDate: formatDates(order.redeemedAt) || "—",
+                        usedBy: order.username?.length ? order.username.map((user, idx) => <div key={idx}>{user}</div>) : "—",
+                        action: { used: giftCard.used, giftCard, order },
+                      }))
+                    )
+                }
+                columns={activeTab === "vouchers"
+                  ? [
+                      { title: "Product", dataIndex: "product", key: "product" },
+                      { title: "Code", dataIndex: "code", key: "code" },
+                      { title: "Expire", dataIndex: "expire", key: "expire" },
+                      { title: "Location", dataIndex: "location", key: "location" },
+                      { title: "Use Date", dataIndex: "useDate", key: "useDate" },
+                      { title: "Status", dataIndex: "status", key: "status" },
+                      { title: "Used By", dataIndex: "usedBy", key: "usedBy" },
+                      {
+                        title: "",
+                        dataIndex: "action",
+                        key: "action",
+                        render: (action) => (
                           <div style={styles.buttonContainer}>
-                            <button onClick={() => { if (!isUsed) handleUseVoucher(voucher, order); }} style={{ ...styles.useButton(isMobile), cursor: isUsed ? "not-allowed" : "pointer", backgroundColor: isUsed ? "#d3d3d3" : "#000", color: isUsed ? "#666" : "#fff", opacity: isUsed ? 1 : 1}} disabled={isUsed}>
+                            <button
+                              className="custom-use-btn"
+                              onClick={() => { if (!action.isUsed) handleUseVoucher(action.voucher, action.order); }}
+                              disabled={action.isUsed}
+                            >
                               Use
                             </button>
-                        </div>
-                      </div>
-                    </div>
-                    );
-                  })
-                  )
-                : dateFilteredGiftCardOrders.map((order, index) =>
-                    order.vouchers.map((giftCard, vIndex) => (
-                      <div key={giftCard.id} style={styles.tableRowContainer(index + vIndex, filteredGiftCardOrders.length, isMobile)}>
-                        <div style={styles.tableRow(activeTab, isMobile)}>
-                          <div>{giftCard.productTitle}</div>
-                          <div>{giftCard.code}</div>
-                          <div>${formatDollarAmount(order.totalPrice)}</div>
-                          <div> {order.cashHistory.map((amt, idx) => (<div key={idx}>${formatDollarAmount(amt)}</div>))}</div>
-                          <div> {order.locationUsed?.length ? order.locationUsed.map((loc, idx) => ( <div key={idx}>{loc}</div>)): "—"}</div>
-                          <div>{formatDates(order.redeemedAt) || "—"}</div>
-                          <div>{order.username?.length ? order.username.map((user, idx) => <div key={idx}>{user}</div>) : "—"}</div>
+                          </div>
+                        ),
+                      },
+                    ]
+                  : [
+                      { title: "Product", dataIndex: "product", key: "product" },
+                      { title: "Code", dataIndex: "code", key: "code" },
+                      { title: "Value", dataIndex: "value", key: "value" },
+                      { title: "History", dataIndex: "history", key: "history" },
+                      { title: "Location", dataIndex: "location", key: "location" },
+                      { title: "Use Date", dataIndex: "useDate", key: "useDate" },
+                      { title: "Used By", dataIndex: "usedBy", key: "usedBy" },
+                      {
+                        title: "",
+                        dataIndex: "action",
+                        key: "action",
+                        render: (action) => (
                           <div style={styles.buttonContainer}>
-                            {!giftCard.used && (
-                              <button onClick={() => handleUseGiftCard(giftCard, order)} style={styles.useButton(isMobile)}>
+                            {!action.used && (
+                              <button
+                                className="custom-use-btn"
+                                onClick={() => handleUseGiftCard(action.giftCard, action.order)}
+                              >
                                 Use
                               </button>
                             )}
                           </div>
-                        </div>
-                      </div>
-                    ))
-                  )}
+                        ),
+                      },
+                    ]
+                }
+                pagination={false}
+                scroll={{ x: true }}
+              />
             </div>
           </div>
         </div>
