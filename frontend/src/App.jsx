@@ -6,6 +6,7 @@ import Home from "./pages/Home.jsx";
 import Voucher from "./pages/Voucher.jsx";
 import Customer from "./pages/Customer.jsx";
 import { ToastContainer } from "react-toastify";
+import 'antd/dist/reset.css';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
