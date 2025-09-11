@@ -709,6 +709,10 @@ const dateFilteredGiftCardOrders = selectedDateRange
                       { title: "Code", dataIndex: "code", key: "code" },
                       { title: "Value", dataIndex: "value", key: "value" },
                       { title: "Usage History", dataIndex: "history", key: "history" },
+                      { title: "Remaining Balance", dataIndex: "remainingBalance", key: "remainingBalance", render: (_, record) => {
+                        const order = record.action.order;
+                        return order ? `$${formatDollarAmount(order.remainingBalance)}` : "—";
+                      }},
                       { title: "Location", dataIndex: "location", key: "location" },
                       { title: "Use Date", dataIndex: "useDate", key: "useDate" },
                       { title: "Employee Name", dataIndex: "usedBy", key: "usedBy" },
