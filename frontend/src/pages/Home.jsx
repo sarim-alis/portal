@@ -686,7 +686,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                       { title: "Location", dataIndex: "location", key: "location" },
                       { title: "Use Date", dataIndex: "useDate", key: "useDate" },
                       { title: "Status", dataIndex: "status", key: "status" },
-                      { title: "Used By", dataIndex: "usedBy", key: "usedBy" },
+                      { title: "Employee Name", dataIndex: "usedBy", key: "usedBy" },
                       {
                         title: "",
                         dataIndex: "action",
@@ -708,10 +708,10 @@ const dateFilteredGiftCardOrders = selectedDateRange
                       { title: "Product", dataIndex: "product", key: "product" },
                       { title: "Code", dataIndex: "code", key: "code" },
                       { title: "Value", dataIndex: "value", key: "value" },
-                      { title: "History", dataIndex: "history", key: "history" },
+                      { title: "Usage History", dataIndex: "history", key: "history" },
                       { title: "Location", dataIndex: "location", key: "location" },
                       { title: "Use Date", dataIndex: "useDate", key: "useDate" },
-                      { title: "Used By", dataIndex: "usedBy", key: "usedBy" },
+                      { title: "Employee Name", dataIndex: "usedBy", key: "usedBy" },
                       {
                         title: "",
                         dataIndex: "action",
