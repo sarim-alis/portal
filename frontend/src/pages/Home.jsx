@@ -1,37 +1,13 @@
 // Imports.
 import React, { useState, useEffect } from "react";
-
-// Custom style for Use button to override AntD Table resets
-const customBtnStyle = `
-.custom-use-btn {
-  padding: 6px 18px;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 15px;
-  border: none;
-  transition: background 0.2s, color 0.2s;
-  background: #000;
-  color: #fff;
-  margin: 0 2px;
-}
-.custom-use-btn[disabled], .custom-use-btn:disabled {
-  background: #d3d3d3 !important;
-  color: #666 !important;
-  cursor: not-allowed !important;
-  opacity: 1 !important;
-}
-`;
-
-if (typeof document !== 'undefined' && !document.getElementById('custom-use-btn-style')) {
-  const style = document.createElement('style');
-  style.id = 'custom-use-btn-style';
-  style.innerHTML = customBtnStyle;
-  document.head.appendChild(style);
-}
 import { toast } from "react-toastify";
 import { Table } from "antd";
 import "antd/dist/reset.css";
 import styles from "../styles/home.js";
+const customBtnStyle = `
+.custom-use-btn { padding: 6px 18px; border-radius: 6px; font-weight: 600; font-size: 15px; border: none; transition: background 0.2s, color 0.2s; background: #000; color: #fff; margin: 0 2px; }
+.custom-use-btn[disabled], .custom-use-btn:disabled { background: #d3d3d3 !important; color: #666 !important; cursor: not-allowed !important; opacity: 1 !important; }`;
+if (typeof document !== 'undefined' && !document.getElementById('custom-use-btn-style')) { const style = document.createElement('style'); style.id = 'custom-use-btn-style'; style.innerHTML = customBtnStyle; document.head.appendChild(style);}
 
 
 // Frontend.
