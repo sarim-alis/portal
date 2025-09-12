@@ -163,14 +163,18 @@ const handleGiftCardSearch = () => {
   }
 
   const formattedCode = giftCardSearchCode.replace(/[^A-Z0-9]/g, '');
-  
-  const filtered = giftCardOrders.filter((order) =>
-    order.vouchers.some((giftCard) =>
-      giftCard.code.replace(/[^A-Z0-9]/g, '') === formattedCode
-    )
+  // Flatten all gift cards with their parent order reference
+  const matchingGiftCards = giftCardOrders.flatMap(order =>
+    order.vouchers
+      .filter(giftCard => giftCard.code.replace(/[^A-Z0-9]/g, '') === formattedCode)
+      .map(giftCard => ({ ...giftCard, _parentOrder: order }))
   );
-
-  setFilteredGiftCardOrders(filtered);
+  console.log("Gift search results", matchingGiftCards);
+  setFilteredGiftCardOrders(
+    matchingGiftCards.length > 0
+      ? matchingGiftCards.map(g => ({ ...g._parentOrder, vouchers: [g] }))
+      : []
+  );
   setSearchQuery(giftCardSearchCode);
   setShowGiftCardSearchPopup(false);
 };
@@ -285,17 +289,21 @@ const handleVoucherSearch = () => {
     }
 
     const formattedCode = voucherSearchCode.replace(/[^A-Z0-9]/g, '');
-    
-    const filtered = orders.filter((order) =>
-      order.vouchers.some((voucher) =>
-        voucher.code.replace(/[^A-Z0-9]/g, '') === formattedCode
-      )
+    // Flatten all vouchers with their parent order reference.
+    const matchingVouchers = orders.flatMap(order =>
+      order.vouchers
+        .filter(voucher => voucher.code.replace(/[^A-Z0-9]/g, '') === formattedCode)
+        .map(voucher => ({ ...voucher, _parentOrder: order }))
     );
-
-  console.log("🔍 Voucher search results:", filtered);
-  setFilteredOrders(filtered);
-  setSearchQuery(voucherSearchCode);
-  setShowSearchPopup(false);
+    console.log("Voucher search results", matchingVouchers);
+    // If you want to keep the same filteredOrders structure, wrap in a fake order
+    setFilteredOrders(
+      matchingVouchers.length > 0
+        ? matchingVouchers.map(v => ({ ...v._parentOrder, vouchers: [v] }))
+        : []
+    );
+    setSearchQuery(voucherSearchCode);
+    setShowSearchPopup(false);
   };
 
 // Handle use voucher.
@@ -459,20 +467,27 @@ const closeGiftCardSearchPopup = () => {
 
 // For vouchers, show USED status by default.
 useEffect(() => {
+  // Only run this effect if not in the middle of a search popup (i.e., let handleVoucherSearch control filteredOrders)
+  if (showSearchPopup) return;
   if (!searchQuery.trim()) {
     const usedVouchers = orders.filter((order) => 
       order.statusUse === true || order.vouchers?.some(voucher => voucher.status === 'USED'));
     setFilteredOrders(usedVouchers);
   } else {
     const code = searchQuery.replace(/[^A-Z0-9]/g, '');
-    const filtered = orders.filter((order) => 
-      order.vouchers.some((voucher) =>
-        voucher.code.replace(/[^A-Z0-9]/g, '').includes(code)
-      )
+    // Use the same flattening logic as in handleVoucherSearch for consistency
+    const matchingVouchers = orders.flatMap(order =>
+      order.vouchers
+        .filter(voucher => voucher.code.replace(/[^A-Z0-9]/g, '').includes(code))
+        .map(voucher => ({ ...voucher, _parentOrder: order }))
     );
-    setFilteredOrders(filtered);
+    setFilteredOrders(
+      matchingVouchers.length > 0
+        ? matchingVouchers.map(v => ({ ...v._parentOrder, vouchers: [v] }))
+        : []
+    );
   }
-}, [searchQuery, orders]);
+}, [searchQuery, orders, showSearchPopup]);
 
 
 // Show only when gift code is enter.
@@ -481,12 +496,17 @@ useEffect(() => {
     setFilteredGiftCardOrders([]);
   } else {
     const code = searchQuery.replace(/[^A-Z0-9]/g, '');
-    const filtered = giftCardOrders.filter((order) => 
-      order.vouchers.some((giftCard) =>
-        giftCard.code.replace(/[^A-Z0-9]/g, '').includes(code)
-      )
+    // Use the same flattening logic as in handleGiftCardSearch for consistency
+    const matchingGiftCards = giftCardOrders.flatMap(order =>
+      order.vouchers
+        .filter(giftCard => giftCard.code.replace(/[^A-Z0-9]/g, '').includes(code))
+        .map(giftCard => ({ ...giftCard, _parentOrder: order }))
     );
-    setFilteredGiftCardOrders(filtered);
+    setFilteredGiftCardOrders(
+      matchingGiftCards.length > 0
+        ? matchingGiftCards.map(g => ({ ...g._parentOrder, vouchers: [g] }))
+        : []
+    );
   }
 }, [searchQuery, giftCardOrders]);
 
