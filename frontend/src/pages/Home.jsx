@@ -42,12 +42,7 @@ const Home = ({ onLogout }) => {
     color: "#fff"
   });
   const [selectedDateRange, setSelectedDateRange] = useState("");
-  const [employeeName, setEmployeeName] = useState(() => localStorage.getItem("username") || "");
-
-  useEffect(() => {
-    const stored = localStorage.getItem("username") || "";
-    setEmployeeName(stored);
-  }, []);
+  const [employeeName, setEmployeeName] = useState("");
 
 
 // Format date.
@@ -333,14 +328,7 @@ const handleRedeemGiftCard = async () => {
     }
 
     try {
-      const loggedInUsername = localStorage.getItem("username");
       const locationName = localStorage.getItem("name");
-
-      // Validate username.
-      if (employeeName !== loggedInUsername) {
-        toast.error("You can only redeem using your own username.");
-      return;
-      }
 
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/api/vou/redeem`,
@@ -353,7 +341,7 @@ const handleRedeemGiftCard = async () => {
             locationUsed: [locationName],
             redeemedAt: [new Date().toISOString()],
             useDate: new Date().toISOString(),
-            username: loggedInUsername,
+            username: employeeName,
           }),
         }
       );
@@ -394,21 +382,14 @@ const handleMarkVoucherAsUsed = async () => {
     }
 
     try {
-      const loggedInUsername = localStorage.getItem("username");
       const locationName = localStorage.getItem("name");
-
-      // Validate username.
-      if (employeeName !== loggedInUsername) {
-        toast.error("You can only redeem using your own username.");
-      return;
-      }
 
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/api/vou/redeems`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({code: selectedVoucher.code, locationUsed: [locationName], redeemedAt: [new Date().toISOString()], useDate: new Date().toISOString(), username: loggedInUsername}),
+          body: JSON.stringify({code: selectedVoucher.code, locationUsed: [locationName], redeemedAt: [new Date().toISOString()], useDate: new Date().toISOString(), username: employeeName}),
         }
       );
 
@@ -448,6 +429,7 @@ const closePopup = () => {
   setAmountToRedeem("");
   setIsGiftCard(false);
   setWasAmountReduced(false);
+  setEmployeeName("");
 };
 
 // Close search popup.
@@ -835,7 +817,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
 
               <div style={styles.popupFlexContainers(isMobile)}>
                 <span style={styles.popupLabel(isMobile)}>Name:</span>
-                <input type="text" value={employeeName} readOnly placeholder="Enter name" style={styles.popupInput(isMobile)}/>
+                <input type="text" value={employeeName} onChange={e => setEmployeeName(e.target.value)} placeholder="Enter name" style={styles.popupInput(isMobile)} required/>
                 {isGiftCard && (
                   <>
                     <span style={styles.popupLabel(isMobile)}>Remaining Balance:</span>
@@ -844,9 +826,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                 )}
               </div>
               <div style={styles.redemButt}>
-                <button onClick={isGiftCard ? handleRedeemGiftCard : handleMarkVoucherAsUsed} style={{...styles.redeemButts(isMobile), cursor: employeeName.trim() !== localStorage.getItem("username") ? "not-allowed" : "pointer", opacity: employeeName.trim() !== localStorage.getItem("username") ? 0.5 : 1}} disabled={employeeName.trim() !== localStorage.getItem("username")}>
-                  Redeem
-                </button>
+                <button onClick={isGiftCard ? handleRedeemGiftCard : handleMarkVoucherAsUsed} style={{...styles.redeemButts(isMobile), cursor: employeeName.trim() === "" ? "not-allowed" : "pointer", opacity: employeeName.trim() === "" ? 0.5 : 1}} disabled={employeeName.trim() === ""}>Redeem</button>
               </div>
             </div>
           </div>
