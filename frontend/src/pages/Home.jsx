@@ -502,7 +502,12 @@ const dateFilteredGiftCardOrders = selectedDateRange ? filteredGiftCardOrders.fi
                   ? dateFilteredOrders.flatMap((order, index) =>
                       order.vouchers.map((voucher, vIndex) => {
                         const isUsed = order.statusUse === true || voucher.status === "USED";
-                        return { key: voucher.id, product: voucher.productTitle || "—", code: voucher.code || "—", expire: voucher.expire ? (() => {const safeExpire = voucher.expire.replace(' ', 'T');const date = new Date(safeExpire);if (isNaN(date.getTime())) return "—";const mm = String(date.getMonth() + 1).padStart(2, "0");const dd = String(date.getDate()).padStart(2, "0");const yyyy = date.getFullYear();return `${mm}/${dd}/${yyyy}`})() : "—", location: order.locationUsed || "—", useDate: formatDates(order.redeemedAt) || "—", status: isUsed ? "USED" : "VALID", usedBy: order.username?.length ? order.username.map((user, idx) => <div key={idx}>{user}</div>) : "—", action: { isUsed, voucher, order },};
+                        // Show '—' if location is not present or empty
+                        let locationDisplay = "—";
+                        if (order.locationUsed && Array.isArray(order.locationUsed) && order.locationUsed.length > 0) {
+                          locationDisplay = order.locationUsed.map((loc, idx) => (<div key={idx}>{loc}</div>));
+                        }
+                        return { key: voucher.id, product: voucher.productTitle || "—", code: voucher.code || "—", expire: voucher.expire ? (() => {const safeExpire = voucher.expire.replace(' ', 'T');const date = new Date(safeExpire);if (isNaN(date.getTime())) return "—";const mm = String(date.getMonth() + 1).padStart(2, "0");const dd = String(date.getDate()).padStart(2, "0");const yyyy = date.getFullYear();return `${mm}/${dd}/${yyyy}`})() : "—", location: locationDisplay, useDate: formatDates(order.redeemedAt) || "—", status: isUsed ? "USED" : "VALID", usedBy: order.username?.length ? order.username.map((user, idx) => <div key={idx}>{user}</div>) : "—", action: { isUsed, voucher, order },};
                       })
                     )
                   : dateFilteredGiftCardOrders.flatMap((order, index) =>
