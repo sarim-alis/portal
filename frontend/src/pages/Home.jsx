@@ -547,10 +547,7 @@ const dateFilteredGiftCardOrders = selectedDateRange ? filteredGiftCardOrders.fi
                       { title: "Location", dataIndex: "location", key: "location" },
                       { title: "Use Date", dataIndex: "useDate", key: "useDate" },
                       { title: "Employee Name", dataIndex: "usedBy", key: "usedBy" },
-                      {
-                        title: "",
-                        dataIndex: "action",
-                        key: "action",
+                      { title: "", dataIndex: "action", key: "action",
                         render: (action) => (
                           <div style={styles.buttonContainer}>
                             {!action.used && (
