@@ -644,7 +644,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                     ]
                 }
                 pagination={false}
-                scroll={{ x: true }}
+                scroll={{ x: true, y: 500 }}
               />
             </div>
           </div>
