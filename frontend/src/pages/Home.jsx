@@ -18,11 +18,7 @@ const Home = ({ onLogout }) => {
   const [showPopup, setShowPopup] = useState(false);
   const [showSearchPopup, setShowSearchPopup] = useState(false);
   const [voucherSearchCode, setVoucherSearchCode] = useState("");
-  const [voucherValidation, setVoucherValidation] = useState({
-    status: null, // 'valid', 'expired', 'invalid', 'used'
-    message: "",
-    color: "#fff"
-  });
+  const [voucherValidation, setVoucherValidation] = useState({ status: null, message: "", color: "#fff"});
   const [locations, setLocations] = useState([]);
   const [orders, setOrders] = useState([]);
   const [giftCardOrders, setGiftCardOrders] = useState([]);
