@@ -43,6 +43,8 @@ const Home = ({ onLogout }) => {
   });
   const [selectedDateRange, setSelectedDateRange] = useState("");
   const [employeeName, setEmployeeName] = useState("");
+  const voucherPopupInputRef = React.useRef(null);
+  const giftCardPopupInputRef = React.useRef(null);
 
 
 // Format date.
@@ -83,6 +85,9 @@ const handleAmountChange = (e) => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  useEffect(() => {if (showSearchPopup && voucherPopupInputRef.current) {voucherPopupInputRef.current.focus()}}, [showSearchPopup]);
+  useEffect(() => {if (showGiftCardSearchPopup && giftCardPopupInputRef.current) {giftCardPopupInputRef.current.focus()}}, [showGiftCardSearchPopup]);
 
   // Validate voucher in real-time as user types.
   useEffect(() => {
@@ -732,6 +737,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                 <span style={styles.popupLabel(isMobile)}>Voucher ID:</span>
                 <input 
                   type="text" 
+                  ref={voucherPopupInputRef}
                   value={voucherSearchCode}
                   onChange={(e) => {
                     const formatted = formatVoucherCode(e.target.value.toUpperCase());
@@ -779,6 +785,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
           <span style={styles.popupLabel(isMobile)}>Gift Card ID:</span>
           <input 
             type="text" 
+            ref={giftCardPopupInputRef}
             value={giftCardSearchCode}
             onChange={(e) => {
               const formatted = formatVoucherCode(e.target.value.toUpperCase());
