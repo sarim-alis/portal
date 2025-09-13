@@ -237,13 +237,9 @@ useEffect(() => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/vou`);
       const data = await response.json();
-      console.log("📦 Orders with Vouchers:", data);
+      console.log("🎫 Vouchers fetched:", data);
 
-      // Sare vouchers nikal lo orders se
-      const allVouchers = data.flatMap(order => order.vouchers || []);
-      console.log("🎫 Filtered Vouchers:", allVouchers);
-
-      setVouchers(allVouchers);
+      setVouchers(data);
     } catch (error) {
       console.error("❌ Failed to fetch vouchers:", error);
     }
@@ -251,6 +247,7 @@ useEffect(() => {
 
   fetchVouchers();
 }, []);
+
 
   // Fetch orders with gifts.
   useEffect(() => {
