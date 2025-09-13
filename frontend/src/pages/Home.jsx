@@ -90,19 +90,63 @@ const handleAmountChange = (e) => {
 
   // Validate voucher in real-time as user types.
   useEffect(() => {
-    if (!voucherSearchCode.trim()) { setVoucherValidation({status: null, message: "Enter 4-digit code format (XXXX-XXXX)", color: "#fff"});return;} const formattedCode = voucherSearchCode.replace(/[^A-Z0-9]/g, '');
-    
-    // Find matching order.
-    const matchingOrder = orders.find(order => order.vouchers.some(voucher => voucher.code.replace(/[^A-Z0-9]/g, '') === formattedCode));
-    if (!matchingOrder) { setVoucherValidation({ status: 'invalid', message: "Invalid voucher number", color: "#dc3545"});return;}
-
-    const voucher = matchingOrder.vouchers.find(v => v.code.replace(/[^A-Z0-9]/g, '') === formattedCode);
-    const expireDate = voucher?.expire;
-    const createdAt = voucher?.createdAt;
+    if (!voucherSearchCode.trim()) {
+      setVoucherValidation({ status: null, message: "Enter 9-character code format (XXXX-XXXX)", color: "#fff" });
+      return;
+    }
+    const formattedCode = voucherSearchCode.replace(/[^A-Z0-9]/g, '');
+    // (iv) If not 9 chars, show invalid
+    if (voucherSearchCode.length !== 9) {
+      setVoucherValidation({ status: 'invalid', message: "Invalid code format (must be XXXX-XXXX)", color: "#dc3545" });
+      return;
+    }
+    // Find matching order and voucher
+    let foundVoucher = null;
+    let foundOrder = null;
+    for (const order of orders) {
+      const voucher = order.vouchers.find(v => v.code.replace(/[^A-Z0-9]/g, '') === formattedCode);
+      if (voucher) {
+        foundVoucher = voucher;
+        foundOrder = order;
+        break;
+      }
+    }
+    // (iv) If not found, show invalid
+    if (!foundVoucher) {
+      setVoucherValidation({ status: 'invalid', message: "Invalid voucher code", color: "#dc3545" });
+      return;
+    }
+    // (i) If order.statusUse is true, show already redeemed
+    if (foundOrder && foundOrder.statusUse === true) {
+      setVoucherValidation({ status: 'used', message: "Voucher is already redeemed", color: "#fff" });
+      return;
+    }
+    // (v) If expired, show expired but allow search
+    const expireDate = foundVoucher?.expire;
+    const createdAt = foundVoucher?.createdAt;
     let safeExpireDate = expireDate ? expireDate.replace(' ', 'T') : null;
     let safeCreatedAt = createdAt ? createdAt.replace(' ', 'T') : null;
-    if (safeExpireDate && safeCreatedAt) { const expirationDate = new Date(safeExpireDate); const createdDate = new Date(safeCreatedAt); if (!isNaN(expirationDate.getTime()) && !isNaN(createdDate.getTime()) && expirationDate.getFullYear() > 1971) {if (expirationDate < new Date()) { const diffMs = expirationDate - createdDate; const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24)); const formattedExpireDate = (() => { const date = new Date(safeExpireDate); const mm = String(date.getMonth() + 1).padStart(2, "0"); const dd = String(date.getDate()).padStart(2, "0"); const yyyy = date.getFullYear(); return `${mm}/${dd}/${yyyy}`;})(); setVoucherValidation({status: 'expired', message: `Voucher expired on ${formattedExpireDate} (${diffDays} days after purchase)`, color: "#fd7e14"}); return;}}}
-    setVoucherValidation({status: 'valid', message: "Valid voucher", color: "#28a745"});
+    if (safeExpireDate && safeCreatedAt) {
+      const expirationDate = new Date(safeExpireDate);
+      const createdDate = new Date(safeCreatedAt);
+      if (!isNaN(expirationDate.getTime()) && !isNaN(createdDate.getTime()) && expirationDate.getFullYear() > 1971) {
+        if (expirationDate < new Date()) {
+          const diffMs = expirationDate - createdDate;
+          const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+          const formattedExpireDate = (() => {
+            const date = new Date(safeExpireDate);
+            const mm = String(date.getMonth() + 1).padStart(2, "0");
+            const dd = String(date.getDate()).padStart(2, "0");
+            const yyyy = date.getFullYear();
+            return `${mm}/${dd}/${yyyy}`;
+          })();
+          setVoucherValidation({ status: 'expired', message: `Voucher expired on ${formattedExpireDate} (${diffDays} days after purchase)`, color: "#fd7e14" });
+          return;
+        }
+      }
+    }
+    // (iii) Valid
+    setVoucherValidation({ status: 'valid', message: "Valid voucher", color: "#28a745" });
   }, [voucherSearchCode, orders]);
 
 // Set gift card validation.
@@ -217,28 +261,31 @@ useEffect(() => {
 
 // Handle voucher search.
 const handleVoucherSearch = () => {
-    if (!voucherSearchCode.trim()) { toast.error("Please enter a voucher code"); return;}
+  if (!voucherSearchCode.trim()) { toast.error("Please enter a voucher code"); return; }
 
-    // Only allow search if voucher is valid.
-    if (voucherValidation.status !== 'valid') { toast.error(voucherValidation.message); return;}
+  // Only allow search if voucher is valid or expired (but not used)
+  if (voucherValidation.status === 'invalid' || voucherValidation.status === 'used') {
+    toast.error(voucherValidation.message);
+    return;
+  }
 
-    const formattedCode = voucherSearchCode.replace(/[^A-Z0-9]/g, '');
-    // Flatten all vouchers with their parent order reference.
-    const matchingVouchers = orders.flatMap(order =>
-      order.vouchers
-        .filter(voucher => voucher.code.replace(/[^A-Z0-9]/g, '') === formattedCode)
-        .map(voucher => ({ ...voucher, _parentOrder: order }))
-    );
-    console.log("Voucher search results", matchingVouchers);
-    // If you want to keep the same filteredOrders structure, wrap in a fake order
-    setFilteredOrders(
-      matchingVouchers.length > 0
-        ? matchingVouchers.map(v => ({ ...v._parentOrder, vouchers: [v] }))
-        : []
-    );
-    setSearchQuery(voucherSearchCode);
-    setShowSearchPopup(false);
-  };
+  const formattedCode = voucherSearchCode.replace(/[^A-Z0-9]/g, '');
+  // Only show vouchers that are not redeemed (statusUse !== true)
+  const matchingVouchers = orders.flatMap(order =>
+    order.statusUse !== true
+      ? order.vouchers
+          .filter(voucher => voucher.code.replace(/[^A-Z0-9]/g, '') === formattedCode)
+          .map(voucher => ({ ...voucher, _parentOrder: order }))
+      : []
+  );
+  setFilteredOrders(
+    matchingVouchers.length > 0
+      ? matchingVouchers.map(v => ({ ...v._parentOrder, vouchers: [v] }))
+      : []
+  );
+  setSearchQuery(voucherSearchCode);
+  setShowSearchPopup(false);
+};
 
 // Handle use voucher.
 const handleUseVoucher = (voucher) => { setSelectedVoucher(voucher); setIsGiftCard(false);setShowPopup(true);};
