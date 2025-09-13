@@ -43,6 +43,7 @@ const Home = ({ onLogout }) => {
   });
   const [selectedDateRange, setSelectedDateRange] = useState("");
   const [employeeName, setEmployeeName] = useState("");
+  const [vouchers, setVouchers] = useState([]);
 
 
 // Format date.
@@ -86,16 +87,17 @@ const handleAmountChange = (e) => {
 
   // Validate voucher in real-time as user types.
   useEffect(() => {
-    if (!voucherSearchCode.trim()) { setVoucherValidation({status: null, message: "Enter 4-digit code format (XXXX-XXXX)", color: "#fff"});return;} const formattedCode = voucherSearchCode.replace(/[^A-Z0-9]/g, '');
-    
-    // Find matching order.
-    const matchingOrder = orders.find(order => order.vouchers.some(voucher => voucher.code.replace(/[^A-Z0-9]/g, '') === formattedCode));
-
-    if (!matchingOrder) { setVoucherValidation({ status: 'invalid', message: "Invalid voucher number", color: "#dc3545"});return;}
-
-    const voucher = matchingOrder.vouchers.find(v => v.code.replace(/[^A-Z0-9]/g, '') === formattedCode);
-
-
+    if (!voucherSearchCode.trim()) {
+      setVoucherValidation({ status: null, message: "Enter 4-digit code format (XXXX-XXXX)", color: "#fff" });
+      return;
+    }
+    const formattedCode = voucherSearchCode.replace(/[^A-Z0-9]/g, '');
+    // Find matching voucher in flat vouchers array
+    const voucher = vouchers.find(v => v.code.replace(/[^A-Z0-9]/g, '') === formattedCode);
+    if (!voucher) {
+      setVoucherValidation({ status: 'invalid', message: "Invalid voucher number", color: "#dc3545" });
+      return;
+    }
     // Check expiration by comparing voucher.expire with voucher.createdAt
     const expireDate = voucher?.expire;
     const createdAt = voucher?.createdAt;
@@ -116,15 +118,14 @@ const handleAmountChange = (e) => {
             const yyyy = date.getFullYear();
             return `${mm}/${dd}/${yyyy}`;
           })();
-          setVoucherValidation({status: 'expired', message: `Voucher expired on ${formattedExpireDate} (${diffDays} days after purchase)`, color: "#fd7e14"});
+          setVoucherValidation({ status: 'expired', message: `Voucher expired on ${formattedExpireDate} (${diffDays} days after purchase)`, color: "#fd7e14" });
           return;
         }
       }
     }
-
     // Voucher is valid.
-    setVoucherValidation({status: 'valid', message: "Valid voucher", color: "#28a745"});
-  }, [voucherSearchCode, orders]);
+    setVoucherValidation({ status: 'valid', message: "Valid voucher", color: "#28a745" });
+  }, [voucherSearchCode, vouchers]);
 
 // Set gift card validation.
 useEffect(() => {
@@ -183,9 +184,7 @@ const handleGiftCardSearch = () => {
 const handleTabChange = (tab) => {
   setActiveTab(tab);
   setSearchQuery("");
-  // Clear popup state when switching tabs
-  setShowPopup(false);
-  setSelectedVoucher(null);
+  // Do not clear selectedVoucher here so popup stays open after search/tab change
   setAmountToRedeem("");
   setIsGiftCard(false);
   setWasAmountReduced(false);
@@ -233,26 +232,25 @@ const hasType = (order, target) => {
 };
 
   // Fetch orders with vouchers.
-  useEffect(() => {
-    const fetchOrdersWithVouchers = async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/vou`);
-        const data = await response.json();
-        console.log("📦 Orders with Vouchers:", data);
+useEffect(() => {
+  const fetchVouchers = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/vou`);
+      const data = await response.json();
+      console.log("📦 Orders with Vouchers:", data);
 
-        // Filter orders with type voucher.
-        const voucherOrders = data.filter((order) => hasType(order, "voucher"));
+      // Sare vouchers nikal lo orders se
+      const allVouchers = data.flatMap(order => order.vouchers || []);
+      console.log("🎫 Filtered Vouchers:", allVouchers);
 
-        console.log("🎫 Filtered Voucher Orders:", voucherOrders);
-        setOrders(voucherOrders);
-        // setFilteredOrders(voucherOrders);
-      } catch (error) {
-        console.error("❌ Failed to fetch voucher orders:", error);
-      }
-    };
+      setVouchers(allVouchers);
+    } catch (error) {
+      console.error("❌ Failed to fetch vouchers:", error);
+    }
+  };
 
-    fetchOrdersWithVouchers();
-  }, []);
+  fetchVouchers();
+}, []);
 
   // Fetch orders with gifts.
   useEffect(() => {
@@ -277,34 +275,31 @@ const hasType = (order, target) => {
 
 // Handle voucher search.
 const handleVoucherSearch = () => {
-    if (!voucherSearchCode.trim()) {
-      toast.error("Please enter a voucher code");
-      return;
-    }
+  console.log("[Voucher Search] voucherSearchCode:", voucherSearchCode);
+  if (!voucherSearchCode.trim()) {
+    toast.error("Please enter a voucher code");
+    return;
+  }
 
-    // Only allow search if voucher is valid
-    if (voucherValidation.status !== 'valid') {
-      toast.error(voucherValidation.message);
-      return;
-    }
+  console.log("[Voucher Search] voucherValidation:", voucherValidation);
+  if (voucherValidation.status !== "valid") {
+    toast.error(voucherValidation.message);
+    return;
+  }
 
-    const formattedCode = voucherSearchCode.replace(/[^A-Z0-9]/g, '');
-    // Flatten all vouchers with their parent order reference.
-    const matchingVouchers = orders.flatMap(order =>
-      order.vouchers
-        .filter(voucher => voucher.code.replace(/[^A-Z0-9]/g, '') === formattedCode)
-        .map(voucher => ({ ...voucher, _parentOrder: order }))
-    );
-    console.log("Voucher search results", matchingVouchers);
-    // If you want to keep the same filteredOrders structure, wrap in a fake order
-    setFilteredOrders(
-      matchingVouchers.length > 0
-        ? matchingVouchers.map(v => ({ ...v._parentOrder, vouchers: [v] }))
-        : []
-    );
-    setSearchQuery(voucherSearchCode);
-    setShowSearchPopup(false);
-  };
+  const formattedCode = voucherSearchCode.replace(/[^A-Z0-9]/g, "");
+  console.log("[Voucher Search] formattedCode:", formattedCode);
+  console.log("[Voucher Search] vouchers:", vouchers);
+  const matching = vouchers.filter(v =>
+    v.code.replace(/[^A-Z0-9]/g, "") === formattedCode
+  );
+
+  console.log("[Voucher Search] matching vouchers:", matching);
+  setFilteredOrders(matching); // ab sirf vouchers ki filtered list
+  setSearchQuery(voucherSearchCode);
+  setShowSearchPopup(false);
+};
+
 
 // Handle use voucher.
 const handleUseVoucher = (voucher) => {
@@ -384,49 +379,55 @@ const handleRedeemGiftCard = async () => {
 
 // Handle mark voucher as used.
 const handleMarkVoucherAsUsed = async () => {
-    if (!selectedVoucher || !employeeName) {
-      toast.info("Please enter name.");
-      return;
-    }
+  if (!selectedVoucher || !employeeName) {
+    toast.info("Please enter name.");
+    return;
+  }
 
-    try {
-      const locationName = localStorage.getItem("name");
+  try {
+    const locationName = localStorage.getItem("name");
 
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/vou/redeems`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({code: selectedVoucher.code, locationUsed: [locationName], redeemedAt: [new Date().toISOString()], useDate: new Date().toISOString(), username: employeeName}),
-        }
-      );
-
-      const data = await response.json();
-
-      if (response.ok) {
-        toast.success("Voucher used successfully!");
-        setOrders((prevOrders) => 
-          prevOrders.map((order) => 
-            order.vouchers?.some((v) => v.code === selectedVoucher.code) 
-              ? {
-                  ...order, 
-                  statusUse: true, 
-                  locationUsed: data.updatedOrder.locationUsed, 
-                  redeemedAt: data.updatedOrder.redeemedAt,
-                  username: data.updatedOrder.username,
-                } 
-              : order
-          )
-        );
-        closePopup();
-      } else {
-        toast.error(data.error || "Failed to mark voucher as used.");
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/vou/redeems`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: selectedVoucher.code,
+          locationUsed: locationName,
+          username: [employeeName], // send as array to match backend
+        }),
       }
-    } catch (error) {
-      console.error("Error marking voucher as used:", error);
-      toast.error("Error marking voucher as used.");
+    );
+
+    const data = await response.json();
+    console.log("[Voucher Redeem] API response:", data);
+
+    if (response.ok && data.updatedVoucher) {
+      toast.success("Voucher used successfully!");
+      setVouchers((prevVouchers) =>
+        prevVouchers.map((v) =>
+          v.code === selectedVoucher.code
+            ? {
+                ...v,
+                statusUse: true,
+                locationUsed: data.updatedVoucher.locationUsed,
+                redeemedAt: data.updatedVoucher.redeemedAt,
+                username: data.updatedVoucher.username,
+              }
+            : v
+        )
+      );
+      closePopup();
+    } else {
+      toast.error(data.error || "Failed to mark voucher as used.");
     }
+  } catch (error) {
+    console.error("Error marking voucher as used:", error);
+    toast.error("Error marking voucher as used.");
+  }
 };
+
 
 
 // Close popup.
@@ -467,26 +468,7 @@ const closeGiftCardSearchPopup = () => {
 
 // For vouchers, show USED status by default.
 useEffect(() => {
-  // Only run this effect if not in the middle of a search popup (i.e., let handleVoucherSearch control filteredOrders)
-  if (showSearchPopup) return;
-  if (!searchQuery.trim()) {
-    const usedVouchers = orders.filter((order) => 
-      order.statusUse === true || order.vouchers?.some(voucher => voucher.status === 'USED'));
-    setFilteredOrders(usedVouchers);
-  } else {
-    const code = searchQuery.replace(/[^A-Z0-9]/g, '');
-    // Use the same flattening logic as in handleVoucherSearch for consistency
-    const matchingVouchers = orders.flatMap(order =>
-      order.vouchers
-        .filter(voucher => voucher.code.replace(/[^A-Z0-9]/g, '').includes(code))
-        .map(voucher => ({ ...voucher, _parentOrder: order }))
-    );
-    setFilteredOrders(
-      matchingVouchers.length > 0
-        ? matchingVouchers.map(v => ({ ...v._parentOrder, vouchers: [v] }))
-        : []
-    );
-  }
+  // Remove this effect to prevent filteredOrders from being reset after search, which closes the popup
 }, [searchQuery, orders, showSearchPopup]);
 
 
@@ -626,22 +608,17 @@ const dateFilteredGiftCardOrders = selectedDateRange
             <div style={styles.tableContainer}>
               <Table
                 dataSource={activeTab === "vouchers"
-                  ? dateFilteredOrders.flatMap((order, index) =>
-                      order.vouchers.map((voucher, vIndex) => {
-                        const isUsed = order.statusUse === true || voucher.status === "USED";
-                        return {
-                          key: voucher.id,
-                          product: voucher.productTitle || "—",
-                          code: voucher.code || "—",
-                          expire: voucher.expire ? (() => {const safeExpire = voucher.expire.replace(' ', 'T');const date = new Date(safeExpire);if (isNaN(date.getTime())) return "—";const mm = String(date.getMonth() + 1).padStart(2, "0");const dd = String(date.getDate()).padStart(2, "0");const yyyy = date.getFullYear();return `${mm}/${dd}/${yyyy}`})() : "—",
-                          location: order.locationUsed || "—",
-                          useDate: formatDates(order.redeemedAt) || "—",
-                          status: isUsed ? "USED" : "VALID",
-                          usedBy: order.username?.length ? order.username.map((user, idx) => <div key={idx}>{user}</div>) : "—",
-                          action: { isUsed, voucher, order },
-                        };
-                      })
-                    )
+                  ? filteredOrders.map((voucher) => ({
+                      key: voucher.id,
+                      product: voucher.productTitle || "—",
+                      code: voucher.code || "—",
+                      expire: voucher.expire ? (() => {const safeExpire = voucher.expire.replace(' ', 'T');const date = new Date(safeExpire);if (isNaN(date.getTime())) return "—";const mm = String(date.getMonth() + 1).padStart(2, "0");const dd = String(date.getDate()).padStart(2, "0");const yyyy = date.getFullYear();return `${mm}/${dd}/${yyyy}`})() : "—",
+                      location: voucher.locationUsed?.join(', ') || "—",
+                      useDate: formatDates(voucher.redeemedAt) || "—",
+                      status: voucher.statusUse || voucher.status === "USED" ? "USED" : "VALID",
+                      usedBy: voucher.username?.length ? voucher.username.map((user, idx) => <div key={idx}>{user}</div>) : "—",
+                      action: { isUsed: voucher.statusUse || voucher.status === "USED", voucher },
+                    }))
                   : dateFilteredGiftCardOrders.flatMap((order, index) =>
                       order.vouchers.map((giftCard, vIndex) => ({
                         key: giftCard.id,
@@ -673,7 +650,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                           <div style={styles.buttonContainer}>
                             <button
                               className="custom-use-btn"
-                              onClick={() => { if (!action.isUsed) handleUseVoucher(action.voucher, action.order); }}
+                              onClick={() => { if (!action.isUsed) handleUseVoucher(action.voucher); }}
                               disabled={action.isUsed}
                             >
                               Use
