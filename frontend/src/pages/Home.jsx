@@ -535,10 +535,14 @@ const dateFilteredGiftCardOrders = selectedDateRange ? filteredGiftCardOrders.fi
                       { title: "Product", dataIndex: "product", key: "product" },
                       { title: "Code", dataIndex: "code", key: "code" },
                       { title: "Value", dataIndex: "value", key: "value" },
-                      { title: "Usage History", dataIndex: "history", key: "history" },
+                      { title: "Usage History", dataIndex: "history", key: "history", render: (_, record) => {
+                        const order = record.action.order;
+                        if (!order || !order.cashHistory || order.cashHistory.length === 0) { return "—";}
+                        return order.cashHistory.map((amt, idx) => <div key={idx}>${formatDollarAmount(amt)}</div>);
+                      }},
                       { title: "Remaining Balance", dataIndex: "remainingBalance", key: "remainingBalance", render: (_, record) => {
                         const order = record.action.order;
-                        return order ? `$${formatDollarAmount(order.remainingBalance)}` : "—";
+                        return order ? `${formatDollarAmount(order.remainingBalance)}` : "—";
                       }},
                       { title: "Location", dataIndex: "location", key: "location" },
                       { title: "Use Date", dataIndex: "useDate", key: "useDate" },
