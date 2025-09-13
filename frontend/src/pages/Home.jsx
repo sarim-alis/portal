@@ -1,7 +1,8 @@
 // Imports.
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { Table } from "antd";
+import { Table, DatePicker } from "antd";
+import dayjs from "dayjs";
 import "antd/dist/reset.css";
 import styles from "../styles/home.js";
 const customBtnStyle = `
@@ -12,6 +13,7 @@ if (typeof document !== 'undefined' && !document.getElementById('custom-use-btn-
 
 // Frontend.
 const Home = ({ onLogout }) => {
+const { RangePicker } = DatePicker;
   // States.
   const [activeTab, setActiveTab] = useState("vouchers");
   const [searchQuery, setSearchQuery] = useState("");
@@ -32,13 +34,11 @@ const Home = ({ onLogout }) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [showGiftCardSearchPopup, setShowGiftCardSearchPopup] = useState(false);
   const [giftCardSearchCode, setGiftCardSearchCode] = useState("");
-  const [giftCardValidation, setGiftCardValidation] = useState({
-    status: null, // 'valid', 'expired', 'invalid', 'used'
-    message: "",
-    color: "#fff"
-  });
+  const [giftCardValidation, setGiftCardValidation] = useState({ status: null, message: "", color: "#fff"});
   const [selectedDateRange, setSelectedDateRange] = useState("");
   const [employeeName, setEmployeeName] = useState("");
+  const [customStartDate, setCustomStartDate] = useState("");
+  const [customEndDate, setCustomEndDate] = useState("");
   const voucherPopupInputRef = React.useRef(null);
   const giftCardPopupInputRef = React.useRef(null);
 
@@ -91,12 +91,12 @@ const handleAmountChange = (e) => {
       return;
     }
     const formattedCode = voucherSearchCode.replace(/[^A-Z0-9]/g, '');
-    // (iv) If not 9 chars, show invalid
+
     if (voucherSearchCode.length !== 9) {
       setVoucherValidation({ status: 'invalid', message: "Invalid code format (must be XXXX-XXXX)", color: "#dc3545" });
       return;
     }
-    // Find matching order and voucher
+
     let foundVoucher = null;
     let foundOrder = null;
     for (const order of orders) {
@@ -107,17 +107,17 @@ const handleAmountChange = (e) => {
         break;
       }
     }
-    // (iv) If not found, show invalid
+
     if (!foundVoucher) {
       setVoucherValidation({ status: 'invalid', message: "Invalid voucher code", color: "#dc3545" });
       return;
     }
-    // (i) If order.statusUse is true, show already redeemed
+
     if (foundOrder && foundOrder.statusUse === true) {
       setVoucherValidation({ status: 'used', message: "Voucher is already redeemed", color: "#fff" });
       return;
     }
-    // (v) If expired, show expired but allow search
+
     const expireDate = foundVoucher?.expire;
     const createdAt = foundVoucher?.createdAt;
     let safeExpireDate = expireDate ? expireDate.replace(' ', 'T') : null;
@@ -141,7 +141,7 @@ const handleAmountChange = (e) => {
         }
       }
     }
-    // (iii) Valid
+  
     setVoucherValidation({ status: 'valid', message: "Valid voucher", color: "#28a745" });
   }, [voucherSearchCode, orders]);
 
@@ -410,18 +410,61 @@ const locationFilteredOrders =
 
     const now = new Date();
 
-const dateFilteredOrders = selectedDateRange ? locationFilteredOrders.filter(order => {
+// Date filtering logic for vouchers
+const dateFilteredOrders = selectedDateRange
+  ? locationFilteredOrders.filter(order => {
+      // Use createdAt for custom date, processedAt for others
+      if (selectedDateRange === "custom") {
+        if (!order.createdAt) return false;
+        if (!customStartDate || !customEndDate) return true; // If not both dates picked, show all
+        const orderDate = new Date(order.createdAt);
+        const start = new Date(customStartDate);
+        const end = new Date(customEndDate);
+        // Set end to end of day
+        end.setHours(23, 59, 59, 999);
+        return orderDate >= start && orderDate <= end;
+      }
+      if (selectedDateRange === "all") {
+        return true;
+      }
       if (!order.processedAt) return false;
       const orderDate = new Date(order.processedAt);
-      switch (selectedDateRange) { case "1d": return (now - orderDate) <= 24 * 60 * 60 * 1000; case "1w": return (now - orderDate) <= 7 * 24 * 60 * 60 * 1000; case "1m": return (now - orderDate) <= 30 * 24 * 60 * 60 * 1000; case "6m": return (now - orderDate) <= 182 * 24 * 60 * 60 * 1000; case "1y": return (now - orderDate) <= 365 * 24 * 60 * 60 * 1000; default: return true;}
+      switch (selectedDateRange) {
+        case "1d": return (now - orderDate) <= 24 * 60 * 60 * 1000;
+        case "1w": return (now - orderDate) <= 7 * 24 * 60 * 60 * 1000;
+        case "1m": return (now - orderDate) <= 30 * 24 * 60 * 60 * 1000;
+        case "6m": return (now - orderDate) <= 182 * 24 * 60 * 60 * 1000;
+        case "1y": return (now - orderDate) <= 365 * 24 * 60 * 60 * 1000;
+        default: return true;
+      }
     })
   : locationFilteredOrders;
 
-// For gift cards
-const dateFilteredGiftCardOrders = selectedDateRange ? filteredGiftCardOrders.filter(order => {
+// Date filtering logic for gift cards
+const dateFilteredGiftCardOrders = selectedDateRange
+  ? filteredGiftCardOrders.filter(order => {
+      if (selectedDateRange === "custom") {
+        if (!order.createdAt) return false;
+        if (!customStartDate || !customEndDate) return true;
+        const orderDate = new Date(order.createdAt);
+        const start = new Date(customStartDate);
+        const end = new Date(customEndDate);
+        end.setHours(23, 59, 59, 999);
+        return orderDate >= start && orderDate <= end;
+      }
+      if (selectedDateRange === "all") {
+        return true;
+      }
       if (!order.processedAt) return false;
       const orderDate = new Date(order.processedAt);
-      switch (selectedDateRange) { case "1d": return (now - orderDate) <= 24 * 60 * 60 * 1000; case "1w": return (now - orderDate) <= 7 * 24 * 60 * 60 * 1000; case "1m": return (now - orderDate) <= 30 * 24 * 60 * 60 * 1000; case "6m": return (now - orderDate) <= 182 * 24 * 60 * 60 * 1000; case "1y": return (now - orderDate) <= 365 * 24 * 60 * 60 * 1000; default: return true;}
+      switch (selectedDateRange) {
+        case "1d": return (now - orderDate) <= 24 * 60 * 60 * 1000;
+        case "1w": return (now - orderDate) <= 7 * 24 * 60 * 60 * 1000;
+        case "1m": return (now - orderDate) <= 30 * 24 * 60 * 60 * 1000;
+        case "6m": return (now - orderDate) <= 182 * 24 * 60 * 60 * 1000;
+        case "1y": return (now - orderDate) <= 365 * 24 * 60 * 60 * 1000;
+        default: return true;
+      }
     })
   : filteredGiftCardOrders;
 
@@ -452,15 +495,37 @@ const dateFilteredGiftCardOrders = selectedDateRange ? filteredGiftCardOrders.fi
 <div style={styles.filterButtonsGrid(activeTab, isMobile)}>
 {activeTab === "vouchers" ? (
 <>
-<select value={selectedDateRange} onChange={(e) => setSelectedDateRange(e.target.value)} style={{ ...styles.filterButton, padding: "6px", cursor: "pointer", textAlign: "center" }}>
-<option value="">Purchase Date</option><option value="1d">Last Day</option><option value="1w">Last Week</option><option value="1m">Last Month</option><option value="6m">Last 6 Months</option><option value="1y">Last 1 Year</option>
-</select>
 
-{/* Location Dropdown */}
-<select value={selectedLocation} onChange={(e) => setSelectedLocation(e.target.value)} style={{ ...styles.filterButton, padding: "6px", cursor: "pointer" }}>
-  <option value="" style={{textAlign: 'center'}}>All Locations</option>
-  {locations.map((loc) => (<option key={loc.id} value={loc.name} style={{textAlign: 'center'}}>{loc.name}</option>))}
+<select value={selectedDateRange} onChange={(e) => setSelectedDateRange(e.target.value)} style={{ ...styles.filterButton, padding: "6px", cursor: "pointer", textAlign: "center" }}>
+  <option value="">Purchase Date</option>
+  <option value="custom">Custom Date</option>
+  <option value="all">All Time</option>
+  <option value="1d">Last Day</option>
+  <option value="1w">Last Week</option>
+  <option value="1m">Last Month</option>
+  <option value="6m">Last 6 Months</option>
+  <option value="1y">Last 1 Year</option>
 </select>
+{/* Show custom date pickers if 'Custom Date' is selected */}
+{selectedDateRange === "custom" && (
+<>
+        <RangePicker
+          value={customStartDate && customEndDate ? [customStartDate ? dayjs(customStartDate) : null, customEndDate ? dayjs(customEndDate) : null] : []}
+          onChange={dates => {
+            setCustomStartDate(dates && dates[0] ? dates[0].format('YYYY-MM-DD') : "");
+            setCustomEndDate(dates && dates[1] ? dates[1].format('YYYY-MM-DD') : "");
+          }}
+          style={{ marginLeft: 8, marginRight: 4, minWidth: 220 }}
+          allowClear
+          format="YYYY-MM-DD"
+        />
+</>
+)}
+    {/* Location Dropdown */}
+    <select value={selectedLocation} onChange={(e) => setSelectedLocation(e.target.value)} style={{ ...styles.filterButton, padding: "6px", cursor: "pointer" }}>
+      <option value="" style={{textAlign: 'center'}}>All Locations</option>
+      {locations.map((loc) => (<option key={loc.id} value={loc.name} style={{textAlign: 'center'}}>{loc.name}</option>))}
+    </select>
 
 
 <input type="text" placeholder="Search Code (XXXX-XXXX)" value={searchQuery} maxLength={9} onChange={(e) => { let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""); if (val.length > 8) val = val.slice(0, 8); if (val.length > 4) val = val.slice(0, 4) + '-' + val.slice(4); setSearchQuery(val);}} onFocus={() => setShowSearchPopup(true)}  style={styles.searchInput}/>
@@ -468,8 +533,32 @@ const dateFilteredGiftCardOrders = selectedDateRange ? filteredGiftCardOrders.fi
 ) : (
 <>
 <select value={selectedDateRange} onChange={(e) => setSelectedDateRange(e.target.value)} style={{ ...styles.filterButton, padding: "6px", cursor: "pointer", textAlign: "center" }}>
-  <option value="">Purchase Date</option><option value="1d">Last Day</option><option value="1w">Last Week</option><option value="1m">Last Month</option><option value="6m">Last 6 Months</option><option value="1y">Last 1 Year</option>
+  <option value="">Purchase Date</option>
+  <option value="custom">Custom Date</option>
+  <option value="all">All Time</option>
+  <option value="1d">Last Day</option>
+  <option value="1w">Last Week</option>
+  <option value="1m">Last Month</option>
+  <option value="6m">Last 6 Months</option>
+  <option value="1y">Last 1 Year</option>
 </select>
+{selectedDateRange === "custom" && (
+  <>
+        <input
+          type="date"
+          value={customStartDate}
+          onChange={e => setCustomStartDate(e.target.value)}
+          style={{ ...styles.filterButton, padding: "6px", marginLeft: 8, marginRight: 4 }}
+        />
+        <span style={{ margin: '0 4px' }}>to</span>
+        <input
+          type="date"
+          value={customEndDate}
+          onChange={e => setCustomEndDate(e.target.value)}
+          style={{ ...styles.filterButton, padding: "6px", marginLeft: 4 }}
+        />
+  </>
+)}
 <input type="text" placeholder="Search Code (XXXX-XXXX)" value={searchQuery} maxLength={9} onChange={(e) => { let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""); if (val.length > 8) val = val.slice(0, 8); if (val.length > 4) val = val.slice(0, 4) + '-' + val.slice(4); setSearchQuery(val);}} onFocus={() => setShowGiftCardSearchPopup(true)}  style={styles.searchInput}/>
 </>
 )}
