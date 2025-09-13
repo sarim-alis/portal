@@ -836,7 +836,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
               </div>
 
               <div style={styles.popupFlexContainers(isMobile)}>
-                <span style={styles.popupLabel(isMobile)}>Name:</span>
+                <span style={styles.popupLabel(isMobile)}>Employee Name:</span>
                 <input type="text" value={employeeName} onChange={e => setEmployeeName(e.target.value)} placeholder="Enter name" style={styles.popupInput(isMobile)} required/>
                 {isGiftCard && (
                   <>
