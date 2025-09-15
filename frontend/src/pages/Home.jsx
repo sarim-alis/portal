@@ -287,7 +287,21 @@ const handleVoucherSearch = () => {
 const handleUseVoucher = (voucher) => { setSelectedVoucher(voucher); setIsGiftCard(false);setShowPopup(true);};
 
 // Handle use gift card.
-const handleUseGiftCard = (giftCard, order) => { setSelectedVoucher({ orderNumber: giftCard.code, ...giftCard, totalPrice: order.totalPrice, remainingBalance: order.remainingBalance, orderId: order.id, location: order.location, cashHistory: order.cashHistory || [],}); setIsGiftCard(true); setShowPopup(true);};
+const handleUseGiftCard = (giftCard, order) => {
+  const safeId = giftCard.id ? giftCard.id : (typeof giftCard.code === 'string' ? giftCard.code : undefined);
+  setSelectedVoucher({
+    id: safeId,
+    orderNumber: giftCard.code,
+    ...giftCard,
+    totalPrice: giftCard.totalPrice,
+    remainingBalance: giftCard.remainingBalance,
+    orderId: order.id,
+    location: order.location,
+    cashHistory: giftCard.cashHistory || [],
+  });
+  setIsGiftCard(true);
+  setShowPopup(true);
+};
 
 // Handle redeem gift card.
 const handleRedeemGiftCard = async () => {
@@ -357,8 +371,16 @@ useEffect(() => {
   // Only run this effect if not in the middle of a search popup (i.e., let handleVoucherSearch control filteredOrders)
   if (showSearchPopup) return;
   if (!searchQuery.trim()) {
-    const usedVouchers = orders.filter((order) => 
-      order.statusUse === true || order.vouchers?.some(voucher => voucher.status === 'USED'));
+    // Only show orders where at least one voucher is redeemed
+    const usedVouchers = orders
+      .map(order => {
+        const redeemedVouchers = order.vouchers.filter(voucher => voucher.statusUse || voucher.used || voucher.status === 'USED');
+        if (redeemedVouchers.length > 0) {
+          return { ...order, vouchers: redeemedVouchers };
+        }
+        return null;
+      })
+      .filter(Boolean);
     setFilteredOrders(usedVouchers);
   } else {
     const code = searchQuery.replace(/[^A-Z0-9]/g, '');
@@ -614,22 +636,29 @@ const dateFilteredGiftCardOrders = selectedDateRange
                     )
                   : dateFilteredGiftCardOrders.flatMap((order, index) =>
                       order.vouchers.map((giftCard, vIndex) => {
+                        if (!giftCard || typeof giftCard !== 'object') return null;
                         let locationDisplay = "—";
                         if (giftCard.locationUsed && Array.isArray(giftCard.locationUsed) && giftCard.locationUsed.length > 0) {
                           locationDisplay = giftCard.locationUsed.map((loc, idx) => (<div key={idx}>{loc}</div>));
                         }
+                        const safeId = (giftCard && giftCard.id) ? giftCard.id : (giftCard && typeof giftCard.code === 'string' ? giftCard.code : `giftcard-${vIndex}`);
                         return {
-                          key: giftCard.id,
-                          product: giftCard.productTitle,
-                          code: giftCard.code,
-                          value: `$${formatDollarAmount(giftCard.totalPrice ?? order.totalPrice)}`,
-                          history: Array.isArray(giftCard.cashHistory) && giftCard.cashHistory.length > 0 ? giftCard.cashHistory.map((amt, idx) => <div key={idx}>${formatDollarAmount(amt)}</div>) : (Array.isArray(order.cashHistory) && order.cashHistory.length > 0 ? order.cashHistory.map((amt, idx) => <div key={idx}>${formatDollarAmount(amt)}</div>) : "—"),
+                          key: safeId,
+                          product: giftCard.productTitle ? giftCard.productTitle : "—",
+                          code: giftCard.code ? giftCard.code : "—",
+                          value: `$${formatDollarAmount(giftCard.totalPrice != null ? giftCard.totalPrice : 0)}`,
+                          history: Array.isArray(giftCard.cashHistory) && giftCard.cashHistory.length > 0
+                            ? giftCard.cashHistory.map((amt, idx) => <div key={idx}>${formatDollarAmount(amt)}</div>)
+                            : "—",
+                          remainingBalance: giftCard.remainingBalance != null ? `$${formatDollarAmount(giftCard.remainingBalance)}` : "—",
                           location: locationDisplay,
-                          useDate: formatDates(giftCard.redeemedAt ?? order.redeemedAt) || "—",
-                          usedBy: Array.isArray(giftCard.username) && giftCard.username.length > 0 ? giftCard.username.map((user, idx) => <div key={idx}>{user}</div>) : (Array.isArray(order.username) && order.username.length > 0 ? order.username.map((user, idx) => <div key={idx}>{user}</div>) : "—"),
-                          action: { used: giftCard.used, giftCard, order },
+                          useDate: formatDates(giftCard.redeemedAt ? giftCard.redeemedAt : null) || "—",
+                          usedBy: Array.isArray(giftCard.username) && giftCard.username.length > 0
+                            ? giftCard.username.map((user, idx) => <div key={idx}>{user}</div>)
+                            : "—",
+                          action: { used: giftCard.remainingBalance === 0 && giftCard.remainingBalance !== null, giftCard, order, id: safeId },
                         };
-                      })
+                      }).filter(Boolean)
                     )
                 }
                 columns={activeTab === "vouchers"
@@ -657,25 +686,30 @@ const dateFilteredGiftCardOrders = selectedDateRange
                       { title: "Code", dataIndex: "code", key: "code" },
                       { title: "Value", dataIndex: "value", key: "value" },
                       { title: "Usage History", dataIndex: "history", key: "history", render: (_, record) => {
-                        const order = record.action.order;
-                        if (!order || !order.cashHistory || order.cashHistory.length === 0) { return "—";}
-                        return order.cashHistory.map((amt, idx) => <div key={idx}>${formatDollarAmount(amt)}</div>);
+                        const giftCard = record.action.giftCard;
+                        if (!giftCard || !Array.isArray(giftCard.cashHistory) || giftCard.cashHistory.length === 0) { return "—"; }
+                        return giftCard.cashHistory.map((amt, idx) => <div key={idx}>${formatDollarAmount(amt)}</div>);
                       }},
                       { title: "Remaining Balance", dataIndex: "remainingBalance", key: "remainingBalance", render: (_, record) => {
-                        const order = record.action.order;
-                        return order ? `${formatDollarAmount(order.remainingBalance)}` : "—";
+                        const giftCard = record.action.giftCard;
+                        return giftCard && giftCard.remainingBalance != null ? `$${formatDollarAmount(giftCard.remainingBalance)}` : "—";
                       }},
                       { title: "Location", dataIndex: "location", key: "location" },
                       { title: "Use Date", dataIndex: "useDate", key: "useDate" },
                       { title: "Employee Name", dataIndex: "usedBy", key: "usedBy" },
                       { title: "", dataIndex: "action", key: "action",
-                        render: (action) => (
-                          <div style={styles.buttonContainer}>
-                            {!action.used && (
-                              <button className="custom-use-btn" onClick={() => handleUseGiftCard(action.giftCard, action.order)}>Use</button>
-                            )}
-                          </div>
-                        ),
+                        render: (action) => {
+                          const giftCard = action.giftCard;
+                          const showUseBtn = giftCard && (giftCard.remainingBalance === null || giftCard.remainingBalance > 0);
+                          const isDisabled = giftCard && giftCard.remainingBalance === 0 && giftCard.remainingBalance !== null;
+                          return (
+                            <div style={styles.buttonContainer}>
+                              {showUseBtn && (
+                                <button className="custom-use-btn" onClick={() => handleUseGiftCard({...giftCard, id: action.id}, action.order)} disabled={isDisabled}>Use</button>
+                              )}
+                            </div>
+                          );
+                        },
                       },
                     ]
                 }
