@@ -357,8 +357,16 @@ useEffect(() => {
   // Only run this effect if not in the middle of a search popup (i.e., let handleVoucherSearch control filteredOrders)
   if (showSearchPopup) return;
   if (!searchQuery.trim()) {
-    const usedVouchers = orders.filter((order) => 
-      order.statusUse === true || order.vouchers?.some(voucher => voucher.status === 'USED'));
+    // Only show orders where at least one voucher is redeemed
+    const usedVouchers = orders
+      .map(order => {
+        const redeemedVouchers = order.vouchers.filter(voucher => voucher.statusUse || voucher.used || voucher.status === 'USED');
+        if (redeemedVouchers.length > 0) {
+          return { ...order, vouchers: redeemedVouchers };
+        }
+        return null;
+      })
+      .filter(Boolean);
     setFilteredOrders(usedVouchers);
   } else {
     const code = searchQuery.replace(/[^A-Z0-9]/g, '');
