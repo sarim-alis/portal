@@ -634,27 +634,28 @@ const dateFilteredGiftCardOrders = selectedDateRange
                     )
                   : dateFilteredGiftCardOrders.flatMap((order, index) =>
                       order.vouchers.map((giftCard, vIndex) => {
+                        if (!giftCard || typeof giftCard !== 'object') return null;
                         let locationDisplay = "—";
-                        if (giftCard && giftCard.locationUsed && Array.isArray(giftCard.locationUsed) && giftCard.locationUsed.length > 0) {
+                        if (giftCard.locationUsed && Array.isArray(giftCard.locationUsed) && giftCard.locationUsed.length > 0) {
                           locationDisplay = giftCard.locationUsed.map((loc, idx) => (<div key={idx}>{loc}</div>));
                         }
                         return {
-                          key: giftCard && giftCard.id ? giftCard.id : `giftcard-${vIndex}`,
-                          product: giftCard && giftCard.productTitle ? giftCard.productTitle : "—",
-                          code: giftCard && giftCard.code ? giftCard.code : "—",
-                          value: `$${formatDollarAmount(giftCard && giftCard.totalPrice != null ? giftCard.totalPrice : 0)}`,
-                          history: (giftCard && Array.isArray(giftCard.cashHistory) && giftCard.cashHistory.length > 0)
+                          key: giftCard.id ? giftCard.id : `giftcard-${vIndex}`,
+                          product: giftCard.productTitle ? giftCard.productTitle : "—",
+                          code: giftCard.code ? giftCard.code : "—",
+                          value: `$${formatDollarAmount(giftCard.totalPrice != null ? giftCard.totalPrice : 0)}`,
+                          history: Array.isArray(giftCard.cashHistory) && giftCard.cashHistory.length > 0
                             ? giftCard.cashHistory.map((amt, idx) => <div key={idx}>${formatDollarAmount(amt)}</div>)
                             : "—",
-                          remainingBalance: giftCard && giftCard.remainingBalance != null ? `$${formatDollarAmount(giftCard.remainingBalance)}` : "—",
+                          remainingBalance: giftCard.remainingBalance != null ? `$${formatDollarAmount(giftCard.remainingBalance)}` : "—",
                           location: locationDisplay,
-                          useDate: formatDates(giftCard && giftCard.redeemedAt ? giftCard.redeemedAt : null) || "—",
-                          usedBy: (giftCard && Array.isArray(giftCard.username) && giftCard.username.length > 0)
+                          useDate: formatDates(giftCard.redeemedAt ? giftCard.redeemedAt : null) || "—",
+                          usedBy: Array.isArray(giftCard.username) && giftCard.username.length > 0
                             ? giftCard.username.map((user, idx) => <div key={idx}>{user}</div>)
                             : "—",
-                          action: { used: giftCard && giftCard.remainingBalance === 0, giftCard, order },
+                          action: { used: giftCard.remainingBalance === 0 && giftCard.remainingBalance !== null, giftCard, order },
                         };
-                      })
+                      }).filter(Boolean)
                     )
                 }
                 columns={activeTab === "vouchers"
