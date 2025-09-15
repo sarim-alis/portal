@@ -288,7 +288,9 @@ const handleUseVoucher = (voucher) => { setSelectedVoucher(voucher); setIsGiftCa
 
 // Handle use gift card.
 const handleUseGiftCard = (giftCard, order) => {
+  const safeId = giftCard.id ? giftCard.id : (typeof giftCard.code === 'string' ? giftCard.code : undefined);
   setSelectedVoucher({
+    id: safeId,
     orderNumber: giftCard.code,
     ...giftCard,
     totalPrice: giftCard.totalPrice,
