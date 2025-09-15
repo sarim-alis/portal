@@ -639,8 +639,9 @@ const dateFilteredGiftCardOrders = selectedDateRange
                         if (giftCard.locationUsed && Array.isArray(giftCard.locationUsed) && giftCard.locationUsed.length > 0) {
                           locationDisplay = giftCard.locationUsed.map((loc, idx) => (<div key={idx}>{loc}</div>));
                         }
+                        const safeId = giftCard.id ? giftCard.id : (typeof giftCard.code === 'string' ? giftCard.code : `giftcard-${vIndex}`);
                         return {
-                          key: giftCard.id ? giftCard.id : `giftcard-${vIndex}`,
+                          key: safeId,
                           product: giftCard.productTitle ? giftCard.productTitle : "—",
                           code: giftCard.code ? giftCard.code : "—",
                           value: `$${formatDollarAmount(giftCard.totalPrice != null ? giftCard.totalPrice : 0)}`,
@@ -653,7 +654,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                           usedBy: Array.isArray(giftCard.username) && giftCard.username.length > 0
                             ? giftCard.username.map((user, idx) => <div key={idx}>{user}</div>)
                             : "—",
-                          action: { used: giftCard.remainingBalance === 0 && giftCard.remainingBalance !== null, giftCard, order },
+                          action: { used: giftCard.remainingBalance === 0 && giftCard.remainingBalance !== null, giftCard, order, id: safeId },
                         };
                       }).filter(Boolean)
                     )
@@ -702,7 +703,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                           return (
                             <div style={styles.buttonContainer}>
                               {showUseBtn && (
-                                <button className="custom-use-btn" onClick={() => handleUseGiftCard(giftCard, action.order)} disabled={isDisabled}>Use</button>
+                                <button className="custom-use-btn" onClick={() => handleUseGiftCard({...giftCard, id: action.id}, action.order)} disabled={isDisabled}>Use</button>
                               )}
                             </div>
                           );
