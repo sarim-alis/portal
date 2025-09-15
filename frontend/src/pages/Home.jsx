@@ -1,7 +1,8 @@
 // Imports.
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { Table } from "antd";
+import { Table, DatePicker } from "antd";
+import dayjs from "dayjs";
 import "antd/dist/reset.css";
 import styles from "../styles/home.js";
 const customBtnStyle = `
@@ -12,17 +13,14 @@ if (typeof document !== 'undefined' && !document.getElementById('custom-use-btn-
 
 // Frontend.
 const Home = ({ onLogout }) => {
+const { RangePicker } = DatePicker;
   // States.
   const [activeTab, setActiveTab] = useState("vouchers");
   const [searchQuery, setSearchQuery] = useState("");
   const [showPopup, setShowPopup] = useState(false);
   const [showSearchPopup, setShowSearchPopup] = useState(false);
   const [voucherSearchCode, setVoucherSearchCode] = useState("");
-  const [voucherValidation, setVoucherValidation] = useState({
-    status: null, // 'valid', 'expired', 'invalid', 'used'
-    message: "",
-    color: "#fff"
-  });
+  const [voucherValidation, setVoucherValidation] = useState({ status: null, message: "", color: "#fff"});
   const [locations, setLocations] = useState([]);
   const [orders, setOrders] = useState([]);
   const [giftCardOrders, setGiftCardOrders] = useState([]);
@@ -36,13 +34,13 @@ const Home = ({ onLogout }) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [showGiftCardSearchPopup, setShowGiftCardSearchPopup] = useState(false);
   const [giftCardSearchCode, setGiftCardSearchCode] = useState("");
-  const [giftCardValidation, setGiftCardValidation] = useState({
-    status: null, // 'valid', 'expired', 'invalid', 'used'
-    message: "",
-    color: "#fff"
-  });
+  const [giftCardValidation, setGiftCardValidation] = useState({ status: null, message: "", color: "#fff"});
   const [selectedDateRange, setSelectedDateRange] = useState("");
   const [employeeName, setEmployeeName] = useState("");
+  const [customStartDate, setCustomStartDate] = useState("");
+  const [customEndDate, setCustomEndDate] = useState("");
+  const voucherPopupInputRef = React.useRef(null);
+  const giftCardPopupInputRef = React.useRef(null);
 
 
 // Format date.
@@ -73,7 +71,6 @@ const handleAmountChange = (e) => {
   const numericValue = parseFloat(val);
   const maxBalance = selectedVoucher?.remainingBalance ?? selectedVoucher?.totalPrice ?? 0;
   setWasAmountReduced(false);  
-  // If entered amount exceeds max balance, automatically reduce to max.
   if (!isNaN(numericValue) && numericValue > maxBalance) {const formattedMaxBalance = formatDollarAmount(maxBalance);setAmountToRedeem(formattedMaxBalance);setWasAmountReduced(true);toast.info(`Amount reduced to maximum available balance: $${formattedMaxBalance}`);} else {setAmountToRedeem(val);}
 };
 
@@ -84,27 +81,50 @@ const handleAmountChange = (e) => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  useEffect(() => {if (showSearchPopup && voucherPopupInputRef.current) {voucherPopupInputRef.current.focus()}}, [showSearchPopup]);
+  useEffect(() => {if (showGiftCardSearchPopup && giftCardPopupInputRef.current) {giftCardPopupInputRef.current.focus()}}, [showGiftCardSearchPopup]);
+
   // Validate voucher in real-time as user types.
   useEffect(() => {
-    if (!voucherSearchCode.trim()) { setVoucherValidation({status: null, message: "Enter 4-digit code format (XXXX-XXXX)", color: "#fff"});return;} const formattedCode = voucherSearchCode.replace(/[^A-Z0-9]/g, '');
-    
-    // Find matching order.
-    const matchingOrder = orders.find(order => order.vouchers.some(voucher => voucher.code.replace(/[^A-Z0-9]/g, '') === formattedCode));
+    if (!voucherSearchCode.trim()) {
+      setVoucherValidation({ status: null, message: "Enter 9-character code format (XXXX-XXXX)", color: "#fff" });
+      return;
+    }
+    const formattedCode = voucherSearchCode.replace(/[^A-Z0-9]/g, '');
 
-    if (!matchingOrder) { setVoucherValidation({ status: 'invalid', message: "Invalid voucher number", color: "#dc3545"});return;}
+    if (voucherSearchCode.length !== 9) {
+      setVoucherValidation({ status: 'invalid', message: "Invalid code format (must be XXXX-XXXX)", color: "#dc3545" });
+      return;
+    }
 
-    const voucher = matchingOrder.vouchers.find(v => v.code.replace(/[^A-Z0-9]/g, '') === formattedCode);
+    let foundVoucher = null;
+    let foundOrder = null;
+    for (const order of orders) {
+      const voucher = order.vouchers.find(v => v.code.replace(/[^A-Z0-9]/g, '') === formattedCode);
+      if (voucher) {
+        foundVoucher = voucher;
+        foundOrder = order;
+        break;
+      }
+    }
 
+    if (!foundVoucher) {
+      setVoucherValidation({ status: 'invalid', message: "Invalid voucher code", color: "#dc3545" });
+      return;
+    }
 
-    // Check expiration by comparing voucher.expire with voucher.createdAt
-    const expireDate = voucher?.expire;
-    const createdAt = voucher?.createdAt;
+    if (foundOrder && foundOrder.statusUse === true) {
+      setVoucherValidation({ status: 'used', message: "Voucher is already redeemed", color: "#fff" });
+      return;
+    }
+
+    const expireDate = foundVoucher?.expire;
+    const createdAt = foundVoucher?.createdAt;
     let safeExpireDate = expireDate ? expireDate.replace(' ', 'T') : null;
     let safeCreatedAt = createdAt ? createdAt.replace(' ', 'T') : null;
     if (safeExpireDate && safeCreatedAt) {
       const expirationDate = new Date(safeExpireDate);
       const createdDate = new Date(safeCreatedAt);
-      // Check for invalid or default 1970 date
       if (!isNaN(expirationDate.getTime()) && !isNaN(createdDate.getTime()) && expirationDate.getFullYear() > 1971) {
         if (expirationDate < new Date()) {
           const diffMs = expirationDate - createdDate;
@@ -116,14 +136,13 @@ const handleAmountChange = (e) => {
             const yyyy = date.getFullYear();
             return `${mm}/${dd}/${yyyy}`;
           })();
-          setVoucherValidation({status: 'expired', message: `Voucher expired on ${formattedExpireDate} (${diffDays} days after purchase)`, color: "#fd7e14"});
+          setVoucherValidation({ status: 'expired', message: `Voucher expired on ${formattedExpireDate} (${diffDays} days after purchase)`, color: "#fd7e14" });
           return;
         }
       }
     }
-
-    // Voucher is valid.
-    setVoucherValidation({status: 'valid', message: "Valid voucher", color: "#28a745"});
+  
+    setVoucherValidation({ status: 'valid', message: "Valid voucher", color: "#28a745" });
   }, [voucherSearchCode, orders]);
 
 // Set gift card validation.
@@ -133,34 +152,18 @@ useEffect(() => {
   const formattedCode = giftCardSearchCode.replace(/[^A-Z0-9]/g, '');
   
   // Find matching gift card.
-  const matchingOrder = giftCardOrders.find(order =>
-    order.vouchers.some(giftCard =>
-      giftCard.code.replace(/[^A-Z0-9]/g, '') === formattedCode
-    )
-  );
-
+  const matchingOrder = giftCardOrders.find(order => order.vouchers.some(giftCard => giftCard.code.replace(/[^A-Z0-9]/g, '') === formattedCode));
   if (!matchingOrder) {setGiftCardValidation({status: 'invalid', message: "Invalid gift card number", color: "#dc3545"});return;}
-
-  // Check if gift card is already used.
   if (matchingOrder.remainingBalance === 0) { setGiftCardValidation({ status: 'used', message: "Gift card has been fully used", color: "#6c757d"});return;}
-
-  // Gift card is valid.
   setGiftCardValidation({ status: 'valid', message: "Valid gift card", color: "#28a745"});
-
 }, [giftCardSearchCode, giftCardOrders]);
 
 // Handle gift card search.
 const handleGiftCardSearch = () => {
-  if (!giftCardSearchCode.trim()) {
-    toast.error("Please enter a gift card code");
-    return;
-  }
+  if (!giftCardSearchCode.trim()) { toast.error("Please enter a gift card code"); return;}
 
   // Only allow search if gift card is valid.
-  if (giftCardValidation.status !== 'valid') {
-    toast.error(giftCardValidation.message);
-    return;
-  }
+  if (giftCardValidation.status !== 'valid') { toast.error(giftCardValidation.message); return;}
 
   const formattedCode = giftCardSearchCode.replace(/[^A-Z0-9]/g, '');
   // Flatten all gift cards with their parent order reference
@@ -180,24 +183,9 @@ const handleGiftCardSearch = () => {
 };
 
 // Handle tab change.
-const handleTabChange = (tab) => {
-  setActiveTab(tab);
-  setSearchQuery("");
-  // Clear popup state when switching tabs
-  setShowPopup(false);
-  setSelectedVoucher(null);
-  setAmountToRedeem("");
-  setIsGiftCard(false);
-  setWasAmountReduced(false);
-  if (tab === "vouchers") {
-    const usedVouchers = orders.filter((order) => 
-      order.statusUse === true || order.vouchers?.some(voucher => voucher.status === 'USED'));
-    setFilteredOrders(usedVouchers);
-    // setShowSearchPopup(true);
-  } else if (tab === "giftcards") {
-    setFilteredGiftCardOrders([]);
-    // setShowGiftCardSearchPopup(true);
-  }
+const handleTabChange = (tab) => { setActiveTab(tab); setSearchQuery(""); setShowPopup(false); setSelectedVoucher(null); setAmountToRedeem(""); setIsGiftCard(false); setWasAmountReduced(false);
+  if (tab === "vouchers") { const usedVouchers = orders.filter((order) => order.statusUse === true || order.vouchers?.some(voucher => voucher.status === 'USED')); setFilteredOrders(usedVouchers);} 
+  else if (tab === "giftcards") { setFilteredGiftCardOrders([]);}
 };
 
 // Fetch locations.
@@ -212,7 +200,6 @@ useEffect(() => {
         console.error("❌ Failed to fetch locations:", error);
       }
     };
-
     fetchLocations();
 }, []);
 
@@ -232,126 +219,84 @@ const hasType = (order, target) => {
   });
 };
 
-  // Fetch orders with vouchers.
-  useEffect(() => {
-    const fetchOrdersWithVouchers = async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/vou`);
-        const data = await response.json();
-        console.log("📦 Orders with Vouchers:", data);
+// Fetch orders with vouchers.
+useEffect(() => {
+  const fetchOrdersWithVouchers = async () => {
+    try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/vou`);
+    const data = await response.json();
+    console.log("📦 Orders with Vouchers:", data);
 
-        // Filter orders with type voucher.
-        const voucherOrders = data.filter((order) => hasType(order, "voucher"));
+    // Filter orders with type voucher.
+    const voucherOrders = data.filter((order) => hasType(order, "voucher"));
+    console.log("🎫 Filtered Voucher Orders:", voucherOrders);
+    setOrders(voucherOrders);;
+    } catch (error) {}
+  };
 
-        console.log("🎫 Filtered Voucher Orders:", voucherOrders);
-        setOrders(voucherOrders);
-        // setFilteredOrders(voucherOrders);
-      } catch (error) {
-        console.error("❌ Failed to fetch voucher orders:", error);
-      }
-    };
+  fetchOrdersWithVouchers();  
+}, []);
 
-    fetchOrdersWithVouchers();
-  }, []);
+// Fetch orders with gifts.
+useEffect(() => {
+  const fetchOrdersWithGiftCards = async () => {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/vou`);
+    const data = await response.json();
+    console.log("🎁 Orders with Gift Cards:", data);
 
-  // Fetch orders with gifts.
-  useEffect(() => {
-    const fetchOrdersWithGiftCards = async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/vou`);
-        const data = await response.json();
-        console.log("🎁 Orders with Gift Cards:", data);
+    // Filter orders with type gift.
+    const giftOrders = data.filter((order) => hasType(order, "gift"));
+    console.log("🎟️ Filtered Gift Card Orders:", giftOrders);
+    setGiftCardOrders(giftOrders);
+    } catch (error) {}
+  };
 
-        // Filter orders with type gift.
-        const giftOrders = data.filter((order) => hasType(order, "gift"));
-
-        console.log("🎟️ Filtered Gift Card Orders:", giftOrders);
-        setGiftCardOrders(giftOrders);
-      } catch (error) {
-        console.error("❌ Failed to fetch gift card orders:", error);
-      }
-    };
-
-    fetchOrdersWithGiftCards();
-  }, []);
+  fetchOrdersWithGiftCards();
+}, []);
 
 // Handle voucher search.
 const handleVoucherSearch = () => {
-    if (!voucherSearchCode.trim()) {
-      toast.error("Please enter a voucher code");
-      return;
-    }
+  if (!voucherSearchCode.trim()) { toast.error("Please enter a voucher code"); return; }
 
-    // Only allow search if voucher is valid
-    if (voucherValidation.status !== 'valid') {
-      toast.error(voucherValidation.message);
-      return;
-    }
+  // Only allow search if voucher is valid or expired (but not used)
+  if (voucherValidation.status === 'invalid' || voucherValidation.status === 'used') {
+    toast.error(voucherValidation.message);
+    return;
+  }
 
-    const formattedCode = voucherSearchCode.replace(/[^A-Z0-9]/g, '');
-    // Flatten all vouchers with their parent order reference.
-    const matchingVouchers = orders.flatMap(order =>
-      order.vouchers
-        .filter(voucher => voucher.code.replace(/[^A-Z0-9]/g, '') === formattedCode)
-        .map(voucher => ({ ...voucher, _parentOrder: order }))
-    );
-    console.log("Voucher search results", matchingVouchers);
-    // If you want to keep the same filteredOrders structure, wrap in a fake order
-    setFilteredOrders(
-      matchingVouchers.length > 0
-        ? matchingVouchers.map(v => ({ ...v._parentOrder, vouchers: [v] }))
-        : []
-    );
-    setSearchQuery(voucherSearchCode);
-    setShowSearchPopup(false);
-  };
+  const formattedCode = voucherSearchCode.replace(/[^A-Z0-9]/g, '');
+  // Only show vouchers that are not redeemed (statusUse !== true)
+  const matchingVouchers = orders.flatMap(order =>
+    order.statusUse !== true
+      ? order.vouchers
+          .filter(voucher => voucher.code.replace(/[^A-Z0-9]/g, '') === formattedCode)
+          .map(voucher => ({ ...voucher, _parentOrder: order }))
+      : []
+  );
+  setFilteredOrders(
+    matchingVouchers.length > 0
+      ? matchingVouchers.map(v => ({ ...v._parentOrder, vouchers: [v] }))
+      : []
+  );
+  setSearchQuery(voucherSearchCode);
+  setShowSearchPopup(false);
+};
 
 // Handle use voucher.
-const handleUseVoucher = (voucher) => {
-  setSelectedVoucher(voucher);
-  setIsGiftCard(false);
-  setShowPopup(true);
-};
+const handleUseVoucher = (voucher) => { setSelectedVoucher(voucher); setIsGiftCard(false);setShowPopup(true);};
 
 // Handle use gift card.
-const handleUseGiftCard = (giftCard, order) => {
-  setSelectedVoucher({
-    orderNumber: giftCard.code,
-    ...giftCard,
-    totalPrice: order.totalPrice,
-    remainingBalance: order.remainingBalance,
-    orderId: order.id,
-    location: order.location,
-    cashHistory: order.cashHistory || [],
-  });
-  setIsGiftCard(true);
-  setShowPopup(true);
-};
+const handleUseGiftCard = (giftCard, order) => { setSelectedVoucher({ orderNumber: giftCard.code, ...giftCard, totalPrice: order.totalPrice, remainingBalance: order.remainingBalance, orderId: order.id, location: order.location, cashHistory: order.cashHistory || [],}); setIsGiftCard(true); setShowPopup(true);};
 
 // Handle redeem gift card.
 const handleRedeemGiftCard = async () => {
-    if (!selectedVoucher || !amountToRedeem || !employeeName) {
-      toast.info("Please enter amount and name.");
-      return;
-    }
+    if (!selectedVoucher || !amountToRedeem || !employeeName) { toast.info("Please enter amount and name."); return;}
 
     try {
       const locationName = localStorage.getItem("name");
-
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/vou/redeem`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            code: selectedVoucher.code, 
-            redeemAmount: parseFloat(amountToRedeem), 
-            locationUsed: [locationName],
-            redeemedAt: [new Date().toISOString()],
-            useDate: new Date().toISOString(),
-            username: employeeName,
-          }),
-        }
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/vou/redeem`,
+        { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: selectedVoucher.code, redeemAmount: parseFloat(amountToRedeem), locationUsed: [locationName], redeemedAt: [new Date().toISOString()], useDate: new Date().toISOString(), username: employeeName}),}
       );
 
       const data = await response.json();
@@ -360,15 +305,7 @@ const handleRedeemGiftCard = async () => {
         setGiftCardOrders((prevOrders) => 
           prevOrders.map((order) => 
             order.id === data.updatedOrder.id 
-              ? {
-                  ...order, 
-                  remainingBalance: data.updatedOrder.remainingBalance, 
-                  locationUsed: data.updatedOrder.locationUsed, 
-                  redeemedAt: data.updatedOrder.redeemedAt,
-                  username: data.updatedOrder.username,
-                  cashHistory: data.updatedOrder.cashHistory,
-                } 
-              : order
+              ? { ...order,  remainingBalance: data.updatedOrder.remainingBalance,  locationUsed: data.updatedOrder.locationUsed,  redeemedAt: data.updatedOrder.redeemedAt, username: data.updatedOrder.username, cashHistory: data.updatedOrder.cashHistory,} : order
           )
         );
         closePopup();
@@ -384,23 +321,11 @@ const handleRedeemGiftCard = async () => {
 
 // Handle mark voucher as used.
 const handleMarkVoucherAsUsed = async () => {
-    if (!selectedVoucher || !employeeName) {
-      toast.info("Please enter name.");
-      return;
-    }
+    if (!selectedVoucher || !employeeName) { toast.info("Please enter name."); return;}
 
     try {
       const locationName = localStorage.getItem("name");
-
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/vou/redeems`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({code: selectedVoucher.code, locationUsed: [locationName], redeemedAt: [new Date().toISOString()], useDate: new Date().toISOString(), username: employeeName}),
-        }
-      );
-
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/vou/redeems`,{ method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({code: selectedVoucher.code, locationUsed: [locationName], redeemedAt: [new Date().toISOString()], useDate: new Date().toISOString(), username: employeeName}),});
       const data = await response.json();
 
       if (response.ok) {
@@ -408,14 +333,7 @@ const handleMarkVoucherAsUsed = async () => {
         setOrders((prevOrders) => 
           prevOrders.map((order) => 
             order.vouchers?.some((v) => v.code === selectedVoucher.code) 
-              ? {
-                  ...order, 
-                  statusUse: true, 
-                  locationUsed: data.updatedOrder.locationUsed, 
-                  redeemedAt: data.updatedOrder.redeemedAt,
-                  username: data.updatedOrder.username,
-                } 
-              : order
+              ? { ...order,  statusUse: true,  locationUsed: data.updatedOrder.locationUsed,  redeemedAt: data.updatedOrder.redeemedAt, username: data.updatedOrder.username,} : order
           )
         );
         closePopup();
@@ -430,40 +348,9 @@ const handleMarkVoucherAsUsed = async () => {
 
 
 // Close popup.
-const closePopup = () => {
-  setShowPopup(false);
-  setSelectedVoucher(null);
-  setSelectedLocation("Select your location");
-  setAmountToRedeem("");
-  setIsGiftCard(false);
-  setWasAmountReduced(false);
-  setEmployeeName("");
-};
-
-// Close search popup.
-const closeSearchPopup = () => {
-  setShowSearchPopup(false);
-  setVoucherSearchCode("");
-  setSearchQuery("");
-  setVoucherValidation({
-    status: null,
-    message: "Enter 4-digit code format (XXXX-XXXX)",
-    color: "#fff"
-  });
-};
-
-// Close gift card search popup.
-const closeGiftCardSearchPopup = () => {
-  setShowGiftCardSearchPopup(false);
-  setGiftCardSearchCode("");
-  setSearchQuery("");
-  setFilteredGiftCardOrders([]);
-  setGiftCardValidation({
-    status: null,
-    message: "Enter 4-digit code format (XXXX-XXXX)",
-    color: "#fff"
-  });
-};
+const closePopup = () => { setShowPopup(false); setSelectedVoucher(null); setSelectedLocation("Select your location"); setAmountToRedeem(""); setIsGiftCard(false); setWasAmountReduced(false); setEmployeeName("");};
+const closeSearchPopup = () => { setShowSearchPopup(false); setVoucherSearchCode(""); setSearchQuery(""); setVoucherValidation({ status: null, message: "Enter 4-digit code format (XXXX-XXXX)", color: "#fff"});};
+const closeGiftCardSearchPopup = () => { setShowGiftCardSearchPopup(false); setGiftCardSearchCode(""); setSearchQuery(""); setFilteredGiftCardOrders([]);  setGiftCardValidation({ status: null, message: "Enter 4-digit code format (XXXX-XXXX)", color: "#fff"});};
 
 // For vouchers, show USED status by default.
 useEffect(() => {
@@ -523,35 +410,60 @@ const locationFilteredOrders =
 
     const now = new Date();
 
+// Date filtering logic for vouchers
 const dateFilteredOrders = selectedDateRange
   ? locationFilteredOrders.filter(order => {
+      // Use createdAt for custom date, processedAt for others
+      if (selectedDateRange === "custom") {
+        if (!order.createdAt) return false;
+        if (!customStartDate || !customEndDate) return true; // If not both dates picked, show all
+        const orderDate = new Date(order.createdAt);
+        const start = new Date(customStartDate);
+        const end = new Date(customEndDate);
+        // Set end to end of day
+        end.setHours(23, 59, 59, 999);
+        return orderDate >= start && orderDate <= end;
+      }
+      if (selectedDateRange === "all") {
+        return true;
+      }
       if (!order.processedAt) return false;
       const orderDate = new Date(order.processedAt);
-
       switch (selectedDateRange) {
         case "1d": return (now - orderDate) <= 24 * 60 * 60 * 1000;
         case "1w": return (now - orderDate) <= 7 * 24 * 60 * 60 * 1000;
         case "1m": return (now - orderDate) <= 30 * 24 * 60 * 60 * 1000;
         case "6m": return (now - orderDate) <= 182 * 24 * 60 * 60 * 1000;
         case "1y": return (now - orderDate) <= 365 * 24 * 60 * 60 * 1000;
-        default:   return true;
+        default: return true;
       }
     })
   : locationFilteredOrders;
 
-// For gift cards
+// Date filtering logic for gift cards
 const dateFilteredGiftCardOrders = selectedDateRange
   ? filteredGiftCardOrders.filter(order => {
+      if (selectedDateRange === "custom") {
+        if (!order.createdAt) return false;
+        if (!customStartDate || !customEndDate) return true;
+        const orderDate = new Date(order.createdAt);
+        const start = new Date(customStartDate);
+        const end = new Date(customEndDate);
+        end.setHours(23, 59, 59, 999);
+        return orderDate >= start && orderDate <= end;
+      }
+      if (selectedDateRange === "all") {
+        return true;
+      }
       if (!order.processedAt) return false;
       const orderDate = new Date(order.processedAt);
-
       switch (selectedDateRange) {
         case "1d": return (now - orderDate) <= 24 * 60 * 60 * 1000;
         case "1w": return (now - orderDate) <= 7 * 24 * 60 * 60 * 1000;
         case "1m": return (now - orderDate) <= 30 * 24 * 60 * 60 * 1000;
         case "6m": return (now - orderDate) <= 182 * 24 * 60 * 60 * 1000;
         case "1y": return (now - orderDate) <= 365 * 24 * 60 * 60 * 1000;
-        default:   return true;
+        default: return true;
       }
     })
   : filteredGiftCardOrders;
@@ -573,25 +485,47 @@ const dateFilteredGiftCardOrders = selectedDateRange
         </button>
       </div>
 
-      <div style={styles.contentContainer(isMobile)}>
-        {/* Sort and Filter */}
-        <h2 style={styles.sortFilterHeader}>Sort and Filter</h2>
+<div style={styles.contentContainer(isMobile)}>
+{/* Sort and Filter */}
+<h2 style={styles.sortFilterHeader}>Sort and Filter</h2>
 
-        {/* Filter Buttons */}
-        <div style={styles.filterButtonsRow}>
-          <div style={styles.filterEmptySpace(isMobile)}></div>
-          <div style={styles.filterButtonsGrid(activeTab, isMobile)}>
+{/* Filter Buttons */}
+<div style={styles.filterButtonsRow}>
+<div style={styles.filterEmptySpace(isMobile)}></div>
+<div style={styles.filterButtonsGrid(activeTab, isMobile)}>
 {activeTab === "vouchers" ? (
 <>
-<select value={selectedDateRange} onChange={(e) => setSelectedDateRange(e.target.value)} style={{ ...styles.filterButton, padding: "6px", cursor: "pointer", textAlign: "center" }}>
-<option value="">Purchase Date</option><option value="1d">Last Day</option><option value="1w">Last Week</option><option value="1m">Last Month</option><option value="6m">Last 6 Months</option><option value="1y">Last 1 Year</option>
-</select>
 
-{/* Location Dropdown */}
-<select value={selectedLocation} onChange={(e) => setSelectedLocation(e.target.value)} style={{ ...styles.filterButton, padding: "6px", cursor: "pointer" }}>
-  <option value="" style={{textAlign: 'center'}}>All Locations</option>
-  {locations.map((loc) => (<option key={loc.id} value={loc.name} style={{textAlign: 'center'}}>{loc.name}</option>))}
+<select value={selectedDateRange} onChange={(e) => setSelectedDateRange(e.target.value)} style={{ ...styles.filterButton, padding: "6px", cursor: "pointer", textAlign: "center" }}>
+  <option value="">Purchase Date</option>
+  <option value="custom">Custom Date</option>
+  <option value="all">All Time</option>
+  <option value="1d">Last Day</option>
+  <option value="1w">Last Week</option>
+  <option value="1m">Last Month</option>
+  <option value="6m">Last 6 Months</option>
+  <option value="1y">Last 1 Year</option>
 </select>
+{/* Show custom date pickers if 'Custom Date' is selected */}
+{selectedDateRange === "custom" && (
+<>
+        <RangePicker
+          value={customStartDate && customEndDate ? [customStartDate ? dayjs(customStartDate) : null, customEndDate ? dayjs(customEndDate) : null] : []}
+          onChange={dates => {
+            setCustomStartDate(dates && dates[0] ? dates[0].format('YYYY-MM-DD') : "");
+            setCustomEndDate(dates && dates[1] ? dates[1].format('YYYY-MM-DD') : "");
+          }}
+          style={{ marginLeft: 8, marginRight: 4, minWidth: 220 }}
+          allowClear
+          format="YYYY-MM-DD"
+        />
+</>
+)}
+    {/* Location Dropdown */}
+    <select value={selectedLocation} onChange={(e) => setSelectedLocation(e.target.value)} style={{ ...styles.filterButton, padding: "6px", cursor: "pointer" }}>
+      <option value="" style={{textAlign: 'center'}}>All Locations</option>
+      {locations.map((loc) => (<option key={loc.id} value={loc.name} style={{textAlign: 'center'}}>{loc.name}</option>))}
+    </select>
 
 
 <input type="text" placeholder="Search Code (XXXX-XXXX)" value={searchQuery} maxLength={9} onChange={(e) => { let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""); if (val.length > 8) val = val.slice(0, 8); if (val.length > 4) val = val.slice(0, 4) + '-' + val.slice(4); setSearchQuery(val);}} onFocus={() => setShowSearchPopup(true)}  style={styles.searchInput}/>
@@ -599,8 +533,32 @@ const dateFilteredGiftCardOrders = selectedDateRange
 ) : (
 <>
 <select value={selectedDateRange} onChange={(e) => setSelectedDateRange(e.target.value)} style={{ ...styles.filterButton, padding: "6px", cursor: "pointer", textAlign: "center" }}>
-  <option value="">Purchase Date</option><option value="1d">Last Day</option><option value="1w">Last Week</option><option value="1m">Last Month</option><option value="6m">Last 6 Months</option><option value="1y">Last 1 Year</option>
+  <option value="">Purchase Date</option>
+  <option value="custom">Custom Date</option>
+  <option value="all">All Time</option>
+  <option value="1d">Last Day</option>
+  <option value="1w">Last Week</option>
+  <option value="1m">Last Month</option>
+  <option value="6m">Last 6 Months</option>
+  <option value="1y">Last 1 Year</option>
 </select>
+{selectedDateRange === "custom" && (
+  <>
+        <input
+          type="date"
+          value={customStartDate}
+          onChange={e => setCustomStartDate(e.target.value)}
+          style={{ ...styles.filterButton, padding: "6px", marginLeft: 8, marginRight: 4 }}
+        />
+        <span style={{ margin: '0 4px' }}>to</span>
+        <input
+          type="date"
+          value={customEndDate}
+          onChange={e => setCustomEndDate(e.target.value)}
+          style={{ ...styles.filterButton, padding: "6px", marginLeft: 4 }}
+        />
+  </>
+)}
 <input type="text" placeholder="Search Code (XXXX-XXXX)" value={searchQuery} maxLength={9} onChange={(e) => { let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""); if (val.length > 8) val = val.slice(0, 8); if (val.length > 4) val = val.slice(0, 4) + '-' + val.slice(4); setSearchQuery(val);}} onFocus={() => setShowGiftCardSearchPopup(true)}  style={styles.searchInput}/>
 </>
 )}
@@ -629,31 +587,13 @@ const dateFilteredGiftCardOrders = selectedDateRange
                   ? dateFilteredOrders.flatMap((order, index) =>
                       order.vouchers.map((voucher, vIndex) => {
                         const isUsed = order.statusUse === true || voucher.status === "USED";
-                        return {
-                          key: voucher.id,
-                          product: voucher.productTitle || "—",
-                          code: voucher.code || "—",
-                          expire: voucher.expire ? (() => {const safeExpire = voucher.expire.replace(' ', 'T');const date = new Date(safeExpire);if (isNaN(date.getTime())) return "—";const mm = String(date.getMonth() + 1).padStart(2, "0");const dd = String(date.getDate()).padStart(2, "0");const yyyy = date.getFullYear();return `${mm}/${dd}/${yyyy}`})() : "—",
-                          location: order.locationUsed || "—",
-                          useDate: formatDates(order.redeemedAt) || "—",
-                          status: isUsed ? "USED" : "VALID",
-                          usedBy: order.username?.length ? order.username.map((user, idx) => <div key={idx}>{user}</div>) : "—",
-                          action: { isUsed, voucher, order },
-                        };
+                        let locationDisplay = "—";
+                        if (order.locationUsed && Array.isArray(order.locationUsed) && order.locationUsed.length > 0) { locationDisplay = order.locationUsed.map((loc, idx) => (<div key={idx}>{loc}</div>));}
+                        return { key: voucher.id, product: voucher.productTitle || "—", code: voucher.code || "—", expire: voucher.expire ? (() => {const safeExpire = voucher.expire.replace(' ', 'T');const date = new Date(safeExpire);if (isNaN(date.getTime())) return "—";const mm = String(date.getMonth() + 1).padStart(2, "0");const dd = String(date.getDate()).padStart(2, "0");const yyyy = date.getFullYear();return `${mm}/${dd}/${yyyy}`})() : "—", location: locationDisplay, useDate: formatDates(order.redeemedAt) || "—", status: isUsed ? "USED" : "VALID", usedBy: order.username?.length ? order.username.map((user, idx) => <div key={idx}>{user}</div>) : "—", action: { isUsed, voucher, order },};
                       })
                     )
                   : dateFilteredGiftCardOrders.flatMap((order, index) =>
-                      order.vouchers.map((giftCard, vIndex) => ({
-                        key: giftCard.id,
-                        product: giftCard.productTitle,
-                        code: giftCard.code,
-                        value: `$${formatDollarAmount(order.totalPrice)}`,
-                        history: order.cashHistory.map((amt, idx) => <div key={idx}>${formatDollarAmount(amt)}</div>),
-                        location: order.locationUsed?.length ? order.locationUsed.map((loc, idx) => (<div key={idx}>{loc}</div>)) : "—",
-                        useDate: formatDates(order.redeemedAt) || "—",
-                        usedBy: order.username?.length ? order.username.map((user, idx) => <div key={idx}>{user}</div>) : "—",
-                        action: { used: giftCard.used, giftCard, order },
-                      }))
+                      order.vouchers.map((giftCard, vIndex) => ({ key: giftCard.id, product: giftCard.productTitle, code: giftCard.code, value: `$${formatDollarAmount(order.totalPrice)}`, history: order.cashHistory.map((amt, idx) => <div key={idx}>${formatDollarAmount(amt)}</div>), location: order.locationUsed?.length ? order.locationUsed.map((loc, idx) => (<div key={idx}>{loc}</div>)) : "—", useDate: formatDates(order.redeemedAt) || "—", usedBy: order.username?.length ? order.username.map((user, idx) => <div key={idx}>{user}</div>) : "—", action: { used: giftCard.used, giftCard, order },}))
                     )
                 }
                 columns={activeTab === "vouchers"
@@ -671,13 +611,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                         key: "action",
                         render: (action) => (
                           <div style={styles.buttonContainer}>
-                            <button
-                              className="custom-use-btn"
-                              onClick={() => { if (!action.isUsed) handleUseVoucher(action.voucher, action.order); }}
-                              disabled={action.isUsed}
-                            >
-                              Use
-                            </button>
+                            <button className="custom-use-btn" onClick={() => { if (!action.isUsed) handleUseVoucher(action.voucher, action.order); }} disabled={action.isUsed}>Use</button>
                           </div>
                         ),
                       },
@@ -686,27 +620,23 @@ const dateFilteredGiftCardOrders = selectedDateRange
                       { title: "Product", dataIndex: "product", key: "product" },
                       { title: "Code", dataIndex: "code", key: "code" },
                       { title: "Value", dataIndex: "value", key: "value" },
-                      { title: "Usage History", dataIndex: "history", key: "history" },
+                      { title: "Usage History", dataIndex: "history", key: "history", render: (_, record) => {
+                        const order = record.action.order;
+                        if (!order || !order.cashHistory || order.cashHistory.length === 0) { return "—";}
+                        return order.cashHistory.map((amt, idx) => <div key={idx}>${formatDollarAmount(amt)}</div>);
+                      }},
                       { title: "Remaining Balance", dataIndex: "remainingBalance", key: "remainingBalance", render: (_, record) => {
                         const order = record.action.order;
-                        return order ? `$${formatDollarAmount(order.remainingBalance)}` : "—";
+                        return order ? `${formatDollarAmount(order.remainingBalance)}` : "—";
                       }},
                       { title: "Location", dataIndex: "location", key: "location" },
                       { title: "Use Date", dataIndex: "useDate", key: "useDate" },
                       { title: "Employee Name", dataIndex: "usedBy", key: "usedBy" },
-                      {
-                        title: "",
-                        dataIndex: "action",
-                        key: "action",
+                      { title: "", dataIndex: "action", key: "action",
                         render: (action) => (
                           <div style={styles.buttonContainer}>
                             {!action.used && (
-                              <button
-                                className="custom-use-btn"
-                                onClick={() => handleUseGiftCard(action.giftCard, action.order)}
-                              >
-                                Use
-                              </button>
+                              <button className="custom-use-btn" onClick={() => handleUseGiftCard(action.giftCard, action.order)}>Use</button>
                             )}
                           </div>
                         ),
@@ -714,7 +644,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                     ]
                 }
                 pagination={false}
-                scroll={{ x: true }}
+                scroll={{ x: true, y: 500 }}
               />
             </div>
           </div>
@@ -730,46 +660,20 @@ const dateFilteredGiftCardOrders = selectedDateRange
             <div style={styles.popupContentContainer}>           
               <div style={styles.popupFlexContainer(isMobile)}>
                 <span style={styles.popupLabel(isMobile)}>Voucher ID:</span>
-                <input 
-                  type="text" 
-                  value={voucherSearchCode}
-                  onChange={(e) => {
-                    const formatted = formatVoucherCode(e.target.value.toUpperCase());
-                    setVoucherSearchCode(formatted);
-                  }}
-                  placeholder="XXXX-XXXX"
-                  style={styles.popupInput(isMobile)}
-                  maxLength={9}
-                />
+                <input  type="text"  ref={voucherPopupInputRef} value={voucherSearchCode} onChange={(e) => { const formatted = formatVoucherCode(e.target.value.toUpperCase()); setVoucherSearchCode(formatted);}} placeholder="XXXX-XXXX" style={styles.popupInput(isMobile)} maxLength={9} />
                 {/* Dynamic validation message with color */}
-                <span style={{
-                  ...styles.validationText(isMobile),
-                  color: voucherValidation.color,
-                  fontWeight: voucherValidation.status ? '500' : 'normal'
-                }}>
-                  ● {voucherValidation.message}
-                </span>
+                <span style={{ ...styles.validationText(isMobile), color: voucherValidation.color, fontWeight: voucherValidation.status ? '500' : 'normal'}}> ● {voucherValidation.message}</span>
               </div>
 
               <div style={styles.redemButt}>
-                <button 
-                  onClick={handleVoucherSearch}
-                  style={{
-                    ...styles.redeemButts(isMobile),
-                    opacity: voucherValidation.status === 'valid' ? 1 : 0.5,
-                    cursor: voucherValidation.status === 'valid' ? 'pointer' : 'not-allowed'
-                  }}
-                  disabled={voucherValidation.status !== 'valid'}
-                >
-                  Search
-                </button>
+                <button onClick={handleVoucherSearch} style={{ ...styles.redeemButts(isMobile), opacity: voucherValidation.status === 'valid' ? 1 : 0.5, cursor: voucherValidation.status === 'valid' ? 'pointer' : 'not-allowed'}} disabled={voucherValidation.status !== 'valid'}>Search</button>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {showGiftCardSearchPopup && (
+{showGiftCardSearchPopup && (
   <div style={styles.popupOverlay}>
     <div style={styles.popupModal(isMobile)}>
       <button onClick={closeGiftCardSearchPopup} style={styles.closeButton}>×</button>
@@ -777,39 +681,13 @@ const dateFilteredGiftCardOrders = selectedDateRange
       <div style={styles.popupContentContainer}>           
         <div style={styles.popupFlexContainer(isMobile)}>
           <span style={styles.popupLabel(isMobile)}>Gift Card ID:</span>
-          <input 
-            type="text" 
-            value={giftCardSearchCode}
-            onChange={(e) => {
-              const formatted = formatVoucherCode(e.target.value.toUpperCase());
-              setGiftCardSearchCode(formatted);
-            }}
-            placeholder="XXXX-XXXX"
-            style={styles.popupInput(isMobile)}
-            maxLength={9}
-          />
+          <input type="text" ref={giftCardPopupInputRef} value={giftCardSearchCode} onChange={(e) => { const formatted = formatVoucherCode(e.target.value.toUpperCase()); setGiftCardSearchCode(formatted);}} placeholder="XXXX-XXXX" style={styles.popupInput(isMobile)} maxLength={9} />
           {/* Dynamic validation message with color */}
-          <span style={{
-            ...styles.validationText(isMobile),
-            color: giftCardValidation.color,
-            fontWeight: giftCardValidation.status ? '500' : 'normal'
-          }}>
-            ● {giftCardValidation.message}
-          </span>
+          <span style={{...styles.validationText(isMobile), color: giftCardValidation.color, fontWeight: giftCardValidation.status ? '500' : 'normal'}}> ● {giftCardValidation.message}</span>
         </div>
 
         <div style={styles.redemButt}>
-          <button 
-            onClick={handleGiftCardSearch}
-            style={{
-              ...styles.redeemButts(isMobile),
-              opacity: giftCardValidation.status === 'valid' ? 1 : 0.5,
-              cursor: giftCardValidation.status === 'valid' ? 'pointer' : 'not-allowed'
-            }}
-            disabled={giftCardValidation.status !== 'valid'}
-          >
-            Search
-          </button>
+          <button onClick={handleGiftCardSearch}style={{...styles.redeemButts(isMobile), opacity: giftCardValidation.status === 'valid' ? 1 : 0.5, cursor: giftCardValidation.status === 'valid' ? 'pointer' : 'not-allowed'}}disabled={giftCardValidation.status !== 'valid'}>Search</button>
         </div>
       </div>
     </div>
@@ -836,7 +714,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
               </div>
 
               <div style={styles.popupFlexContainers(isMobile)}>
-                <span style={styles.popupLabel(isMobile)}>Name:</span>
+                <span style={styles.popupLabel(isMobile)}>Employee:</span>
                 <input type="text" value={employeeName} onChange={e => setEmployeeName(e.target.value)} placeholder="Enter name" style={styles.popupInput(isMobile)} required/>
                 {isGiftCard && (
                   <>
