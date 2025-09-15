@@ -695,13 +695,18 @@ const dateFilteredGiftCardOrders = selectedDateRange
                       { title: "Use Date", dataIndex: "useDate", key: "useDate" },
                       { title: "Employee Name", dataIndex: "usedBy", key: "usedBy" },
                       { title: "", dataIndex: "action", key: "action",
-                        render: (action) => (
-                          <div style={styles.buttonContainer}>
-                            {action.giftCard && action.giftCard.remainingBalance > 0 && (
-                              <button className="custom-use-btn" onClick={() => handleUseGiftCard(action.giftCard, action.order)}>Use</button>
-                            )}
-                          </div>
-                        ),
+                        render: (action) => {
+                          const giftCard = action.giftCard;
+                          const showUseBtn = giftCard && (giftCard.remainingBalance === null || giftCard.remainingBalance > 0);
+                          const isDisabled = giftCard && giftCard.remainingBalance === 0 && giftCard.remainingBalance !== null;
+                          return (
+                            <div style={styles.buttonContainer}>
+                              {showUseBtn && (
+                                <button className="custom-use-btn" onClick={() => handleUseGiftCard(giftCard, action.order)} disabled={isDisabled}>Use</button>
+                              )}
+                            </div>
+                          );
+                        },
                       },
                     ]
                 }
