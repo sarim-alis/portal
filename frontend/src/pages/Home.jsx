@@ -306,22 +306,27 @@ const handleUseGiftCard = (giftCard, order) => {
 // Handle redeem gift card.
 const handleRedeemGiftCard = async () => {
     if (!selectedVoucher || !amountToRedeem || !employeeName) { toast.info("Please enter amount and name."); return;}
-
     try {
       const locationName = localStorage.getItem("name");
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/vou/redeem`,
         { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: selectedVoucher.code, redeemAmount: parseFloat(amountToRedeem), locationUsed: [locationName], redeemedAt: [new Date().toISOString()], useDate: new Date().toISOString(), username: employeeName}),}
       );
-
       const data = await response.json();
       if (response.ok) {
         toast.success("Gift redeemed successfully!");
-        setGiftCardOrders((prevOrders) => 
-          prevOrders.map((order) => 
-            order.id === data.updatedOrder.id 
-              ? { ...order,  remainingBalance: data.updatedVoucher.remainingBalance, vouchers: order.vouchers.map(v => v.code === data.updatedVoucher.code ? data.updatedVoucher : v) } : order
-          )
-        );
+        setGiftCardOrders(prevOrders =>
+  prevOrders.map(order =>
+    order.vouchers.some(v => v.code === data.updatedVoucher.code)
+      ? {
+          ...order,
+          vouchers: order.vouchers.map(v =>
+            v.code === data.updatedVoucher.code ? data.updatedVoucher : v
+          ),
+          remainingBalance: order.remainingBalance - amountToRedeem
+        }
+      : order
+  )
+);
         closePopup();
       } else {
         toast.error(data.error || "Failed to redeem.");
@@ -331,8 +336,6 @@ const handleRedeemGiftCard = async () => {
       toast.error("Error redeeming gift card.");
     }
   };
-
-
 // Handle mark voucher as used.
 const handleMarkVoucherAsUsed = async () => {
     if (!selectedVoucher || !employeeName) { toast.info("Please enter name."); return;}
@@ -641,7 +644,11 @@ const dateFilteredGiftCardOrders = selectedDateRange
                         if (giftCard.locationUsed && Array.isArray(giftCard.locationUsed) && giftCard.locationUsed.length > 0) {
                           locationDisplay = giftCard.locationUsed.map((loc, idx) => (<div key={idx}>{loc}</div>));
                         }
-                        const safeId = (giftCard && giftCard.id) ? giftCard.id : (giftCard && typeof giftCard.code === 'string' ? giftCard.code : `giftcard-${vIndex}`);
+                        const safeId = (typeof giftCard?.id === 'string' && giftCard.id.length > 0)
+                          ? giftCard.id
+                          : (typeof giftCard?.code === 'string' && giftCard.code.length > 0)
+                            ? giftCard.code
+                            : `giftcard-${vIndex}`;
                         return {
                           key: safeId,
                           product: giftCard.productTitle ? giftCard.productTitle : "—",
@@ -656,7 +663,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                           usedBy: Array.isArray(giftCard.username) && giftCard.username.length > 0
                             ? giftCard.username.map((user, idx) => <div key={idx}>{user}</div>)
                             : "—",
-                          action: { used: giftCard.remainingBalance === 0 && giftCard.remainingBalance !== null, giftCard, order, id: safeId },
+                          action: { used: giftCard.remainingBalance === 0 && giftCard.remainingBalance !== null, giftCard: { ...giftCard, id: safeId }, order, id: safeId },
                         };
                       }).filter(Boolean)
                     )
