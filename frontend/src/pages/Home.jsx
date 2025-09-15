@@ -287,7 +287,19 @@ const handleVoucherSearch = () => {
 const handleUseVoucher = (voucher) => { setSelectedVoucher(voucher); setIsGiftCard(false);setShowPopup(true);};
 
 // Handle use gift card.
-const handleUseGiftCard = (giftCard, order) => { setSelectedVoucher({ orderNumber: giftCard.code, ...giftCard, totalPrice: order.totalPrice, remainingBalance: order.remainingBalance, orderId: order.id, location: order.location, cashHistory: order.cashHistory || [],}); setIsGiftCard(true); setShowPopup(true);};
+const handleUseGiftCard = (giftCard, order) => {
+  setSelectedVoucher({
+    orderNumber: giftCard.code,
+    ...giftCard,
+    totalPrice: giftCard.totalPrice,
+    remainingBalance: giftCard.remainingBalance,
+    orderId: order.id,
+    location: order.location,
+    cashHistory: giftCard.cashHistory || [],
+  });
+  setIsGiftCard(true);
+  setShowPopup(true);
+};
 
 // Handle redeem gift card.
 const handleRedeemGiftCard = async () => {
