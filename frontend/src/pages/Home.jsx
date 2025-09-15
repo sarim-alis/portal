@@ -305,7 +305,7 @@ const handleRedeemGiftCard = async () => {
         setGiftCardOrders((prevOrders) => 
           prevOrders.map((order) => 
             order.id === data.updatedOrder.id 
-              ? { ...order,  remainingBalance: data.updatedOrder.remainingBalance,  locationUsed: data.updatedOrder.locationUsed,  redeemedAt: data.updatedOrder.redeemedAt, username: data.updatedOrder.username, cashHistory: data.updatedOrder.cashHistory,} : order
+              ? { ...order,  remainingBalance: data.updatedVoucher.remainingBalance, vouchers: order.vouchers.map(v => v.code === data.updatedVoucher.code ? data.updatedVoucher : v) } : order
           )
         );
         closePopup();
@@ -333,7 +333,7 @@ const handleMarkVoucherAsUsed = async () => {
         setOrders((prevOrders) => 
           prevOrders.map((order) => 
             order.vouchers?.some((v) => v.code === selectedVoucher.code) 
-              ? { ...order,  statusUse: true,  locationUsed: data.updatedOrder.locationUsed,  redeemedAt: data.updatedOrder.redeemedAt, username: data.updatedOrder.username,} : order
+              ? { ...order,  statusUse: true, vouchers: order.vouchers.map(v => v.code === data.updatedVoucher.code ? data.updatedVoucher : v) } : order
           )
         );
         closePopup();
@@ -403,7 +403,7 @@ const locationFilteredOrders =
     ? filteredOrders.filter(order =>
         order.vouchers.some(voucher =>
           voucher.usedLocation?.includes(selectedLocation) ||
-          order.locationUsed?.includes(selectedLocation)
+          order.vouchers.some(voucher => voucher.locationUsed?.includes(selectedLocation))
         )
       )
     : filteredOrders;
@@ -606,14 +606,30 @@ const dateFilteredGiftCardOrders = selectedDateRange
                           })() : "—",
                           location: locationDisplay,
                           useDate: formatDates(voucher.redeemedAt) || "—",
-                          status: isUsed ? "USED" : "VALID",
+                          status: voucher.statusUse || voucher.used ? "USED" : "VALID",
                           usedBy: voucher.username?.length ? voucher.username.map((user, idx) => <div key={idx}>{user}</div>) : "—",
-                          action: { isUsed, voucher, order },
+                          action: { isUsed: voucher.statusUse || voucher.used, voucher, order },
                         };
                       })
                     )
                   : dateFilteredGiftCardOrders.flatMap((order, index) =>
-                      order.vouchers.map((giftCard, vIndex) => ({ key: giftCard.id, product: giftCard.productTitle, code: giftCard.code, value: `$${formatDollarAmount(order.totalPrice)}`, history: order.cashHistory.map((amt, idx) => <div key={idx}>${formatDollarAmount(amt)}</div>), location: order.locationUsed?.length ? order.locationUsed.map((loc, idx) => (<div key={idx}>{loc}</div>)) : "—", useDate: formatDates(order.redeemedAt) || "—", usedBy: order.username?.length ? order.username.map((user, idx) => <div key={idx}>{user}</div>) : "—", action: { used: giftCard.used, giftCard, order },}))
+                      order.vouchers.map((giftCard, vIndex) => {
+                        let locationDisplay = "—";
+                        if (giftCard.locationUsed && Array.isArray(giftCard.locationUsed) && giftCard.locationUsed.length > 0) {
+                          locationDisplay = giftCard.locationUsed.map((loc, idx) => (<div key={idx}>{loc}</div>));
+                        }
+                        return {
+                          key: giftCard.id,
+                          product: giftCard.productTitle,
+                          code: giftCard.code,
+                          value: `$${formatDollarAmount(giftCard.totalPrice ?? order.totalPrice)}`,
+                          history: Array.isArray(giftCard.cashHistory) && giftCard.cashHistory.length > 0 ? giftCard.cashHistory.map((amt, idx) => <div key={idx}>${formatDollarAmount(amt)}</div>) : (Array.isArray(order.cashHistory) && order.cashHistory.length > 0 ? order.cashHistory.map((amt, idx) => <div key={idx}>${formatDollarAmount(amt)}</div>) : "—"),
+                          location: locationDisplay,
+                          useDate: formatDates(giftCard.redeemedAt ?? order.redeemedAt) || "—",
+                          usedBy: Array.isArray(giftCard.username) && giftCard.username.length > 0 ? giftCard.username.map((user, idx) => <div key={idx}>{user}</div>) : (Array.isArray(order.username) && order.username.length > 0 ? order.username.map((user, idx) => <div key={idx}>{user}</div>) : "—"),
+                          action: { used: giftCard.used, giftCard, order },
+                        };
+                      })
                     )
                 }
                 columns={activeTab === "vouchers"
