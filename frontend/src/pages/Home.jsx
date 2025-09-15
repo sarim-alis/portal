@@ -306,22 +306,27 @@ const handleUseGiftCard = (giftCard, order) => {
 // Handle redeem gift card.
 const handleRedeemGiftCard = async () => {
     if (!selectedVoucher || !amountToRedeem || !employeeName) { toast.info("Please enter amount and name."); return;}
-
     try {
       const locationName = localStorage.getItem("name");
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/vou/redeem`,
         { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: selectedVoucher.code, redeemAmount: parseFloat(amountToRedeem), locationUsed: [locationName], redeemedAt: [new Date().toISOString()], useDate: new Date().toISOString(), username: employeeName}),}
       );
-
       const data = await response.json();
       if (response.ok) {
         toast.success("Gift redeemed successfully!");
-        setGiftCardOrders((prevOrders) => 
-          prevOrders.map((order) => 
-            order.id === data.updatedOrder.id 
-              ? { ...order,  remainingBalance: data.updatedVoucher.remainingBalance, vouchers: order.vouchers.map(v => v.code === data.updatedVoucher.code ? data.updatedVoucher : v) } : order
-          )
-        );
+        setGiftCardOrders(prevOrders =>
+  prevOrders.map(order =>
+    order.vouchers.some(v => v.code === data.updatedVoucher.code)
+      ? {
+          ...order,
+          vouchers: order.vouchers.map(v =>
+            v.code === data.updatedVoucher.code ? data.updatedVoucher : v
+          ),
+          remainingBalance: order.remainingBalance - amountToRedeem
+        }
+      : order
+  )
+);
         closePopup();
       } else {
         toast.error(data.error || "Failed to redeem.");
@@ -331,8 +336,6 @@ const handleRedeemGiftCard = async () => {
       toast.error("Error redeeming gift card.");
     }
   };
-
-
 // Handle mark voucher as used.
 const handleMarkVoucherAsUsed = async () => {
     if (!selectedVoucher || !employeeName) { toast.info("Please enter name."); return;}
