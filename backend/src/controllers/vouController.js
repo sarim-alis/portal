@@ -1,8 +1,10 @@
 // src/controllers/vouController.js
+
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
+import { sendVoucherRedeemEmail } from "../utils/sendEmail.js";
 
-export const getVouchers = async (req, res) => {
+export const getOrdersWithVouchers = async (req, res) => {
   try {
     const orders = await prisma.order.findMany({
       include: {
@@ -63,16 +65,44 @@ export const redeemByCode = async (req, res) => {
     const order = voucher.order;
     if (!order) { return res.status(404).json({ error: "Order not found for this voucher" })}
 
+
     // Determine current balance (first time = totalPrice).
-    const currentBalance = order.remainingBalance ?? order.totalPrice;
+    const currentBalance = voucher.remainingBalance ?? voucher.totalPrice;
     if (redeemAmount > currentBalance) { return res.status(400).json({ error: "Redeem amount exceeds remaining balance" })}
 
     // Calculate new balance.
     const newBalance = currentBalance - redeemAmount;
 
-    // Update order with new remaining balance.
-    const updatedOrder = await prisma.order.update({where: { id: order.id }, data: {remainingBalance: newBalance, cashHistory: { push: redeemAmount }, locationUsed: { push: locationUsed }, redeemedAt: { push: new Date() }, username: { push: username }}});
-    res.json({message: "Redeemed successfully", code, updatedOrder});
+    // Update voucher only, not the whole order
+    const updatedVoucher = await prisma.voucher.update({
+      where: { code },
+      data: {
+        remainingBalance: newBalance,
+        cashHistory: { push: redeemAmount },
+        locationUsed: { push: locationUsed },
+        redeemedAt: { push: new Date() },
+        username: { push: username },
+        used: true,
+        statusUse: true
+      }
+    });
+
+    // Email logic
+    try {
+      const customerEmail = voucher.customerEmail || order.customerEmail;
+      if (customerEmail) {
+        await sendVoucherRedeemEmail({
+          to: customerEmail,
+          code: voucher.code,
+          location: Array.isArray(updatedVoucher.locationUsed) ? updatedVoucher.locationUsed.slice(-1)[0] : locationUsed,
+          productTitle: voucher.productTitle || "Voucher Product"
+        });
+      }
+    } catch (emailErr) {
+      console.error("Email send failed:", emailErr);
+    }
+
+    res.json({message: "Redeemed successfully", code, updatedVoucher});
 
   } catch (error) {console.error("Error redeeming voucher:", error); res.status(500).json({ error: "Internal server error" })}
 };
@@ -96,9 +126,36 @@ export const redeemByCodes = async (req, res) => {
     // Check if already used.
     if (order.statusUse) { return res.status(400).json({ error: "Voucher already used" })}
 
-    // Update order with status used.
-    const updatedOrder = await prisma.order.update({where: { id: order.id }, data: { statusUse: true, locationUsed: { push: locationUsed }, redeemedAt: { push: new Date() }, username: { push: username }}});
-    res.json({message: "Voucher marked as used successfully",code,updatedOrder});
+
+
+    // Update voucher only, not the whole order
+    const updatedVoucher = await prisma.voucher.update({
+      where: { code },
+      data: {
+        used: true,
+        statusUse: true,
+        locationUsed: { push: locationUsed },
+        redeemedAt: { push: new Date() },
+        username: { push: username }
+      }
+    });
+
+    // Email logic
+    try {
+      const customerEmail = voucher.customerEmail || order.customerEmail;
+      if (customerEmail) {
+        await sendVoucherRedeemEmail({
+          to: customerEmail,
+          code: voucher.code,
+          location: Array.isArray(updatedVoucher.locationUsed) ? updatedVoucher.locationUsed.slice(-1)[0] : locationUsed,
+          productTitle: voucher.productTitle || "Voucher Product"
+        });
+      }
+    } catch (emailErr) {
+      console.error("Email send failed:", emailErr);
+    }
+
+    res.json({message: "Voucher marked as used successfully",code,updatedVoucher});
 
   } catch (error) {console.error("Error marking voucher as used:", error); res.status(500).json({ error: "Internal server error" })}
 };
