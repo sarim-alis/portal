@@ -2,7 +2,7 @@
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
-export const getOrdersWithVouchers = async (req, res) => {
+export const getVouchers = async (req, res) => {
   try {
     const orders = await prisma.order.findMany({
       include: {
