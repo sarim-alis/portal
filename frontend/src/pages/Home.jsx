@@ -670,13 +670,13 @@ const dateFilteredGiftCardOrders = selectedDateRange
                       { title: "Code", dataIndex: "code", key: "code" },
                       { title: "Value", dataIndex: "value", key: "value" },
                       { title: "Usage History", dataIndex: "history", key: "history", render: (_, record) => {
-                        const order = record.action.order;
-                        if (!order || !order.cashHistory || order.cashHistory.length === 0) { return "—";}
-                        return order.cashHistory.map((amt, idx) => <div key={idx}>${formatDollarAmount(amt)}</div>);
+                        const giftCard = record.action.giftCard;
+                        if (!giftCard || !Array.isArray(giftCard.cashHistory) || giftCard.cashHistory.length === 0) { return "—"; }
+                        return giftCard.cashHistory.map((amt, idx) => <div key={idx}>${formatDollarAmount(amt)}</div>);
                       }},
                       { title: "Remaining Balance", dataIndex: "remainingBalance", key: "remainingBalance", render: (_, record) => {
-                        const order = record.action.order;
-                        return order ? `${formatDollarAmount(order.remainingBalance)}` : "—";
+                        const giftCard = record.action.giftCard;
+                        return giftCard && giftCard.remainingBalance != null ? `$${formatDollarAmount(giftCard.remainingBalance)}` : "—";
                       }},
                       { title: "Location", dataIndex: "location", key: "location" },
                       { title: "Use Date", dataIndex: "useDate", key: "useDate" },
@@ -684,7 +684,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                       { title: "", dataIndex: "action", key: "action",
                         render: (action) => (
                           <div style={styles.buttonContainer}>
-                            {!action.used && (
+                            {action.giftCard && action.giftCard.remainingBalance > 0 && (
                               <button className="custom-use-btn" onClick={() => handleUseGiftCard(action.giftCard, action.order)}>Use</button>
                             )}
                           </div>
