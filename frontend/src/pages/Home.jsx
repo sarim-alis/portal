@@ -630,20 +630,17 @@ const dateFilteredGiftCardOrders = selectedDateRange
                           key: giftCard && giftCard.id ? giftCard.id : `giftcard-${vIndex}`,
                           product: giftCard && giftCard.productTitle ? giftCard.productTitle : "—",
                           code: giftCard && giftCard.code ? giftCard.code : "—",
-                          value: `$${formatDollarAmount(giftCard && giftCard.totalPrice != null ? giftCard.totalPrice : (order.totalPrice ?? 0))}`,
+                          value: `$${formatDollarAmount(giftCard && giftCard.totalPrice != null ? giftCard.totalPrice : 0)}`,
                           history: (giftCard && Array.isArray(giftCard.cashHistory) && giftCard.cashHistory.length > 0)
                             ? giftCard.cashHistory.map((amt, idx) => <div key={idx}>${formatDollarAmount(amt)}</div>)
-                            : (order && Array.isArray(order.cashHistory) && order.cashHistory.length > 0
-                              ? order.cashHistory.map((amt, idx) => <div key={idx}>${formatDollarAmount(amt)}</div>)
-                              : "—"),
+                            : "—",
+                          remainingBalance: giftCard && giftCard.remainingBalance != null ? `$${formatDollarAmount(giftCard.remainingBalance)}` : "—",
                           location: locationDisplay,
-                          useDate: formatDates((giftCard && giftCard.redeemedAt) ? giftCard.redeemedAt : (order && order.redeemedAt ? order.redeemedAt : null)) || "—",
+                          useDate: formatDates(giftCard && giftCard.redeemedAt ? giftCard.redeemedAt : null) || "—",
                           usedBy: (giftCard && Array.isArray(giftCard.username) && giftCard.username.length > 0)
                             ? giftCard.username.map((user, idx) => <div key={idx}>{user}</div>)
-                            : (order && Array.isArray(order.username) && order.username.length > 0
-                              ? order.username.map((user, idx) => <div key={idx}>{user}</div>)
-                              : "—"),
-                          action: { used: giftCard && giftCard.used, giftCard, order },
+                            : "—",
+                          action: { used: giftCard && giftCard.remainingBalance === 0, giftCard, order },
                         };
                       })
                     )
