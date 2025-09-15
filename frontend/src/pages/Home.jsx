@@ -641,7 +641,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                         if (giftCard.locationUsed && Array.isArray(giftCard.locationUsed) && giftCard.locationUsed.length > 0) {
                           locationDisplay = giftCard.locationUsed.map((loc, idx) => (<div key={idx}>{loc}</div>));
                         }
-                        const safeId = giftCard.id ? giftCard.id : (typeof giftCard.code === 'string' ? giftCard.code : `giftcard-${vIndex}`);
+                        const safeId = (giftCard && giftCard.id) ? giftCard.id : (giftCard && typeof giftCard.code === 'string' ? giftCard.code : `giftcard-${vIndex}`);
                         return {
                           key: safeId,
                           product: giftCard.productTitle ? giftCard.productTitle : "—",
