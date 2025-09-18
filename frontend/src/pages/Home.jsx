@@ -184,7 +184,19 @@ const handleGiftCardSearch = () => {
 
 // Handle tab change.
 const handleTabChange = (tab) => { setActiveTab(tab); setSearchQuery(""); setShowPopup(false); setSelectedVoucher(null); setAmountToRedeem(""); setIsGiftCard(false); setWasAmountReduced(false);
-  if (tab === "vouchers") { const usedVouchers = orders.filter((order) => order.statusUse === true || order.vouchers?.some(voucher => voucher.status === 'USED')); setFilteredOrders(usedVouchers);} 
+  if (tab === "vouchers") {
+    // Only show orders where at least one voucher is redeemed
+    const usedVouchers = orders
+      .map(order => {
+        const redeemedVouchers = order.vouchers.filter(voucher => voucher.statusUse || voucher.used || voucher.status === 'USED');
+        if (redeemedVouchers.length > 0) {
+          return { ...order, vouchers: redeemedVouchers };
+        }
+        return null;
+      })
+      .filter(Boolean);
+    setFilteredOrders(usedVouchers);
+  }
   else if (tab === "giftcards") { setFilteredGiftCardOrders([]);}
 };
 
