@@ -620,6 +620,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                           key: voucher.id,
                           product: voucher.productTitle || "—",
                           code: voucher.code || "—",
+                          value: `$${formatDollarAmount(voucher.totalPrice || "—")}`,
                           expire: voucher.expire ? (() => {
                             const safeExpire = voucher.expire.replace(' ', 'T');
                             const date = new Date(safeExpire);
@@ -631,6 +632,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                           })() : "—",
                           location: locationDisplay,
                           useDate: formatDates(voucher.redeemedAt) || "—",
+                          expiredValue: `$${formatDollarAmount(voucher.afterExpiredPrice || "—")}`,
                           status: voucher.statusUse || voucher.used ? "USED" : "VALID",
                           usedBy: voucher.username?.length ? voucher.username.map((user, idx) => <div key={idx}>{user}</div>) : "—",
                           action: { isUsed: voucher.statusUse || voucher.used, voucher, order },
@@ -672,9 +674,11 @@ const dateFilteredGiftCardOrders = selectedDateRange
                   ? [
                       { title: "Product", dataIndex: "product", key: "product" },
                       { title: "Code", dataIndex: "code", key: "code" },
+                      { title: "Price", dataIndex: "value", key: "value" },
                       { title: "Expire", dataIndex: "expire", key: "expire" },
                       { title: "Location", dataIndex: "location", key: "location" },
                       { title: "Use Date", dataIndex: "useDate", key: "useDate" },
+                      { title: "Expired Price", dataIndex: "expiredValue", key: "expiredValue" },
                       { title: "Status", dataIndex: "status", key: "status" },
                       { title: "Employee Name", dataIndex: "usedBy", key: "usedBy" },
                       {
