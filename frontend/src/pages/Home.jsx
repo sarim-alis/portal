@@ -284,7 +284,21 @@ const handleVoucherSearch = () => {
 };
 
 // Handle use voucher.
-const handleUseVoucher = (voucher) => { setSelectedVoucher(voucher); setIsGiftCard(false);setShowPopup(true);};
+const handleUseVoucher = (voucher) => {
+  // If expired and unused, set amountToRedeem to afterExpiredPrice.
+  let safeExpire = voucher?.expire ? voucher.expire.replace(' ', 'T') : null;
+  let expireDate = safeExpire ? new Date(safeExpire) : null;
+  let isExpired = expireDate && !isNaN(expireDate.getTime()) && expireDate < new Date();
+  let isUsed = voucher?.statusUse || voucher?.used || voucher?.status === 'USED';
+  if (isExpired && !isUsed && voucher.afterExpiredPrice) {
+    setAmountToRedeem(voucher.afterExpiredPrice);
+  } else {
+    setAmountToRedeem("");
+  }
+  setSelectedVoucher(voucher);
+  setIsGiftCard(false);
+  setShowPopup(true);
+};
 
 // Handle use gift card.
 const handleUseGiftCard = (giftCard, order) => {
@@ -685,11 +699,20 @@ const dateFilteredGiftCardOrders = selectedDateRange
                         title: "",
                         dataIndex: "action",
                         key: "action",
-                        render: (action) => (
-                          <div style={styles.buttonContainer}>
-                            <button className="custom-use-btn" onClick={() => { if (!action.isUsed) handleUseVoucher(action.voucher, action.order); }} disabled={action.isUsed}>Use</button>
-                          </div>
-                        ),
+                        render: (action) => {
+                          const voucher = action.voucher;
+                          let safeExpire = voucher?.expire ? voucher.expire.replace(' ', 'T') : null;
+                          let expireDate = safeExpire ? new Date(safeExpire) : null;
+                          let isExpired = expireDate && !isNaN(expireDate.getTime()) && expireDate < new Date();
+                          let isUsed = voucher?.statusUse || voucher?.used || voucher?.status === 'USED';
+                          // Enable button if not used, or if expired and not used.
+                          const canUse = !isUsed || (isExpired && !isUsed);
+                          return (
+                            <div style={styles.buttonContainer}>
+                              <button className="custom-use-btn" onClick={() => { if (canUse) handleUseVoucher(voucher, action.order); }} disabled={!canUse}>Use</button>
+                            </div>
+                          );
+                        },
                       },
                     ]
                   : [
