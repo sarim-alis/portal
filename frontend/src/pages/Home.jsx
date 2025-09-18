@@ -184,7 +184,19 @@ const handleGiftCardSearch = () => {
 
 // Handle tab change.
 const handleTabChange = (tab) => { setActiveTab(tab); setSearchQuery(""); setShowPopup(false); setSelectedVoucher(null); setAmountToRedeem(""); setIsGiftCard(false); setWasAmountReduced(false);
-  if (tab === "vouchers") { const usedVouchers = orders.filter((order) => order.statusUse === true || order.vouchers?.some(voucher => voucher.status === 'USED')); setFilteredOrders(usedVouchers);} 
+  if (tab === "vouchers") {
+    // Only show orders where at least one voucher is redeemed
+    const usedVouchers = orders
+      .map(order => {
+        const redeemedVouchers = order.vouchers.filter(voucher => voucher.statusUse || voucher.used || voucher.status === 'USED');
+        if (redeemedVouchers.length > 0) {
+          return { ...order, vouchers: redeemedVouchers };
+        }
+        return null;
+      })
+      .filter(Boolean);
+    setFilteredOrders(usedVouchers);
+  }
   else if (tab === "giftcards") { setFilteredGiftCardOrders([]);}
 };
 
@@ -284,7 +296,21 @@ const handleVoucherSearch = () => {
 };
 
 // Handle use voucher.
-const handleUseVoucher = (voucher) => { setSelectedVoucher(voucher); setIsGiftCard(false);setShowPopup(true);};
+const handleUseVoucher = (voucher) => {
+  // If expired and unused, set amountToRedeem to afterExpiredPrice.
+  let safeExpire = voucher?.expire ? voucher.expire.replace(' ', 'T') : null;
+  let expireDate = safeExpire ? new Date(safeExpire) : null;
+  let isExpired = expireDate && !isNaN(expireDate.getTime()) && expireDate < new Date();
+  let isUsed = voucher?.statusUse || voucher?.used || voucher?.status === 'USED';
+  if (isExpired && !isUsed && voucher.afterExpiredPrice) {
+    setAmountToRedeem(voucher.afterExpiredPrice);
+  } else {
+    setAmountToRedeem("");
+  }
+  setSelectedVoucher(voucher);
+  setIsGiftCard(false);
+  setShowPopup(true);
+};
 
 // Handle use gift card.
 const handleUseGiftCard = (giftCard, order) => {
@@ -620,6 +646,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                           key: voucher.id,
                           product: voucher.productTitle || "—",
                           code: voucher.code || "—",
+                          value: `$${formatDollarAmount(voucher.totalPrice || "—")}`,
                           expire: voucher.expire ? (() => {
                             const safeExpire = voucher.expire.replace(' ', 'T');
                             const date = new Date(safeExpire);
@@ -631,6 +658,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                           })() : "—",
                           location: locationDisplay,
                           useDate: formatDates(voucher.redeemedAt) || "—",
+                          expiredValue: `$${formatDollarAmount(voucher.afterExpiredPrice || "—")}`,
                           status: voucher.statusUse || voucher.used ? "USED" : "VALID",
                           usedBy: voucher.username?.length ? voucher.username.map((user, idx) => <div key={idx}>{user}</div>) : "—",
                           action: { isUsed: voucher.statusUse || voucher.used, voucher, order },
@@ -672,20 +700,31 @@ const dateFilteredGiftCardOrders = selectedDateRange
                   ? [
                       { title: "Product", dataIndex: "product", key: "product" },
                       { title: "Code", dataIndex: "code", key: "code" },
+                      { title: "Price", dataIndex: "value", key: "value" },
                       { title: "Expire", dataIndex: "expire", key: "expire" },
                       { title: "Location", dataIndex: "location", key: "location" },
                       { title: "Use Date", dataIndex: "useDate", key: "useDate" },
+                      { title: "Expired Price", dataIndex: "expiredValue", key: "expiredValue" },
                       { title: "Status", dataIndex: "status", key: "status" },
                       { title: "Employee Name", dataIndex: "usedBy", key: "usedBy" },
                       {
                         title: "",
                         dataIndex: "action",
                         key: "action",
-                        render: (action) => (
-                          <div style={styles.buttonContainer}>
-                            <button className="custom-use-btn" onClick={() => { if (!action.isUsed) handleUseVoucher(action.voucher, action.order); }} disabled={action.isUsed}>Use</button>
-                          </div>
-                        ),
+                        render: (action) => {
+                          const voucher = action.voucher;
+                          let safeExpire = voucher?.expire ? voucher.expire.replace(' ', 'T') : null;
+                          let expireDate = safeExpire ? new Date(safeExpire) : null;
+                          let isExpired = expireDate && !isNaN(expireDate.getTime()) && expireDate < new Date();
+                          let isUsed = voucher?.statusUse || voucher?.used || voucher?.status === 'USED';
+                          // Enable button if not used, or if expired and not used.
+                          const canUse = !isUsed || (isExpired && !isUsed);
+                          return (
+                            <div style={styles.buttonContainer}>
+                              <button className="custom-use-btn" onClick={() => { if (canUse) handleUseVoucher(voucher, action.order); }} disabled={!canUse}>Use</button>
+                            </div>
+                          );
+                        },
                       },
                     ]
                   : [
