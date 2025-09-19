@@ -663,7 +663,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                           })() : "—",
                           location: locationDisplay,
                           useDate: formatDates(voucher.redeemedAt) || "—",
-                          expiredValue: `$${formatDollarAmount(voucher.afterExpiredPrice || "—")}`,
+                          expiredValue: voucher.afterExpiredPrice !== undefined && voucher.afterExpiredPrice !== null && voucher.afterExpiredPrice !== "" ? `$${voucher.afterExpiredPrice}` : "—",
                           status: voucher.statusUse || voucher.used ? "USED" : "VALID",
                           usedBy: voucher.username?.length ? voucher.username.map((user, idx) => <div key={idx}>{user}</div>) : "—",
                           action: { isUsed: voucher.statusUse || voucher.used, voucher, order },
