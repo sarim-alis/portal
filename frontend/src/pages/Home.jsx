@@ -663,7 +663,9 @@ const dateFilteredGiftCardOrders = selectedDateRange
                           })() : "—",
                           location: locationDisplay,
                           useDate: formatDates(voucher.redeemedAt) || "—",
-                          expiredValue: voucher.afterExpiredPrice !== undefined && voucher.afterExpiredPrice !== null && voucher.afterExpiredPrice !== "" ? `$${voucher.afterExpiredPrice}` : "—",
+                          expiredValue: (voucher.afterExpiredPrice !== undefined && voucher.afterExpiredPrice !== null && voucher.afterExpiredPrice !== "") 
+                            ? `$${String(voucher.afterExpiredPrice).includes('.') ? String(voucher.afterExpiredPrice).split('.')[0] + '.' + String(voucher.afterExpiredPrice).split('.')[1].slice(0,2) : voucher.afterExpiredPrice}` 
+                            : "—",
                           status: voucher.statusUse || voucher.used ? "USED" : "VALID",
                           usedBy: voucher.username?.length ? voucher.username.map((user, idx) => <div key={idx}>{user}</div>) : "—",
                           action: { isUsed: voucher.statusUse || voucher.used, voucher, order },
