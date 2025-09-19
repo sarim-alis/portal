@@ -147,10 +147,15 @@ const handleAmountChange = (e) => {
 
 // Set gift card validation.
 useEffect(() => {
-  if (!giftCardSearchCode.trim()) {setGiftCardValidation({status: null, message: "Enter 4-digit code format (XXXX-XXXX)", color: "white"});return;}
-
+  if (!giftCardSearchCode.trim()) {
+    setGiftCardValidation({status: null, message: "Enter 11-character code format (XXXXX-XXXXX)", color: "white"});
+    return;
+  }
   const formattedCode = giftCardSearchCode.replace(/[^A-Z0-9]/g, '');
-  
+  if (giftCardSearchCode.length !== 11) {
+    setGiftCardValidation({ status: 'invalid', message: "Invalid code format (must be XXXXX-XXXXX)", color: "#dc3545" });
+    return;
+  }
   // Find matching gift card.
   const matchingOrder = giftCardOrders.find(order => order.vouchers.some(giftCard => giftCard.code.replace(/[^A-Z0-9]/g, '') === formattedCode));
   if (!matchingOrder) {setGiftCardValidation({status: 'invalid', message: "Invalid gift card number", color: "#dc3545"});return;}
@@ -393,7 +398,7 @@ const handleMarkVoucherAsUsed = async () => {
 // Close popup.
 const closePopup = () => { setShowPopup(false); setSelectedVoucher(null); setSelectedLocation("Select your location"); setAmountToRedeem(""); setIsGiftCard(false); setWasAmountReduced(false); setEmployeeName("");};
 const closeSearchPopup = () => { setShowSearchPopup(false); setVoucherSearchCode(""); setSearchQuery(""); setVoucherValidation({ status: null, message: "Enter 4-digit code format (XXXX-XXXX)", color: "#fff"});};
-const closeGiftCardSearchPopup = () => { setShowGiftCardSearchPopup(false); setGiftCardSearchCode(""); setSearchQuery(""); setFilteredGiftCardOrders([]);  setGiftCardValidation({ status: null, message: "Enter 4-digit code format (XXXX-XXXX)", color: "#fff"});};
+const closeGiftCardSearchPopup = () => { setShowGiftCardSearchPopup(false); setGiftCardSearchCode(""); setSearchQuery(""); setFilteredGiftCardOrders([]);  setGiftCardValidation({ status: null, message: "Enter 11-character code format (XXXXX-XXXXX)", color: "#fff"});};
 
 // For vouchers, show USED status by default.
 useEffect(() => {
@@ -793,15 +798,20 @@ const dateFilteredGiftCardOrders = selectedDateRange
   <div style={styles.popupOverlay}>
     <div style={styles.popupModal(isMobile)}>
       <button onClick={closeGiftCardSearchPopup} style={styles.closeButton}>×</button>
-
       <div style={styles.popupContentContainer}>           
         <div style={styles.popupFlexContainer(isMobile)}>
           <span style={styles.popupLabel(isMobile)}>Gift Card ID:</span>
-          <input type="text" ref={giftCardPopupInputRef} value={giftCardSearchCode} onChange={(e) => { const formatted = formatVoucherCode(e.target.value.toUpperCase()); setGiftCardSearchCode(formatted);}} placeholder="XXXX-XXXX" style={styles.popupInput(isMobile)} maxLength={9} />
+          <input type="text" ref={giftCardPopupInputRef} value={giftCardSearchCode}
+            onChange={(e) => {
+              let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+              if (val.length > 10) val = val.slice(0, 10);
+              if (val.length > 5) val = val.slice(0, 5) + '-' + val.slice(5);
+              setGiftCardSearchCode(val);
+            }}
+            placeholder="XXXXX-XXXXX" style={styles.popupInput(isMobile)} maxLength={11} />
           {/* Dynamic validation message with color */}
           <span style={{...styles.validationText(isMobile), color: giftCardValidation.color, fontWeight: giftCardValidation.status ? '500' : 'normal'}}> ● {giftCardValidation.message}</span>
         </div>
-
         <div style={styles.redemButt}>
           <button onClick={handleGiftCardSearch}style={{...styles.redeemButts(isMobile), opacity: giftCardValidation.status === 'valid' ? 1 : 0.5, cursor: giftCardValidation.status === 'valid' ? 'pointer' : 'not-allowed'}}disabled={giftCardValidation.status !== 'valid'}>Search</button>
         </div>
