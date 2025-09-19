@@ -615,7 +615,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
         />
   </>
 )}
-<input type="text" placeholder="Search Code (XXXX-XXXX)" value={searchQuery} maxLength={9} onChange={(e) => { let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""); if (val.length > 8) val = val.slice(0, 8); if (val.length > 4) val = val.slice(0, 4) + '-' + val.slice(4); setSearchQuery(val);}} onFocus={() => setShowGiftCardSearchPopup(true)}  style={styles.searchInput}/>
+<input type="text" placeholder="Search Code (XXXXX-XXXXX)" value={searchQuery} maxLength={11} onChange={(e) => { let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""); if (val.length > 10) val = val.slice(0, 10); if (val.length > 5) val = val.slice(0, 5) + '-' + val.slice(5); setSearchQuery(val);}} onFocus={() => setShowGiftCardSearchPopup(true)}  style={styles.searchInput}/>
 </>
 )}
   </div>
@@ -709,7 +709,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                       { title: "Expire", dataIndex: "expire", key: "expire" },
                       { title: "Location", dataIndex: "location", key: "location" },
                       { title: "Use Date", dataIndex: "useDate", key: "useDate" },
-                      { title: "Expired Price", dataIndex: "expiredValue", key: "expiredValue" },
+                      { title: "Expired Value", dataIndex: "expiredValue", key: "expiredValue" },
                       { title: "Status", dataIndex: "status", key: "status" },
                       { title: "Employee Name", dataIndex: "usedBy", key: "usedBy" },
                       {
@@ -801,14 +801,14 @@ const dateFilteredGiftCardOrders = selectedDateRange
       <div style={styles.popupContentContainer}>           
         <div style={styles.popupFlexContainer(isMobile)}>
           <span style={styles.popupLabel(isMobile)}>Gift Card ID:</span>
-          <input type="text" ref={giftCardPopupInputRef} value={giftCardSearchCode}
-            onChange={(e) => {
-              let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
-              if (val.length > 10) val = val.slice(0, 10);
-              if (val.length > 5) val = val.slice(0, 5) + '-' + val.slice(5);
-              setGiftCardSearchCode(val);
-            }}
-            placeholder="XXXXX-XXXXX" style={styles.popupInput(isMobile)} maxLength={11} />
+                <input type="text" ref={giftCardPopupInputRef} value={giftCardSearchCode}
+                  onChange={(e) => {
+                    let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+                    if (val.length > 10) val = val.slice(0, 10);
+                    if (val.length > 5) val = val.slice(0, 5) + '-' + val.slice(5);
+                    setGiftCardSearchCode(val);
+                  }}
+                  placeholder="XXXXX-XXXXX" style={styles.popupInput(isMobile)} maxLength={11} />
           {/* Dynamic validation message with color */}
           <span style={{...styles.validationText(isMobile), color: giftCardValidation.color, fontWeight: giftCardValidation.status ? '500' : 'normal'}}> ● {giftCardValidation.message}</span>
         </div>
