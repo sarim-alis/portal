@@ -13,7 +13,7 @@ const styles = {
     borderRadius: '8px',
     padding: isMobile ? '10px' : '20px',
     margin: '40px auto',
-    maxWidth: isMobile ? '100%' : '1200px',
+    maxWidth: isMobile ? '100%' : '80%',
     border: "1.5px solid rgb(187, 187, 187)",
   }),
 
