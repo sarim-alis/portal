@@ -29,10 +29,10 @@ function getEmailHeader() {
 
 function getEmailFooter() {
   return `
-        <div style="margin-top:32px;padding:24px;background:#faf7f7;border-radius:8px;text-align:center;">
-          <div style="font-size:22px;font-weight:600;margin-bottom:8px;">Want to save again on your next visit?</div>
-          <div style="font-size:16px;color:#444;margin-bottom:20px;">Stock up on more oil change vouchers today and keep your vehicle ready for the road ahead.</div>
-          <a href="#" style="display:inline-block;background:#8a232c;color:#fff;font-weight:600;padding:12px 36px;border-radius:6px;text-decoration:none;font-size:16px;">BUNDLE & SAVE</a>
+        <div style="margin-top:45px;padding:24px;background:#F5F5F5;border-radius:8px;text-align:center;">
+          <div style="font-size:28px;font-weight:600;margin-bottom:8px;color:#000000">Want to save again on your next visit?</div>
+          <div style="font-size:17px;color:#444;margin-bottom:20px;color:#63666A">Stock up on more oil change vouchers today and keep your vehicle ready for the road ahead.</div>
+          <a href="#" style="display:inline-block;background:#862633;color:#fff;font-weight:600;padding:12px 36px;border-radius:6px;text-decoration:none;font-size:18px;">BUNDLE & SAVE</a>
         </div>
         <div style="text-align:center;margin:32px 0 0 0;">
           <img src="${EMAIL_LOGO_FOOTER}" width="120" height="40" style="object-fit:contain;" alt="Jiffy Lube Logo" />
@@ -47,12 +47,12 @@ function getVoucherRedeemEmail({voucherCode, product, location}) {
     ${getEmailHeader()}
       <div style="margin-bottom:32px;">
         <h2 style="color:#862633;font-size:36px;font-weight:600;margin:0 0 12px 0;">Thank you <span style='color:#000000'>for choosing Jiffy Lube!</span></h2>
-        <div style="font-size:18px;color:#222;margin-bottom:18px;">We noticed you recently used your oil change voucher.</div>
-        <div style="font-size:16px;color:#222;margin-bottom:8px;"><b>Voucher #:</b>[ ${voucherCode} ]</div>
-        <div style="font-size:16px;color:#222;margin-bottom:8px;"><b>Product:</b>[ ${product} ]</div>
-        <div style="font-size:16px;color:#222;margin-bottom:18px;"><b>Location Used:</b>[ ${location} ]</div>
-        <div style="font-size:15px;color:#666;margin-bottom:8px;">Thanks for trusting us to help keep your car running smoothly.</div>
-        <div style="font-size:15px;color:#222;font-weight:600;">We appreciate your business.</div>
+        <div style="font-size:18px;color:#000000;margin-bottom:18px;font-weight:400;">We noticed you recently used your oil change voucher.</div>
+        <div style="font-size:17px;color:#000000;margin-bottom:8px;"><b>Voucher #:</b><span style="color:#63666A">[ <span>${voucherCode}</span> ]</span></div>
+        <div style="font-size:17px;color:#000000;margin-bottom:8px;"><b>Product:</b><span style="color:#63666A">[ <span>${product}</span> ]</span></div>
+        <div style="font-size:17px;color:#000000;margin-bottom:18px;"><b>Location Used:</b><span style="color:#63666A">[ <span>${location}</span> ]</span></div>
+        <div style="font-size:17px;color:#63666A;margin-bottom:8px;font-weight:400;">Thanks for trusting us to help keep your car running smoothly.</div>
+        <div style="font-size:18px;color:#000000;font-weight:400;">We appreciate your business.</div>
       </div>
     ${getEmailFooter()}
   `;
@@ -63,13 +63,13 @@ function getGiftCardRedeemEmail({giftCardCode, amountUsed, remainingBalance, loc
     ${getEmailHeader()}
       <div style="margin-bottom:32px;">
         <h2 style="color:#8a232c;font-size:32px;font-weight:700;margin:0 0 12px 0;">Thank you <span style='color:#222'>for choosing Jiffy Lube!</span></h2>
-        <div style="font-size:18px;color:#222;margin-bottom:18px;">We noticed you recently used your gift card.</div>
-        <div style="font-size:16px;color:#222;margin-bottom:8px;"><b>Gift Card #:</b>[ ${giftCardCode} ]</div>
-        <div style="font-size:16px;color:#222;margin-bottom:8px;"><b>Amount Used:</b>[ $${amountUsed} ]</div>
-        <div style="font-size:16px;color:#222;margin-bottom:8px;"><b>Remaining Balance:</b>[ $${remainingBalance} ]</div>
-        <div style="font-size:16px;color:#222;margin-bottom:18px;"><b>Location Used:</b>[ ${location} ]</div>
-        <div style="font-size:15px;color:#666;margin-bottom:8px;">Thanks for trusting us to help keep your car running smoothly.</div>
-        <div style="font-size:15px;color:#222;font-weight:600;">We appreciate your business.</div>
+        <div style="font-size:18px;color:#000000;margin-bottom:18px;">We noticed you recently used your gift card.</div>
+        <div style="font-size:16px;color:#000000;margin-bottom:8px;"><b>Gift Card #:</b><span style="color:#63666A">[ <span>${giftCardCode}</span> ]</span></div>
+        <div style="font-size:16px;color:#000000;margin-bottom:8px;"><b>Amount Used:</b><span style="color:#63666A">[ <span>$${amountUsed}</span> ]</span></div>
+        <div style="font-size:16px;color:#000000;margin-bottom:8px;"><b>Remaining Balance:</b><span style="color:#63666A">[ <span>$${remainingBalance}</span> ]</span></div>
+        <div style="font-size:16px;color:#000000;margin-bottom:18px;"><b>Location Used:</b><span style="color:#63666A">[ <span>${location}</span> ]</span></div>
+        <div style="font-size:15px;color:#63666A;margin-bottom:8px;font-weight:400;">Thanks for trusting us to help keep your car running smoothly.</div>
+        <div style="font-size:15px;color:#000000;font-weight:500;">We appreciate your business.</div>
       </div>
     ${getEmailFooter()}
   `;
