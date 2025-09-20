@@ -30,6 +30,7 @@ const { RangePicker } = DatePicker;
   const [selectedLocation, setSelectedLocation] = useState("Select your location");
   const [amountToRedeem, setAmountToRedeem] = useState("");
   const [wasAmountReduced, setWasAmountReduced] = useState(false);
+  const [isRedeeming, setIsRedeeming] = useState(false);
   const [isGiftCard, setIsGiftCard] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [showGiftCardSearchPopup, setShowGiftCardSearchPopup] = useState(false);
@@ -337,6 +338,8 @@ const handleUseGiftCard = (giftCard, order) => {
 // Handle redeem gift card.
 const handleRedeemGiftCard = async () => {
     if (!selectedVoucher || !amountToRedeem || !employeeName) { toast.info("Please enter amount and name."); return;}
+    if (isRedeeming) return;
+    setIsRedeeming(true);
     try {
       const locationName = localStorage.getItem("name");
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/vou/redeem`,
@@ -365,12 +368,15 @@ const handleRedeemGiftCard = async () => {
     } catch (error) {
       console.error("Error redeeming gift card:", error);
       toast.error("Error redeeming gift card.");
+    } finally {
+      setIsRedeeming(false);
     }
   };
 // Handle mark voucher as used.
 const handleMarkVoucherAsUsed = async () => {
     if (!selectedVoucher || !employeeName) { toast.info("Please enter name."); return;}
-
+    if (isRedeeming) return;
+    setIsRedeeming(true);
     try {
       const locationName = localStorage.getItem("name");
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/vou/redeems`,{ method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({code: selectedVoucher.code, locationUsed: [locationName], redeemedAt: [new Date().toISOString()], useDate: new Date().toISOString(), username: employeeName}),});
@@ -391,6 +397,8 @@ const handleMarkVoucherAsUsed = async () => {
     } catch (error) {
       console.error("Error marking voucher as used:", error);
       toast.error("Error marking voucher as used.");
+    } finally {
+      setIsRedeeming(false);
     }
 };
 
@@ -852,7 +860,9 @@ const dateFilteredGiftCardOrders = selectedDateRange
                 )}
               </div>
               <div style={styles.redemButt}>
-                <button onClick={isGiftCard ? handleRedeemGiftCard : handleMarkVoucherAsUsed} style={{...styles.redeemButts(isMobile), cursor: employeeName.trim() === "" ? "not-allowed" : "pointer", opacity: employeeName.trim() === "" ? 0.5 : 1}} disabled={employeeName.trim() === ""}>Redeem</button>
+                <button onClick={isGiftCard ? handleRedeemGiftCard : handleMarkVoucherAsUsed} style={{...styles.redeemButts(isMobile), cursor: (employeeName.trim() === "" || isRedeeming) ? "not-allowed" : "pointer", opacity: (employeeName.trim() === "" || isRedeeming) ? 0.5 : 1}} disabled={employeeName.trim() === "" || isRedeeming}>
+                  {isRedeeming ? 'Loading...' : 'Redeem'}
+                </button>
               </div>
             </div>
           </div>
