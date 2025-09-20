@@ -95,7 +95,7 @@ function getGiftCardRedeemEmail({giftCardCode, amountUsed, remainingBalance, loc
 
 export async function sendVoucherRedeemEmail({ to, code, location, productTitle }) {
   const mailOptions = {
-    from: smtpUser,
+    from: `Jiffy Lube Specials <${smtpUser}>`,
     to,
     subject: 'Voucher Redeemed Notification',
     html: getVoucherRedeemEmail({voucherCode: code, product: productTitle, location}),
@@ -105,7 +105,7 @@ export async function sendVoucherRedeemEmail({ to, code, location, productTitle 
 
 export async function sendGiftCardRedeemEmail({ to, giftCardCode, amountUsed, remainingBalance, location }) {
   const mailOptions = {
-    from: smtpUser,
+    from: `Jiffy Lube Specials <${smtpUser}>`,
     to,
     subject: 'Gift Card Redeemed Notification',
     html: getGiftCardRedeemEmail({giftCardCode, amountUsed, remainingBalance, location}),
