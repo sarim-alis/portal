@@ -31,7 +31,7 @@ function getEmailFooter() {
   return `
         <div style="margin-top:45px;padding:24px;background:#F5F5F5;border-radius:8px;text-align:center;">
           <div style="font-size:22px;font-weight:600;margin-bottom:8px;color:#000000">Want to save again on your next visit?</div>
-          <div style="font-size:14px;color:#63666A;margin-bottom:20px;color:#63666A">Stock up on more oil change vouchers today and keep your vehicle ready for the road ahead.</div>
+          <div style="font-size:14px;color:#63666A;margin-bottom:20px;color:#63666A">Stock up on oil change vouchers to keep your car road ready—or pick up a gift card and give friends or family the same peace of mind.</div>
           <a href="https://redemptionsolution.myshopify.com/pages/locations" style="display:inline-block;background:#862633;color:#fff;font-weight:600;padding:12px 36px;border-radius:6px;text-decoration:none;font-size:16px; width:100%;box-sizing: border-box; ">BUNDLE & SAVE</a>
         </div>
         <div style="text-align:center;margin:32px 0 0 0;">
