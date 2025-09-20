@@ -52,7 +52,7 @@ function wrapEmailHtml(content) {
     <title>Jiffy Lube Email</title>
     <style>body { font-family: Arial, sans-serif !important; }</style>
   </head>
-  <body style="margin:0;padding:0;">
+  <body style="margin:0;padding:20px 0; background:#F5F5F5;">
     ${content}
   </body>
 </html>`;
