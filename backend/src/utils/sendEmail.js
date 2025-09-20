@@ -42,37 +42,58 @@ function getEmailFooter() {
   `;
 }
 
+function wrapEmailHtml(content) {
+  return `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <title>Jiffy Lube Email</title>
+    <style>body { font-family: 'Barlow Condensed', Arial, sans-serif !important; }</style>
+  </head>
+  <body style="margin:0;padding:0;">
+    ${content}
+  </body>
+</html>`;
+}
+
 function getVoucherRedeemEmail({voucherCode, product, location}) {
-  return `
+  const inner = `
     ${getEmailHeader()}
       <div style="margin-bottom:32px;">
         <h2 style="color:#862633;font-size:36px;font-weight:600;margin:0 0 12px 0;">Thank you <span style='color:#000000'>for choosing Jiffy Lube!</span></h2>
-        <div style="font-size:18px;color:#000000;margin-bottom:18px;font-weight:400;">We noticed you recently used your oil change voucher.</div>
-        <div style="font-size:17px;color:#000000;margin-bottom:8px;"><b>Voucher #:</b><span style="color:#63666A">[ <span>${voucherCode}</span> ]</span></div>
-        <div style="font-size:17px;color:#000000;margin-bottom:8px;"><b>Product:</b><span style="color:#63666A">[ <span>${product}</span> ]</span></div>
-        <div style="font-size:17px;color:#000000;margin-bottom:18px;"><b>Location Used:</b><span style="color:#63666A">[ <span>${location}</span> ]</span></div>
-        <div style="font-size:17px;color:#63666A;margin-bottom:8px;font-weight:400;">Thanks for trusting us to help keep your car running smoothly.</div>
-        <div style="font-size:18px;color:#000000;font-weight:400;">We appreciate your business.</div>
+        <div style="font-size:18px;color:#000000;margin-bottom:18px;">We noticed you recently used your oil change voucher.</div>
+        <div style="font-size:16px;color:#000000;margin-bottom:8px;"><b>Voucher #:</b><span style="color:#63666A">[ <span>${voucherCode}</span> ]</span></div>
+        <div style="font-size:16px;color:#000000;margin-bottom:8px;"><b>Product:</b><span style="color:#63666A">[ <span>${product}</span> ]</span></div>
+        <div style="font-size:16px;color:#000000;margin-bottom:18px;"><b>Location Used:</b><span style="color:#63666A">[ <span>${location}</span> ]</span></div>
+        <div style="font-size:15px;color:#666;margin-bottom:8px;">Thanks for trusting us to help keep your car running smoothly.</div>
+        <div style="font-size:15px;color:#000000;font-weight:600;">We appreciate your business.</div>
       </div>
     ${getEmailFooter()}
   `;
+  return wrapEmailHtml(inner);
 }
 
 function getGiftCardRedeemEmail({giftCardCode, amountUsed, remainingBalance, location}) {
-  return `
+  const inner = `
     ${getEmailHeader()}
       <div style="margin-bottom:32px;">
         <h2 style="color:#8a232c;font-size:32px;font-weight:700;margin:0 0 12px 0;">Thank you <span style='color:#222'>for choosing Jiffy Lube!</span></h2>
-        <div style="font-size:18px;color:#000000;margin-bottom:18px;">We noticed you recently used your gift card.</div>
-        <div style="font-size:16px;color:#000000;margin-bottom:8px;"><b>Gift Card #:</b><span style="color:#63666A">[ <span>${giftCardCode}</span> ]</span></div>
-        <div style="font-size:16px;color:#000000;margin-bottom:8px;"><b>Amount Used:</b><span style="color:#63666A">[ <span>$${amountUsed}</span> ]</span></div>
-        <div style="font-size:16px;color:#000000;margin-bottom:8px;"><b>Remaining Balance:</b><span style="color:#63666A">[ <span>$${remainingBalance}</span> ]</span></div>
-        <div style="font-size:16px;color:#000000;margin-bottom:18px;"><b>Location Used:</b><span style="color:#63666A">[ <span>${location}</span> ]</span></div>
-        <div style="font-size:15px;color:#63666A;margin-bottom:8px;font-weight:400;">Thanks for trusting us to help keep your car running smoothly.</div>
-        <div style="font-size:15px;color:#000000;font-weight:500;">We appreciate your business.</div>
+        <div style="font-size:18px;color:#222;margin-bottom:18px;">We noticed you recently used your gift card.</div>
+        <div style="font-size:16px;color:#222;margin-bottom:8px;"><b>Gift Card #:</b><span style="color:#63666A">[ <span>${giftCardCode}</span> ]</span></div>
+        <div style="font-size:16px;color:#222;margin-bottom:8px;"><b>Amount Used:</b><span style="color:#63666A">[ <span>$${amountUsed}</span> ]</span></div>
+        <div style="font-size:16px;color:#222;margin-bottom:8px;"><b>Remaining Balance:</b><span style="color:#63666A">[ <span>$${remainingBalance}</span> ]</span></div>
+        <div style="font-size:16px;color:#222;margin-bottom:18px;"><b>Location Used:</b><span style="color:#63666A">[ <span>${location}</span> ]</span></div>
+        <div style="font-size:15px;color:#666;margin-bottom:8px;">Thanks for trusting us to help keep your car running smoothly.</div>
+        <div style="font-size:15px;color:#222;font-weight:600;">We appreciate your business.</div>
       </div>
     ${getEmailFooter()}
   `;
+  return wrapEmailHtml(inner);
 }
 
 export async function sendVoucherRedeemEmail({ to, code, location, productTitle }) {
