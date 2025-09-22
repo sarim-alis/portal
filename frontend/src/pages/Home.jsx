@@ -716,7 +716,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                       { title: "Product", dataIndex: "product", key: "product" },
                       { title: "Code", dataIndex: "code", key: "code" },
                       { title: "Price", dataIndex: "value", key: "value" },
-                      { title: "Expire", dataIndex: "expire", key: "expire" },
+                      { title: "Expiration Date", dataIndex: "expire", key: "expire" },
                       { title: "Location", dataIndex: "location", key: "location" },
                       { title: "Use Date", dataIndex: "useDate", key: "useDate" },
                       { title: "Expired Value", dataIndex: "expiredValue", key: "expiredValue" },
