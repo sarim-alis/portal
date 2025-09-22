@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport({
 });
 
 const EMAIL_LOGO_FOOTER = 'https://res.cloudinary.com/dgk3gaml0/image/upload/v1756224350/kuc37dmifsg42ojqxwc1.png';
-const EMAIL_LOGO_HEADER = 'https://res.cloudinary.com/dgk3gaml0/image/upload/v1756224071/gtgy8nrnhkbcemgyh1ps.png';
+const EMAIL_LOGO_HEADER = 'https://cdn.shopify.com/s/files/1/0638/3786/4032/files/Layer_1-2.svg?v=1756999564';
 
 function getEmailHeader() {
   return `
