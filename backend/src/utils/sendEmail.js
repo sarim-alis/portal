@@ -62,7 +62,7 @@ function getVoucherRedeemEmail({voucherCode, product, location}) {
   const inner = `
     ${getEmailHeader()}
       <div style="margin-bottom:32px;">
-        <h2 style="color:#862633;font-size:26px;font-weight:600;margin:0 0 10px 0;"><span style="color:#862633;">Thank you</span><span style='color:#000000'>for choosing Jiffy Lube!</span></h2>
+        <h2 style="color:#862633;font-size:26px;font-weight:600;margin:0 0 10px 0;"><span style="color:#862633;">Thank you </span><span style='color:#000000'>for choosing Jiffy Lube!</span></h2>
         <div style="font-size:16px;color:#000000;margin-bottom:24px;">We noticed you recently used your oil change voucher.</div>
         <div style="font-size:14px;color:#000000;margin-bottom:10px;"><b>Voucher #:</b> <span style="color:#63666A"><span> ${voucherCode}</span></span></div>
         <div style="font-size:14px;color:#000000;margin-bottom:10px;"><b>Product:</b> <span style="color:#63666A"><span> ${product}</span></span></div>
@@ -79,7 +79,7 @@ function getGiftCardRedeemEmail({giftCardCode, amountUsed, remainingBalance, loc
   const inner = `
     ${getEmailHeader()}
       <div style="margin-bottom:32px;">
-        <h2 style="color:#8a232c;font-size:26px;font-weight:600;margin:0 0 10px 0;"><span style="color:#862633;">Thank you</span><span style='color:#000000'> for choosing Jiffy Lube!</span></h2>
+        <h2 style="color:#8a232c;font-size:26px;font-weight:600;margin:0 0 10px 0;"><span style="color:#862633;">Thank you </span><span style='color:#000000'> for choosing Jiffy Lube!</span></h2>
         <div style="font-size:18px;color:#000000;margin-bottom:24px;">We noticed you recently used your gift card.</div>
         <div style="font-size:16px;color:#000000;margin-bottom:10px;"><b>Gift Card #:</b> <span style="color:#63666A"><span> ${giftCardCode}</span></span></div>
         <div style="font-size:16px;color:#000000;margin-bottom:10px;"><b>Amount Used:</b> <span style="color:#63666A"><span> $${amountUsed}</span></span></div>
