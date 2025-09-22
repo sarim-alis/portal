@@ -124,7 +124,9 @@ const styles = {
 
   // Right side content styles
   rightSideContent: {
-    flex: 1
+    flex: 1,
+    overflowX: 'auto'
+
   },
 
   // Table styles
