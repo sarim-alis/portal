@@ -32,7 +32,7 @@ function getEmailFooter() {
         <div style="margin-top:45px;padding:24px;background:#F5F5F5;border-radius:8px;text-align:center;">
           <div style="font-size:22px;font-weight:600;margin-bottom:8px;color:#000000">Want to save again on your next visit?</div>
           <div style="font-size:14px;color:#63666A;margin-bottom:20px;color:#63666A">Stock up on oil change vouchers to keep your car road ready—or pick up a gift card and give friends or family the same peace of mind.</div>
-          <a href="https://redemptionsolution.myshopify.com/" style="display:inline-block;background:#862633;color:#fff;font-weight:600;padding:12px 36px;border-radius:6px;text-decoration:none;font-size:16px; width:100%;box-sizing: border-box; ">BUNDLE & SAVE</a>
+          <a href="https://redemptionsolution.myshopify.com/pages/locations" style="display:inline-block;background:#862633;color:#fff;font-weight:600;padding:12px 36px;border-radius:6px;text-decoration:none;font-size:16px; width:100%;box-sizing: border-box; ">BUNDLE & SAVE</a>
         </div>
         <div style="text-align:center;margin:32px 0 0 0;">
           <img src="${EMAIL_LOGO_FOOTER}" width="50%" height="40" style="margin-right:10px; object-fit: contain;" alt="Jiffy Lube Logo" />
@@ -76,14 +76,17 @@ function getVoucherRedeemEmail({voucherCode, product, location}) {
 }
 
 function getGiftCardRedeemEmail({giftCardCode, amountUsed, remainingBalance, location}) {
+  // Ensure 2 decimal places for dollar amounts
+  const formattedAmountUsed = (typeof amountUsed === 'number' ? amountUsed : parseFloat(amountUsed)).toFixed(2);
+  const formattedRemaining = (typeof remainingBalance === 'number' ? remainingBalance : parseFloat(remainingBalance)).toFixed(2);
   const inner = `
     ${getEmailHeader()}
       <div style="margin-bottom:32px;">
         <h2 style="color:#8a232c;font-size:26px;font-weight:600;margin:0 0 10px 0;"><span style="color:#862633;">Thank you </span><span style='color:#000000'> for choosing Jiffy Lube!</span></h2>
         <div style="font-size:18px;color:#000000;margin-bottom:24px;">We noticed you recently used your gift card.</div>
         <div style="font-size:16px;color:#000000;margin-bottom:10px;"><b>Gift Card #:</b> <span style="color:#63666A"><span> ${giftCardCode}</span></span></div>
-        <div style="font-size:16px;color:#000000;margin-bottom:10px;"><b>Amount Used:</b> <span style="color:#63666A"><span> $${amountUsed}</span></span></div>
-        <div style="font-size:16px;color:#000000;margin-bottom:10px;"><b>Remaining Balance:</b> <span style="color:#63666A"><span> $${remainingBalance}</span></span></div>
+        <div style="font-size:16px;color:#000000;margin-bottom:10px;"><b>Amount Used:</b> <span style="color:#63666A"><span> $${formattedAmountUsed}</span></span></div>
+        <div style="font-size:16px;color:#000000;margin-bottom:10px;"><b>Remaining Balance:</b> <span style="color:#63666A"><span> $${formattedRemaining}</span></span></div>
         <div style="font-size:16px;color:#000000;margin-bottom:25px;"><b>Location Used:</b> <span style="color:#63666A"><span> ${location}</span></span></div>
         <div style="font-size:15px;color:#63666A;margin-bottom:7px;">Thanks for trusting us to help keep your car running smoothly.</div>
         <div style="font-size:15px;color:#000000;font-weight:600;">We appreciate your business.</div>
