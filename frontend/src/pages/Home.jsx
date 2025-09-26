@@ -30,6 +30,7 @@ const { RangePicker } = DatePicker;
   const [selectedLocation, setSelectedLocation] = useState("Select your location");
   const [amountToRedeem, setAmountToRedeem] = useState("");
   const [wasAmountReduced, setWasAmountReduced] = useState(false);
+  const [isRedeeming, setIsRedeeming] = useState(false);
   const [isGiftCard, setIsGiftCard] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [showGiftCardSearchPopup, setShowGiftCardSearchPopup] = useState(false);
@@ -147,10 +148,15 @@ const handleAmountChange = (e) => {
 
 // Set gift card validation.
 useEffect(() => {
-  if (!giftCardSearchCode.trim()) {setGiftCardValidation({status: null, message: "Enter 4-digit code format (XXXX-XXXX)", color: "white"});return;}
-
+  if (!giftCardSearchCode.trim()) {
+    setGiftCardValidation({status: null, message: "Enter 11-character code format (XXXXX-XXXXX)", color: "white"});
+    return;
+  }
   const formattedCode = giftCardSearchCode.replace(/[^A-Z0-9]/g, '');
-  
+  if (giftCardSearchCode.length !== 11) {
+    setGiftCardValidation({ status: 'invalid', message: "Invalid code format (must be XXXXX-XXXXX)", color: "#dc3545" });
+    return;
+  }
   // Find matching gift card.
   const matchingOrder = giftCardOrders.find(order => order.vouchers.some(giftCard => giftCard.code.replace(/[^A-Z0-9]/g, '') === formattedCode));
   if (!matchingOrder) {setGiftCardValidation({status: 'invalid', message: "Invalid gift card number", color: "#dc3545"});return;}
@@ -332,6 +338,8 @@ const handleUseGiftCard = (giftCard, order) => {
 // Handle redeem gift card.
 const handleRedeemGiftCard = async () => {
     if (!selectedVoucher || !amountToRedeem || !employeeName) { toast.info("Please enter amount and name."); return;}
+    if (isRedeeming) return;
+    setIsRedeeming(true);
     try {
       const locationName = localStorage.getItem("name");
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/vou/redeem`,
@@ -360,12 +368,15 @@ const handleRedeemGiftCard = async () => {
     } catch (error) {
       console.error("Error redeeming gift card:", error);
       toast.error("Error redeeming gift card.");
+    } finally {
+      setIsRedeeming(false);
     }
   };
 // Handle mark voucher as used.
 const handleMarkVoucherAsUsed = async () => {
     if (!selectedVoucher || !employeeName) { toast.info("Please enter name."); return;}
-
+    if (isRedeeming) return;
+    setIsRedeeming(true);
     try {
       const locationName = localStorage.getItem("name");
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/vou/redeems`,{ method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({code: selectedVoucher.code, locationUsed: [locationName], redeemedAt: [new Date().toISOString()], useDate: new Date().toISOString(), username: employeeName}),});
@@ -386,6 +397,8 @@ const handleMarkVoucherAsUsed = async () => {
     } catch (error) {
       console.error("Error marking voucher as used:", error);
       toast.error("Error marking voucher as used.");
+    } finally {
+      setIsRedeeming(false);
     }
 };
 
@@ -393,7 +406,7 @@ const handleMarkVoucherAsUsed = async () => {
 // Close popup.
 const closePopup = () => { setShowPopup(false); setSelectedVoucher(null); setSelectedLocation("Select your location"); setAmountToRedeem(""); setIsGiftCard(false); setWasAmountReduced(false); setEmployeeName("");};
 const closeSearchPopup = () => { setShowSearchPopup(false); setVoucherSearchCode(""); setSearchQuery(""); setVoucherValidation({ status: null, message: "Enter 4-digit code format (XXXX-XXXX)", color: "#fff"});};
-const closeGiftCardSearchPopup = () => { setShowGiftCardSearchPopup(false); setGiftCardSearchCode(""); setSearchQuery(""); setFilteredGiftCardOrders([]);  setGiftCardValidation({ status: null, message: "Enter 4-digit code format (XXXX-XXXX)", color: "#fff"});};
+const closeGiftCardSearchPopup = () => { setShowGiftCardSearchPopup(false); setGiftCardSearchCode(""); setSearchQuery(""); setFilteredGiftCardOrders([]);  setGiftCardValidation({ status: null, message: "Enter 11-character code format (XXXXX-XXXXX)", color: "#fff"});};
 
 // For vouchers, show USED status by default.
 useEffect(() => {
@@ -610,7 +623,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
         />
   </>
 )}
-<input type="text" placeholder="Search Code (XXXX-XXXX)" value={searchQuery} maxLength={9} onChange={(e) => { let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""); if (val.length > 8) val = val.slice(0, 8); if (val.length > 4) val = val.slice(0, 4) + '-' + val.slice(4); setSearchQuery(val);}} onFocus={() => setShowGiftCardSearchPopup(true)}  style={styles.searchInput}/>
+<input type="text" placeholder="Search Code (XXXXX-XXXXX)" value={searchQuery} maxLength={11} onChange={(e) => { let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""); if (val.length > 10) val = val.slice(0, 10); if (val.length > 5) val = val.slice(0, 5) + '-' + val.slice(5); setSearchQuery(val);}} onFocus={() => setShowGiftCardSearchPopup(true)}  style={styles.searchInput}/>
 </>
 )}
   </div>
@@ -658,7 +671,9 @@ const dateFilteredGiftCardOrders = selectedDateRange
                           })() : "—",
                           location: locationDisplay,
                           useDate: formatDates(voucher.redeemedAt) || "—",
-                          expiredValue: `$${formatDollarAmount(voucher.afterExpiredPrice || "—")}`,
+                          expiredValue: (voucher.afterExpiredPrice !== undefined && voucher.afterExpiredPrice !== null && voucher.afterExpiredPrice !== "") 
+                            ? `$${String(voucher.afterExpiredPrice).includes('.') ? String(voucher.afterExpiredPrice).split('.')[0] + '.' + String(voucher.afterExpiredPrice).split('.')[1].slice(0,2) : voucher.afterExpiredPrice}` 
+                            : "—",
                           status: voucher.statusUse || voucher.used ? "USED" : "VALID",
                           usedBy: voucher.username?.length ? voucher.username.map((user, idx) => <div key={idx}>{user}</div>) : "—",
                           action: { isUsed: voucher.statusUse || voucher.used, voucher, order },
@@ -701,10 +716,10 @@ const dateFilteredGiftCardOrders = selectedDateRange
                       { title: "Product", dataIndex: "product", key: "product" },
                       { title: "Code", dataIndex: "code", key: "code" },
                       { title: "Price", dataIndex: "value", key: "value" },
-                      { title: "Expire", dataIndex: "expire", key: "expire" },
+                      { title: "Expiration Date", dataIndex: "expire", key: "expire" },
                       { title: "Location", dataIndex: "location", key: "location" },
                       { title: "Use Date", dataIndex: "useDate", key: "useDate" },
-                      { title: "Expired Price", dataIndex: "expiredValue", key: "expiredValue" },
+                      { title: "Expired Value", dataIndex: "expiredValue", key: "expiredValue" },
                       { title: "Status", dataIndex: "status", key: "status" },
                       { title: "Employee Name", dataIndex: "usedBy", key: "usedBy" },
                       {
@@ -793,15 +808,20 @@ const dateFilteredGiftCardOrders = selectedDateRange
   <div style={styles.popupOverlay}>
     <div style={styles.popupModal(isMobile)}>
       <button onClick={closeGiftCardSearchPopup} style={styles.closeButton}>×</button>
-
       <div style={styles.popupContentContainer}>           
         <div style={styles.popupFlexContainer(isMobile)}>
           <span style={styles.popupLabel(isMobile)}>Gift Card ID:</span>
-          <input type="text" ref={giftCardPopupInputRef} value={giftCardSearchCode} onChange={(e) => { const formatted = formatVoucherCode(e.target.value.toUpperCase()); setGiftCardSearchCode(formatted);}} placeholder="XXXX-XXXX" style={styles.popupInput(isMobile)} maxLength={9} />
+                <input type="text" ref={giftCardPopupInputRef} value={giftCardSearchCode}
+                  onChange={(e) => {
+                    let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+                    if (val.length > 10) val = val.slice(0, 10);
+                    if (val.length > 5) val = val.slice(0, 5) + '-' + val.slice(5);
+                    setGiftCardSearchCode(val);
+                  }}
+                  placeholder="XXXXX-XXXXX" style={styles.popupInput(isMobile)} maxLength={11} />
           {/* Dynamic validation message with color */}
           <span style={{...styles.validationText(isMobile), color: giftCardValidation.color, fontWeight: giftCardValidation.status ? '500' : 'normal'}}> ● {giftCardValidation.message}</span>
         </div>
-
         <div style={styles.redemButt}>
           <button onClick={handleGiftCardSearch}style={{...styles.redeemButts(isMobile), opacity: giftCardValidation.status === 'valid' ? 1 : 0.5, cursor: giftCardValidation.status === 'valid' ? 'pointer' : 'not-allowed'}}disabled={giftCardValidation.status !== 'valid'}>Search</button>
         </div>
@@ -840,7 +860,9 @@ const dateFilteredGiftCardOrders = selectedDateRange
                 )}
               </div>
               <div style={styles.redemButt}>
-                <button onClick={isGiftCard ? handleRedeemGiftCard : handleMarkVoucherAsUsed} style={{...styles.redeemButts(isMobile), cursor: employeeName.trim() === "" ? "not-allowed" : "pointer", opacity: employeeName.trim() === "" ? 0.5 : 1}} disabled={employeeName.trim() === ""}>Redeem</button>
+                <button onClick={isGiftCard ? handleRedeemGiftCard : handleMarkVoucherAsUsed} style={{...styles.redeemButts(isMobile), cursor: (employeeName.trim() === "" || isRedeeming) ? "not-allowed" : "pointer", opacity: (employeeName.trim() === "" || isRedeeming) ? 0.5 : 1}} disabled={employeeName.trim() === "" || isRedeeming}>
+                  {isRedeeming ? 'Loading...' : 'Redeem'}
+                </button>
               </div>
             </div>
           </div>

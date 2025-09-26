@@ -2,7 +2,7 @@
 
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
-import { sendVoucherRedeemEmail } from "../utils/sendEmail.js";
+import { sendVoucherRedeemEmail, sendGiftCardRedeemEmail } from "../utils/sendEmail.js";
 
 export const getOrdersWithVouchers = async (req, res) => {
   try {
@@ -91,12 +91,22 @@ export const redeemByCode = async (req, res) => {
     try {
       const customerEmail = voucher.customerEmail || order.customerEmail;
       if (customerEmail) {
-        await sendVoucherRedeemEmail({
-          to: customerEmail,
-          code: voucher.code,
-          location: Array.isArray(updatedVoucher.locationUsed) ? updatedVoucher.locationUsed.slice(-1)[0] : locationUsed,
-          productTitle: voucher.productTitle || "Voucher Product"
-        });
+        if (voucher.type === "gift") {
+          await sendGiftCardRedeemEmail({
+            to: customerEmail,
+            giftCardCode: voucher.code,
+            amountUsed: redeemAmount,
+            remainingBalance: updatedVoucher.remainingBalance,
+            location: Array.isArray(updatedVoucher.locationUsed) ? updatedVoucher.locationUsed.slice(-1)[0] : locationUsed
+          });
+        } else {
+          await sendVoucherRedeemEmail({
+            to: customerEmail,
+            code: voucher.code,
+            location: Array.isArray(updatedVoucher.locationUsed) ? updatedVoucher.locationUsed.slice(-1)[0] : locationUsed,
+            productTitle: voucher.productTitle || "Voucher Product"
+          });
+        }
       }
     } catch (emailErr) {
       console.error("Email send failed:", emailErr);
@@ -144,12 +154,22 @@ export const redeemByCodes = async (req, res) => {
     try {
       const customerEmail = voucher.customerEmail || order.customerEmail;
       if (customerEmail) {
-        await sendVoucherRedeemEmail({
-          to: customerEmail,
-          code: voucher.code,
-          location: Array.isArray(updatedVoucher.locationUsed) ? updatedVoucher.locationUsed.slice(-1)[0] : locationUsed,
-          productTitle: voucher.productTitle || "Voucher Product"
-        });
+        if (voucher.type === "gift") {
+          await sendGiftCardRedeemEmail({
+            to: customerEmail,
+            giftCardCode: voucher.code,
+            amountUsed: redeemAmount,
+            remainingBalance: updatedVoucher.remainingBalance,
+            location: Array.isArray(updatedVoucher.locationUsed) ? updatedVoucher.locationUsed.slice(-1)[0] : locationUsed
+          });
+        } else {
+          await sendVoucherRedeemEmail({
+            to: customerEmail,
+            code: voucher.code,
+            location: Array.isArray(updatedVoucher.locationUsed) ? updatedVoucher.locationUsed.slice(-1)[0] : locationUsed,
+            productTitle: voucher.productTitle || "Voucher Product"
+          });
+        }
       }
     } catch (emailErr) {
       console.error("Email send failed:", emailErr);
