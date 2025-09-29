@@ -37,6 +37,7 @@ function App() {
     localStorage.removeItem("userEmail");
     localStorage.removeItem("userRole")
     localStorage.removeItem("username");
+    localStorage.removeItem("name");
   };
 
   return (
