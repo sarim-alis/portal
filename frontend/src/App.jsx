@@ -38,6 +38,7 @@ function App() {
     localStorage.removeItem("userRole")
     localStorage.removeItem("username");
     localStorage.removeItem("name");
+    localStorage.removeItem("token");
   };
 
   return (

@@ -5,6 +5,6 @@ import { getLocations } from '../controllers/locController.js';
 
 const router = express.Router();
 
-router.get('/', authenticateToken, getLocations);
+router.get('/', getLocations);
 
 export default router;

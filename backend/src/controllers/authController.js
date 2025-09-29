@@ -1,5 +1,7 @@
 // src/controllers/authController.js
 import { PrismaClient } from '@prisma/client';
+import jwt from "jsonwebtoken";
+const JWT_SECRET = process.env.JWT_SECRET || "dattebayo";
 const prisma = new PrismaClient();
 
 export const loginEmployee = async (req, res) => {
@@ -10,18 +12,23 @@ export const loginEmployee = async (req, res) => {
     let user = await prisma.employee.findUnique({ where: { email }, include: { location: true }, });
 
     if (user && user.password === password) {
+    const token = jwt.sign({ id: user.id, email: user.email, role: "employee" },JWT_SECRET,{ expiresIn: "15m" });
+
     // Employee login (no role).
       return res.status(200).json({
         message: 'Login successful',
+        token,
         user: { id: user.id, email: user.email, username: user.username, locationId: user.locationId, name: user.location?.name || null,}})
     }
 
     // 2️⃣ If not employee, check customer.
     user = await prisma.customer.findUnique({ where: { email } });
     if (user && user.password === password) {
+      const token = jwt.sign({ id: user.id, email: user.email, role: "customer" },JWT_SECRET,{ expiresIn: "15m" });
       // Customer login (role included).
       return res.status(200).json({
         message: 'Login successful',
+        token,
         user: { id: user.id, email: user.email, name: user.name, role: 'customer'}})
     }
 

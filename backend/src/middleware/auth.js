@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-const JWT_SECRET = process.env.JWT_SECRET || "supersecret"; 
+const JWT_SECRET = process.env.JWT_SECRET || "dattebayo"; 
 
 export const authenticateToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];

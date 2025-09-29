@@ -5,9 +5,9 @@ import { getOrdersWithVouchers, getCustomerVouchers, redeemByCode, redeemByCodes
 
 const router = express.Router();
 
-router.get('/', authenticateToken, getOrdersWithVouchers );
-router.get('/cust',authenticateToken, getCustomerVouchers)
-router.patch("/redeem",authenticateToken, redeemByCode);
-router.patch("/redeems",authenticateToken, redeemByCodes);
+router.get('/', getOrdersWithVouchers );
+router.get('/cust',getCustomerVouchers)
+router.patch("/redeem",redeemByCode);
+router.patch("/redeems",redeemByCodes);
 
 export default router;

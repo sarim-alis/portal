@@ -36,18 +36,33 @@ const Login = ({ onLogin }) => {
     });
 
     const data = await res.json();
+    console.log("Full API response:", data);
+console.log("Token from API:", data?.token);
+
 
     if (res.ok) {
-      // Login successful
-      toast.success('Login successful! 🎉');
-      localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("userRole", data.user.role || "employee");
-      localStorage.setItem("userEmail", data.user.email);
-      localStorage.setItem("username", data.user.username);
-      localStorage.setItem("name", data.user.name || "");
-      navigate("/");
-      onLogin(); // Or store token/data if needed
-    } else {
+  toast.success('Login successful! 🎉');
+
+  // Save token
+  if (data.token) {
+    localStorage.setItem("token", data.token);
+  }
+
+  // Always save authentication state
+  localStorage.setItem("isAuthenticated", "true");
+  
+  // Handle role: employees don’t have one, so default
+  localStorage.setItem("userRole", data.user.role ? data.user.role : "employee");
+  
+  // Save user details
+  localStorage.setItem("userEmail", data.user.email || "");
+  localStorage.setItem("username", data.user.username || "");
+  localStorage.setItem("name", data.user.name || "");
+
+  navigate("/");
+  onLogin();
+}
+ else {
       toast.error(data.error || 'Invalid credentials');
     }
   } catch (error) {
