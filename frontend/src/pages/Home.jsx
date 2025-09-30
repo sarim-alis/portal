@@ -156,7 +156,7 @@ const handleAmountChange = (e) => {
     if (!voucherSearchCode.trim()) return;
     voucherRefreshTimer.current = setTimeout(() => {
       refreshOrders().catch(err => console.error('Error refreshing orders on voucher typing:', err));
-    }, 100); // 100ms debounce
+    }, 1); // 100ms debounce
     return () => { if (voucherRefreshTimer.current) clearTimeout(voucherRefreshTimer.current); };
   }, [voucherSearchCode]);
 
@@ -184,7 +184,7 @@ useEffect(() => {
     if (!giftCardSearchCode.trim()) return;
     giftRefreshTimer.current = setTimeout(() => {
       refreshOrders().catch(err => console.error('Error refreshing orders on gift typing:', err));
-    }, 100);
+    }, 1);
     return () => { if (giftRefreshTimer.current) clearTimeout(giftRefreshTimer.current); };
   }, [giftCardSearchCode]);
 
