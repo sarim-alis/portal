@@ -43,6 +43,10 @@ const { RangePicker } = DatePicker;
   const voucherPopupInputRef = React.useRef(null);
   const giftCardPopupInputRef = React.useRef(null);
 
+  // Refs for debounce timers to avoid excessive network calls while typing
+  const voucherRefreshTimer = React.useRef(null);
+  const giftRefreshTimer = React.useRef(null);
+
 
 // Format date.
 const formatDates = (value) => {
@@ -146,6 +150,16 @@ const handleAmountChange = (e) => {
     setVoucherValidation({ status: 'valid', message: "Valid voucher", color: "#28a745" });
   }, [voucherSearchCode, orders]);
 
+  // Debounced refresh when user types voucher code so validation/search uses latest data
+  useEffect(() => {
+    if (voucherRefreshTimer.current) clearTimeout(voucherRefreshTimer.current);
+    if (!voucherSearchCode.trim()) return;
+    voucherRefreshTimer.current = setTimeout(() => {
+      refreshOrders().catch(err => console.error('Error refreshing orders on voucher typing:', err));
+    }, 100); // 100ms debounce
+    return () => { if (voucherRefreshTimer.current) clearTimeout(voucherRefreshTimer.current); };
+  }, [voucherSearchCode]);
+
 // Set gift card validation.
 useEffect(() => {
   if (!giftCardSearchCode.trim()) {
@@ -164,9 +178,22 @@ useEffect(() => {
   setGiftCardValidation({ status: 'valid', message: "Valid gift card", color: "#28a745"});
 }, [giftCardSearchCode, giftCardOrders]);
 
+  // Debounced refresh when user types gift card code
+  useEffect(() => {
+    if (giftRefreshTimer.current) clearTimeout(giftRefreshTimer.current);
+    if (!giftCardSearchCode.trim()) return;
+    giftRefreshTimer.current = setTimeout(() => {
+      refreshOrders().catch(err => console.error('Error refreshing orders on gift typing:', err));
+    }, 100);
+    return () => { if (giftRefreshTimer.current) clearTimeout(giftRefreshTimer.current); };
+  }, [giftCardSearchCode]);
+
 // Handle gift card search.
-const handleGiftCardSearch = () => {
+const handleGiftCardSearch = async () => {
   if (!giftCardSearchCode.trim()) { toast.error("Please enter a gift card code"); return;}
+
+  // Refresh orders so we search against the latest server state
+  await refreshOrders();
 
   // Only allow search if gift card is valid.
   if (giftCardValidation.status !== 'valid') { toast.error(giftCardValidation.message); return;}
@@ -238,44 +265,32 @@ const hasType = (order, target) => {
 };
 
 // Fetch orders with vouchers.
-useEffect(() => {
-  const fetchOrdersWithVouchers = async () => {
-    try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/vou`);
-    const data = await response.json();
-    console.log("📦 Orders with Vouchers:", data);
-
-    // Filter orders with type voucher.
-    const voucherOrders = data.filter((order) => hasType(order, "voucher"));
-    console.log("🎫 Filtered Voucher Orders:", voucherOrders);
-    setOrders(voucherOrders);;
-    } catch (error) {}
-  };
-
-  fetchOrdersWithVouchers();  
-}, []);
-
-// Fetch orders with gifts.
-useEffect(() => {
-  const fetchOrdersWithGiftCards = async () => {
+// Fetch all orders once and split vouchers/gifts; expose refreshOrders to update UI after actions
+const refreshOrders = async () => {
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/api/vou`);
     const data = await response.json();
-    console.log("🎁 Orders with Gift Cards:", data);
+    console.log("� refreshOrders fetched:", data?.length ?? 0);
 
-    // Filter orders with type gift.
-    const giftOrders = data.filter((order) => hasType(order, "gift"));
-    console.log("🎟️ Filtered Gift Card Orders:", giftOrders);
+    // derive voucher and gift orders
+    const voucherOrders = Array.isArray(data) ? data.filter((order) => hasType(order, "voucher")) : [];
+    const giftOrders = Array.isArray(data) ? data.filter((order) => hasType(order, "gift")) : [];
+
+    setOrders(voucherOrders);
     setGiftCardOrders(giftOrders);
-    } catch (error) {}
-  };
+  } catch (error) {
+    console.error("Failed to refresh orders:", error);
+  }
+};
 
-  fetchOrdersWithGiftCards();
-}, []);
+useEffect(() => { refreshOrders(); }, []);
 
 // Handle voucher search.
-const handleVoucherSearch = () => {
+const handleVoucherSearch = async () => {
   if (!voucherSearchCode.trim()) { toast.error("Please enter a voucher code"); return; }
+
+  // Refresh orders so we search against the latest server state
+  await refreshOrders();
 
   // Only allow search if voucher is valid or expired (but not used)
   if (voucherValidation.status === 'invalid' || voucherValidation.status === 'used') {
@@ -361,6 +376,8 @@ const handleRedeemGiftCard = async () => {
       : order
   )
 );
+        // Refresh all orders to ensure UI is in sync with backend
+        await refreshOrders();
         closePopup();
       } else {
         toast.error(data.error || "Failed to redeem.");
@@ -390,6 +407,8 @@ const handleMarkVoucherAsUsed = async () => {
               ? { ...order,  statusUse: true, vouchers: order.vouchers.map(v => v.code === data.updatedVoucher.code ? data.updatedVoucher : v) } : order
           )
         );
+        // Refresh orders so the filtered lists (used/valid) update immediately
+        await refreshOrders();
         closePopup();
       } else {
         toast.error(data.error || "Failed to mark voucher as used.");
@@ -791,7 +810,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
             <div style={styles.popupContentContainer}>           
               <div style={styles.popupFlexContainer(isMobile)}>
                 <span style={styles.popupLabel(isMobile)}>Voucher ID:</span>
-                <input  type="text"  ref={voucherPopupInputRef} value={voucherSearchCode} onChange={(e) => { const formatted = formatVoucherCode(e.target.value.toUpperCase()); setVoucherSearchCode(formatted);}} placeholder="XXXX-XXXX" style={styles.popupInput(isMobile)} maxLength={9} />
+                <input  type="text"  ref={voucherPopupInputRef} value={voucherSearchCode} onChange={(e) => { const formatted = formatVoucherCode(e.target.value.toUpperCase()); setVoucherSearchCode(formatted);}} onPaste={async (e) => { try { await refreshOrders(); } catch (err) { console.error(err); } }} placeholder="XXXX-XXXX" style={styles.popupInput(isMobile)} maxLength={9} />
                 {/* Dynamic validation message with color */}
                 <span style={{ ...styles.validationText(isMobile), color: voucherValidation.color, fontWeight: voucherValidation.status ? '500' : 'normal'}}> ● {voucherValidation.message}</span>
               </div>
@@ -818,6 +837,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                     if (val.length > 5) val = val.slice(0, 5) + '-' + val.slice(5);
                     setGiftCardSearchCode(val);
                   }}
+                  onPaste={async (e) => { try { await refreshOrders(); } catch (err) { console.error(err); } }}
                   placeholder="XXXXX-XXXXX" style={styles.popupInput(isMobile)} maxLength={11} />
           {/* Dynamic validation message with color */}
           <span style={{...styles.validationText(isMobile), color: giftCardValidation.color, fontWeight: giftCardValidation.status ? '500' : 'normal'}}> ● {giftCardValidation.message}</span>
