@@ -141,7 +141,12 @@ const handleAmountChange = (e) => {
             const yyyy = date.getFullYear();
             return `${mm}/${dd}/${yyyy}`;
           })();
-          setVoucherValidation({ status: 'expired', message: `Voucher expired on ${formattedExpireDate} (${diffDays} days after purchase)`, color: "#fd7e14" });
+          // If the voucher has an afterExpiredPrice, let the user know in the search popup that the expired price will be used
+          let expireMessage = `Voucher expired on ${formattedExpireDate}`;
+          if (foundVoucher && foundVoucher.afterExpiredPrice != null) {
+            expireMessage += ` — will redeem at $${formatDollarAmount(foundVoucher.afterExpiredPrice)}`;
+          }
+          setVoucherValidation({ status: 'expired', message: expireMessage, color: "#fd7e14" });
           return;
         }
       }
@@ -690,8 +695,8 @@ const dateFilteredGiftCardOrders = selectedDateRange
                           })() : "—",
                           location: locationDisplay,
                           useDate: formatDates(voucher.redeemedAt) || "—",
-                          expiredValue: (voucher.afterExpiredPrice !== undefined && voucher.afterExpiredPrice !== null && voucher.afterExpiredPrice !== "") 
-                            ? `$${String(voucher.afterExpiredPrice).includes('.') ? String(voucher.afterExpiredPrice).split('.')[0] + '.' + String(voucher.afterExpiredPrice).split('.')[1].slice(0,2) : voucher.afterExpiredPrice}` 
+                          expiredValue: (voucher.afterExpiredPrice !== undefined && voucher.afterExpiredPrice !== null && voucher.afterExpiredPrice !== "")
+                            ? `$${formatDollarAmount(voucher.afterExpiredPrice)}`
                             : "—",
                           status: voucher.statusUse || voucher.used ? "USED" : "VALID",
                           usedBy: voucher.username?.length ? voucher.username.map((user, idx) => <div key={idx}>{user}</div>) : "—",
@@ -816,7 +821,22 @@ const dateFilteredGiftCardOrders = selectedDateRange
               </div>
 
               <div style={styles.redemButt}>
-                <button onClick={handleVoucherSearch} style={{ ...styles.redeemButts(isMobile), opacity: voucherValidation.status === 'valid' ? 1 : 0.5, cursor: voucherValidation.status === 'valid' ? 'pointer' : 'not-allowed'}} disabled={voucherValidation.status !== 'valid'}>Search</button>
+                {(() => {
+                  const canSearch = voucherValidation.status === 'valid' || voucherValidation.status === 'expired';
+                  return (
+                    <button
+                      onClick={handleVoucherSearch}
+                      style={{
+                        ...styles.redeemButts(isMobile),
+                        opacity: canSearch ? 1 : 0.5,
+                        cursor: canSearch ? 'pointer' : 'not-allowed'
+                      }}
+                      disabled={!canSearch}
+                    >
+                      Search
+                    </button>
+                  );
+                })()}
               </div>
             </div>
           </div>
@@ -860,7 +880,23 @@ const dateFilteredGiftCardOrders = selectedDateRange
               <div style={styles.popupFlexContainer(isMobile)}>
                 <span style={styles.popupLabel(isMobile)}>{isGiftCard ? "Gift Card ID:" : "Voucher ID:"}</span>
                 <input type="text" value={selectedVoucher?.code || ""} readOnly style={styles.popupInput(isMobile)}/>
-                <span style={styles.validationText(isMobile)}>● {isGiftCard ? "Valid Gift Card" : "Valid voucher"}</span>
+                {/* Show status/message for the selected voucher */}
+                {(() => {
+                  if (!selectedVoucher) return null;
+                  const safeExpire = selectedVoucher?.expire ? selectedVoucher.expire.replace(' ', 'T') : null;
+                  const expireDate = safeExpire ? new Date(safeExpire) : null;
+                  const isExpiredLocal = expireDate && !isNaN(expireDate.getTime()) && expireDate < new Date();
+                  if (isGiftCard) {
+                    return <span style={styles.validationText(isMobile)}>● Valid Gift Card</span>;
+                  }
+                  if (isExpiredLocal) {
+                    const afterPrice = selectedVoucher.afterExpiredPrice != null ? `$${formatDollarAmount(selectedVoucher.afterExpiredPrice)}` : '—';
+                    return <span style={{ ...styles.validationText(isMobile), color: '#fd7e14' }}>● Expired — will redeem at {afterPrice}</span>;
+                  }
+                  return <span style={styles.validationText(isMobile)}>● Valid voucher</span>;
+                })()}
+                
+                {/* No explicit expired-price input in popup; the status message above indicates expired-price will be used when applicable */}
                 {isGiftCard && (
                   <>
                     <span style={styles.popupLabel(isMobile)}>Amount to Redeem:</span>
