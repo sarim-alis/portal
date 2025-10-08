@@ -674,7 +674,10 @@ const dateFilteredGiftCardOrders = selectedDateRange
                 dataSource={activeTab === "vouchers"
                   ? dateFilteredOrders.flatMap((order, index) =>
                       order.vouchers.map((voucher, vIndex) => {
-                        const isUsed = order.statusUse === true || voucher.status === "USED";
+                        const isUsed = order.statusUse === true || voucher.status === "USED" || voucher.used || voucher.statusUse === true;
+                        const safeExpire = voucher?.expire ? voucher.expire.replace(' ', 'T') : null;
+                        const expireDate = safeExpire ? new Date(safeExpire) : null;
+                        const isExpired = expireDate && !isNaN(expireDate.getTime()) && expireDate < new Date();
                         let locationDisplay = "—";
                         if (voucher.locationUsed && Array.isArray(voucher.locationUsed) && voucher.locationUsed.length > 0) {
                           locationDisplay = voucher.locationUsed.map((loc, idx) => (<div key={idx}>{loc}</div>));
@@ -684,8 +687,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                           product: voucher.productTitle || "—",
                           code: voucher.code || "—",
                           value: `$${formatDollarAmount(voucher.totalPrice || "—")}`,
-                          expire: voucher.expire ? (() => {
-                            const safeExpire = voucher.expire.replace(' ', 'T');
+                          expire: safeExpire ? (() => {
                             const date = new Date(safeExpire);
                             if (isNaN(date.getTime())) return "—";
                             const mm = String(date.getMonth() + 1).padStart(2, "0");
@@ -698,9 +700,9 @@ const dateFilteredGiftCardOrders = selectedDateRange
                           expiredValue: (voucher.afterExpiredPrice !== undefined && voucher.afterExpiredPrice !== null && voucher.afterExpiredPrice !== "")
                             ? `$${formatDollarAmount(voucher.afterExpiredPrice)}`
                             : "—",
-                          status: voucher.statusUse || voucher.used ? "USED" : "VALID",
+                          status: isUsed ? "USED" : (isExpired ? "EXPIRED" : "VALID"),
                           usedBy: voucher.username?.length ? voucher.username.map((user, idx) => <div key={idx}>{user}</div>) : "—",
-                          action: { isUsed: voucher.statusUse || voucher.used, voucher, order },
+                          action: { isUsed: isUsed, isExpired: isExpired, voucher, order },
                         };
                       })
                     )
