@@ -66,6 +66,9 @@ const formatVoucherCode = (value) => {const cleanValue = value.replace(/[^A-Z0-9
 // Format dollar amount.
 const formatDollarAmount = (amount) => {if (amount === null || amount === undefined || amount === "") return "—";const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;if (isNaN(numericAmount)) return "—";return numericAmount.toFixed(2);};
 
+// Escape string for use in RegExp
+const escapeRegExp = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 // Handle amount change.
 const handleAmountChange = (e) => {
   let val = e.target.value.replace(/[$,]/g, "").replace(/[^0-9.]/g, "");
@@ -484,16 +487,48 @@ useEffect(() => {
   }
 }, [searchQuery, giftCardOrders]);
 
-// If a location is selected, filter. Otherwise, show all filteredOrders.
+// If a location is selected, filter only by the values shown in the Location column.
+// The Location column is rendered from `voucher.locationUsed` (an array). We will only
+// inspect that array (if present) and match either whole numeric tokens or substring
+// (case-insensitive) for non-numeric needles.
 const locationFilteredOrders =
   selectedLocation && selectedLocation !== "" && selectedLocation !== "Select your location"
-    ? filteredOrders.filter(order =>
-        order.vouchers.some(voucher =>
-          voucher.usedLocation?.includes(selectedLocation) ||
-          order.vouchers.some(voucher => voucher.locationUsed?.includes(selectedLocation))
-        )
-      )
+    ? filteredOrders
+        .map(order => {
+          const rawNeedle = String(selectedLocation || '').trim();
+          if (!rawNeedle) return null;
+          const needleLower = rawNeedle.toLowerCase();
+          const isNumericNeedle = /^\d+$/.test(rawNeedle);
+          const wordRegex = new RegExp(`\\b${escapeRegExp(rawNeedle)}\\b`, 'i');
+          const matchingVouchers = (order.vouchers || []).filter(voucher => {
+            try {
+              if (!Array.isArray(voucher.locationUsed) || voucher.locationUsed.length === 0) return false;
+              if (isNumericNeedle) {
+                return voucher.locationUsed.some(loc => wordRegex.test(String(loc)));
+              }
+              return voucher.locationUsed.some(loc => String(loc).toLowerCase().includes(needleLower));
+            } catch (e) {
+              return false;
+            }
+          });
+          if (matchingVouchers.length === 0) return null;
+          return { ...order, vouchers: matchingVouchers };
+        })
+        .filter(Boolean)
     : filteredOrders;
+
+// Debug: print matching locations so we can inspect what's being filtered.
+if (typeof window !== 'undefined') {
+  try {
+    const matchedLocationValues = locationFilteredOrders
+      .flatMap(order => order.vouchers.flatMap(v => Array.isArray(v.locationUsed) ? v.locationUsed : []))
+      .map(v => String(v));
+    const uniqueMatched = Array.from(new Set(matchedLocationValues));
+    console.log('[LocationFilter] selectedLocation=', selectedLocation, 'matchedOrderCount=', locationFilteredOrders.length, 'uniqueMatchedLocations=', uniqueMatched);
+  } catch (e) {
+    console.log('[LocationFilter] debug error', e);
+  }
+}
 
     const now = new Date();
 
