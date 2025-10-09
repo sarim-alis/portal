@@ -677,6 +677,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                         const safeExpire = voucher?.expire ? voucher.expire.replace(' ', 'T') : null;
                         const expireDate = safeExpire ? new Date(safeExpire) : null;
                         const isExpired = expireDate && !isNaN(expireDate.getTime()) && expireDate < new Date();
+                        const safeCreated = voucher?.createdAt ? voucher.createdAt.replace(' ', 'T') : null;
                         let locationDisplay = "—";
                         if (voucher.locationUsed && Array.isArray(voucher.locationUsed) && voucher.locationUsed.length > 0) {
                           locationDisplay = voucher.locationUsed.map((loc, idx) => (<div key={idx}>{loc}</div>));
@@ -686,6 +687,14 @@ const dateFilteredGiftCardOrders = selectedDateRange
                           product: voucher.productTitle || "—",
                           code: voucher.code || "—",
                           value: `$${formatDollarAmount(voucher.totalPrice || "—")}`,
+                          purchaseDate: safeCreated ? (() => {
+                            const date = new Date(safeCreated);
+                            if (isNaN(date.getTime())) return "—";
+                            const mm = String(date.getMonth() + 1).padStart(2, "0");
+                            const dd = String(date.getDate()).padStart(2, "0");
+                            const yyyy = date.getFullYear();
+                            return `${mm}/${dd}/${yyyy}`;
+                          })() : "—",
                           expire: safeExpire ? (() => {
                             const date = new Date(safeExpire);
                             if (isNaN(date.getTime())) return "—";
@@ -741,6 +750,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
                       { title: "Product", dataIndex: "product", key: "product" },
                       { title: "Code", dataIndex: "code", key: "code" },
                       { title: "Price", dataIndex: "value", key: "value" },
+                      { title: "Purchase Date", dataIndex: "purchaseDate", key: "purchaseDate" },
                       { title: "Expiration Date", dataIndex: "expire", key: "expire" },
                       { title: "Location", dataIndex: "location", key: "location" },
                       { title: "Use Date", dataIndex: "useDate", key: "useDate" },
