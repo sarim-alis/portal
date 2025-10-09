@@ -141,11 +141,10 @@ const handleAmountChange = (e) => {
             const yyyy = date.getFullYear();
             return `${mm}/${dd}/${yyyy}`;
           })();
-          // If the voucher has an afterExpiredPrice, let the user know in the search popup that the expired price will be used
-          let expireMessage = `Voucher expired on ${formattedExpireDate}`;
-          if (foundVoucher && foundVoucher.afterExpiredPrice != null) {
-            expireMessage += ` — will redeem at $${formatDollarAmount(foundVoucher.afterExpiredPrice)}`;
-          }
+          // Show a clear, consistent expired message both at search and at redeem time.
+          const redeemValueRaw = foundVoucher && (foundVoucher.afterExpiredPrice != null ? foundVoucher.afterExpiredPrice : (foundVoucher.totalPrice != null ? foundVoucher.totalPrice : null));
+          const redeemValueText = redeemValueRaw != null ? `$${formatDollarAmount(redeemValueRaw)}` : '—';
+          const expireMessage = `Voucher code has expired. Voucher is redeemable for a value of: ${redeemValueText}`;
           setVoucherValidation({ status: 'expired', message: expireMessage, color: "#fd7e14" });
           return;
         }
@@ -892,8 +891,9 @@ const dateFilteredGiftCardOrders = selectedDateRange
                     return <span style={styles.validationText(isMobile)}>● Valid Gift Card</span>;
                   }
                   if (isExpiredLocal) {
-                    const afterPrice = selectedVoucher.afterExpiredPrice != null ? `$${formatDollarAmount(selectedVoucher.afterExpiredPrice)}` : '—';
-                    return <span style={{ ...styles.validationText(isMobile), color: '#fd7e14' }}>● Expired — will redeem at {afterPrice}</span>;
+                    const redeemValueRaw = selectedVoucher && (selectedVoucher.afterExpiredPrice != null ? selectedVoucher.afterExpiredPrice : (selectedVoucher.totalPrice != null ? selectedVoucher.totalPrice : null));
+                    const redeemValueText = redeemValueRaw != null ? `$${formatDollarAmount(redeemValueRaw)}` : '—';
+                    return <span style={{ ...styles.validationText(isMobile), color: '#fd7e14' }}>Voucher code has expired. Voucher is redeemable for a value of: {redeemValueText}</span>;
                   }
                   return <span style={styles.validationText(isMobile)}>● Valid voucher</span>;
                 })()}
