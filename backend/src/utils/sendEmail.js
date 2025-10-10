@@ -4,10 +4,16 @@ const smtpUser = process.env.SMTP_USER;
 const smtpPass = process.env.SMTP_PASS;
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: "email-smtp.us-east-1.amazonaws.com",
+  port: 587,
+  secure: false,
+  requireTLS: true,
   auth: {
     user: smtpUser,
     pass: smtpPass,
+  },
+  tls: {
+    rejectUnauthorized: false,
   },
 });
 
@@ -98,7 +104,7 @@ function getGiftCardRedeemEmail({giftCardCode, amountUsed, remainingBalance, loc
 
 export async function sendVoucherRedeemEmail({ to, code, location, productTitle }) {
   const mailOptions = {
-    from: `Jiffy Lube Specials <${smtpUser}>`,
+    from: `Jiffy Lube Specials <info@jiffylubespecials.com>`,
     to,
     subject: 'Voucher Redeemed Notification',
     html: getVoucherRedeemEmail({voucherCode: code, product: productTitle, location}),
@@ -108,7 +114,7 @@ export async function sendVoucherRedeemEmail({ to, code, location, productTitle 
 
 export async function sendGiftCardRedeemEmail({ to, giftCardCode, amountUsed, remainingBalance, location }) {
   const mailOptions = {
-    from: `Jiffy Lube Specials <${smtpUser}>`,
+    from: `Jiffy Lube Specials <info@jiffylubespecials.com>`,
     to,
     subject: 'Gift Card Redeemed Notification',
     html: getGiftCardRedeemEmail({giftCardCode, amountUsed, remainingBalance, location}),
