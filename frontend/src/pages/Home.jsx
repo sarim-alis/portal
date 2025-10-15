@@ -280,8 +280,36 @@ const refreshOrders = async () => {
     console.log("� refreshOrders fetched:", data?.length ?? 0);
 
     // derive voucher and gift orders
-    const voucherOrders = Array.isArray(data) ? data.filter((order) => hasType(order, "voucher")) : [];
-    const giftOrders = Array.isArray(data) ? data.filter((order) => hasType(order, "gift")) : [];
+    const voucherOrders = [];
+    const giftOrders = [];
+    if (Array.isArray(data)) {
+      for (const order of data) {
+        try {
+          // Prefer explicit type markers in lineItems
+          if (hasType(order, "gift")) {
+            giftOrders.push(order);
+            continue;
+          }
+          if (hasType(order, "voucher")) {
+            voucherOrders.push(order);
+            continue;
+          }
+
+          // Fallback: inspect voucher objects inside the order for a type field
+          if (Array.isArray(order.vouchers) && order.vouchers.length > 0) {
+            const anyGift = order.vouchers.some(v => v && v.type && String(v.type).toLowerCase().includes('gift'));
+            const anyVoucher = order.vouchers.some(v => v && v.type && String(v.type).toLowerCase().includes('voucher'));
+            if (anyGift) { giftOrders.push(order); continue; }
+            if (anyVoucher) { voucherOrders.push(order); continue; }
+
+            // Last-resort: if no explicit markers but vouchers exist, treat as voucher order so codes are searchable
+            voucherOrders.push(order);
+          }
+        } catch (e) {
+          // defensive: ignore malformed orders
+        }
+      }
+    }
 
     setOrders(voucherOrders);
     setGiftCardOrders(giftOrders);
