@@ -95,7 +95,7 @@ const handleAmountChange = (e) => {
   // Validate voucher in real-time as user types.
   useEffect(() => {
     if (!voucherSearchCode.trim()) {
-      setVoucherValidation({ status: null, message: "Enter 9-character code format (XXXX-XXXX)", color: "#fff" });
+      setVoucherValidation({ status: null, message: "Enter 8-digit code format (XXXX-XXXX)", color: "#fff" });
       return;
     }
     const formattedCode = voucherSearchCode.replace(/[^A-Z0-9]/g, '');
@@ -170,7 +170,7 @@ const handleAmountChange = (e) => {
 // Set gift card validation.
 useEffect(() => {
   if (!giftCardSearchCode.trim()) {
-    setGiftCardValidation({status: null, message: "Enter 11-character code format (XXXXX-XXXXX)", color: "white"});
+    setGiftCardValidation({status: null, message: "Enter 10-digit code format (XXXXX-XXXXX)", color: "white"});
     return;
   }
   const formattedCode = giftCardSearchCode.replace(/[^A-Z0-9]/g, '');
@@ -459,8 +459,8 @@ const handleMarkVoucherAsUsed = async () => {
 
 // Close popup.
 const closePopup = () => { setShowPopup(false); setSelectedVoucher(null); setSelectedLocation("Select your location"); setAmountToRedeem(""); setIsGiftCard(false); setWasAmountReduced(false); setEmployeeName("");};
-const closeSearchPopup = () => { setShowSearchPopup(false); setVoucherSearchCode(""); setSearchQuery(""); setVoucherValidation({ status: null, message: "Enter 4-digit code format (XXXX-XXXX)", color: "#fff"});};
-const closeGiftCardSearchPopup = () => { setShowGiftCardSearchPopup(false); setGiftCardSearchCode(""); setSearchQuery(""); setFilteredGiftCardOrders([]);  setGiftCardValidation({ status: null, message: "Enter 11-character code format (XXXXX-XXXXX)", color: "#fff"});};
+const closeSearchPopup = () => { setShowSearchPopup(false); setVoucherSearchCode(""); setSearchQuery(""); setVoucherValidation({ status: null, message: "Enter 8-digit code format (XXXX-XXXX)", color: "#fff"});};
+const closeGiftCardSearchPopup = () => { setShowGiftCardSearchPopup(false); setGiftCardSearchCode(""); setSearchQuery(""); setFilteredGiftCardOrders([]);  setGiftCardValidation({ status: null, message: "Enter 10-digit code format (XXXXX-XXXXX)", color: "#fff"});};
 
 // For vouchers, show USED status by default.
 useEffect(() => {
