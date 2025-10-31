@@ -163,7 +163,7 @@ const handleAmountChange = (e) => {
     if (!voucherSearchCode.trim()) return;
     voucherRefreshTimer.current = setTimeout(() => {
       refreshOrders().catch(err => console.error('Error refreshing orders on voucher typing:', err));
-    }, 1); // 100ms debounce
+    }, 100); // 100ms debounce
     return () => { if (voucherRefreshTimer.current) clearTimeout(voucherRefreshTimer.current); };
   }, [voucherSearchCode]);
 
@@ -191,7 +191,7 @@ useEffect(() => {
     if (!giftCardSearchCode.trim()) return;
     giftRefreshTimer.current = setTimeout(() => {
       refreshOrders().catch(err => console.error('Error refreshing orders on gift typing:', err));
-    }, 1);
+    }, 100); // 100ms debounce
     return () => { if (giftRefreshTimer.current) clearTimeout(giftRefreshTimer.current); };
   }, [giftCardSearchCode]);
 
@@ -318,7 +318,16 @@ const refreshOrders = async () => {
   }
 };
 
-useEffect(() => { refreshOrders(); }, []);
+useEffect(() => { 
+  refreshOrders(); 
+  
+  // Auto-refresh every 30 seconds to ensure newly purchased vouchers appear immediately
+  const autoRefreshInterval = setInterval(() => {
+    refreshOrders().catch(err => console.error('Error in auto-refresh:', err));
+  }, 30000); // 30 seconds
+  
+  return () => clearInterval(autoRefreshInterval);
+}, []);
 
 // Handle voucher search.
 const handleVoucherSearch = async () => {
