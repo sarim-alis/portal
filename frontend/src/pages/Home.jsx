@@ -256,7 +256,13 @@ useEffect(() => {
 }, []);
 
 const hasType = (order, target) => {
-  if (!Array.isArray(order.lineItems)) return false;
+  if (!Array.isArray(order.lineItems)) {
+    // If no line items, check if it's a gift card by voucher type.
+    if (order.vouchers?.some(v => v?.type?.toLowerCase() === 'gift')) {
+      return target === 'gift';
+    }
+    return target === 'voucher';
+  }
 
   return order.lineItems.some((item) => {
     let type = item.type;
@@ -277,36 +283,46 @@ const refreshOrders = async () => {
   try {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/api/vou`);
     const data = await response.json();
-    console.log("� refreshOrders fetched:", data?.length ?? 0);
+    console.log(' refreshOrders fetched:', data?.length ?? 0);
 
-    // derive voucher and gift orders
     const voucherOrders = [];
     const giftOrders = [];
+    
     if (Array.isArray(data)) {
       for (const order of data) {
         try {
-          // Prefer explicit type markers in lineItems
+          // First check if it's explicitly a gift card
           if (hasType(order, "gift")) {
             giftOrders.push(order);
             continue;
           }
+          
+          // Then check if it's explicitly a voucher
           if (hasType(order, "voucher")) {
             voucherOrders.push(order);
             continue;
           }
 
-          // Fallback: inspect voucher objects inside the order for a type field
-          if (Array.isArray(order.vouchers) && order.vouchers.length > 0) {
-            const anyGift = order.vouchers.some(v => v && v.type && String(v.type).toLowerCase().includes('gift'));
-            const anyVoucher = order.vouchers.some(v => v && v.type && String(v.type).toLowerCase().includes('voucher'));
-            if (anyGift) { giftOrders.push(order); continue; }
-            if (anyVoucher) { voucherOrders.push(order); continue; }
+          // For backward compatibility, check vouchers array
+          if (Array.isArray(order.vouchers)) {
+            const hasGift = order.vouchers.some(v => 
+              v && v.type && String(v.type).toLowerCase().includes('gift')
+            );
+            const hasVoucher = order.vouchers.some(v => 
+              v && v.type && String(v.type).toLowerCase().includes('voucher')
+            );
 
-            // Last-resort: if no explicit markers but vouchers exist, treat as voucher order so codes are searchable
-            voucherOrders.push(order);
+            if (hasGift) {
+              giftOrders.push(order);
+            } else if (hasVoucher) {
+              voucherOrders.push(order);
+            } else {
+              // Default to voucher if no type specified
+              voucherOrders.push(order);
+            }
           }
         } catch (e) {
-          // defensive: ignore malformed orders
+          console.error('Error processing order:', e);
         }
       }
     }
@@ -315,6 +331,7 @@ const refreshOrders = async () => {
     setGiftCardOrders(giftOrders);
   } catch (error) {
     console.error("Failed to refresh orders:", error);
+    toast.error("Failed to load orders. Please try again.");
   }
 };
 
@@ -331,9 +348,12 @@ useEffect(() => {
 
 // Handle voucher search.
 const handleVoucherSearch = async () => {
-  if (!voucherSearchCode.trim()) { toast.error("Please enter a voucher code"); return; }
+  if (!voucherSearchCode.trim()) { 
+    toast.error("Please enter a voucher code"); 
+    return; 
+  }
 
-  // Refresh orders so we search against the latest server state
+  // Refresh orders to get the latest data
   await refreshOrders();
 
   // Only allow search if voucher is valid or expired (but not used)
@@ -343,14 +363,25 @@ const handleVoucherSearch = async () => {
   }
 
   const formattedCode = voucherSearchCode.replace(/[^A-Z0-9]/g, '');
-  // Only show vouchers that are not redeemed (statusUse !== true)
-  const matchingVouchers = orders.flatMap(order =>
-    order.statusUse !== true
-      ? order.vouchers
-          .filter(voucher => voucher.code.replace(/[^A-Z0-9]/g, '') === formattedCode)
-          .map(voucher => ({ ...voucher, _parentOrder: order }))
-      : []
-  );
+  
+  // Search through both voucher and gift card orders, but filter out gift cards
+  const allOrders = [...orders, ...giftCardOrders];
+  const matchingVouchers = allOrders.flatMap(order => {
+    // Skip if this is a gift card order
+    if (hasType(order, "gift")) {
+      return [];
+    }
+    
+    return (order.vouchers || [])
+      .filter(voucher => {
+        // Skip if voucher is already used.
+        if (voucher.statusUse || voucher.used || voucher.status === 'USED') {
+          return false;
+        }
+        return voucher.code.replace(/[^A-Z0-9]/g, '') === formattedCode;
+      })
+      .map(voucher => ({ ...voucher, _parentOrder: order }));
+  });
   setFilteredOrders(
     matchingVouchers.length > 0
       ? matchingVouchers.map(v => ({ ...v._parentOrder, vouchers: [v] }))
