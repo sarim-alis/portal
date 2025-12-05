@@ -693,7 +693,7 @@ const dateFilteredGiftCardOrders = selectedDateRange
   <option value="1d">Last Day</option>
   <option value="1w">Last Week</option>
   <option value="1m">Last Month</option>
-  <option value="6m">Last 6 Months</option>
+  <option value="6m">Last 6 Month</option>
   <option value="1y">Last 1 Year</option>
 </select>
 {/* Show custom date pickers if 'Custom Date' is selected */}
