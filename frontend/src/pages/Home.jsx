@@ -291,14 +291,41 @@ const refreshOrders = async () => {
     if (Array.isArray(data)) {
       for (const order of data) {
         try {
-          // First check if it's explicitly a gift card
-          if (hasType(order, "gift")) {
+          // Check for both types using lineItems
+          const hasGiftType = hasType(order, "gift");
+          const hasVoucherType = hasType(order, "voucher");
+          
+          // If order has both types, we need to split the vouchers
+          if (hasGiftType && hasVoucherType && Array.isArray(order.vouchers)) {
+            // Separate vouchers by type
+            const giftVouchers = order.vouchers.filter(v => 
+              v && v.type && String(v.type).toLowerCase().includes('gift')
+            );
+            const regularVouchers = order.vouchers.filter(v => 
+              v && v.type && String(v.type).toLowerCase().includes('voucher')
+            );
+            
+            // Add gift vouchers to giftOrders if any exist
+            if (giftVouchers.length > 0) {
+              giftOrders.push({ ...order, vouchers: giftVouchers });
+            }
+            
+            // Add regular vouchers to voucherOrders if any exist
+            if (regularVouchers.length > 0) {
+              voucherOrders.push({ ...order, vouchers: regularVouchers });
+            }
+            
+            continue;
+          }
+          
+          // If only gift type
+          if (hasGiftType) {
             giftOrders.push(order);
             continue;
           }
           
-          // Then check if it's explicitly a voucher
-          if (hasType(order, "voucher")) {
+          // If only voucher type
+          if (hasVoucherType) {
             voucherOrders.push(order);
             continue;
           }
@@ -312,7 +339,22 @@ const refreshOrders = async () => {
               v && v.type && String(v.type).toLowerCase().includes('voucher')
             );
 
-            if (hasGift) {
+            if (hasGift && hasVoucher) {
+              // Handle mixed case in vouchers array
+              const giftVouchers = order.vouchers.filter(v => 
+                v && v.type && String(v.type).toLowerCase().includes('gift')
+              );
+              const regularVouchers = order.vouchers.filter(v => 
+                v && v.type && String(v.type).toLowerCase().includes('voucher')
+              );
+              
+              if (giftVouchers.length > 0) {
+                giftOrders.push({ ...order, vouchers: giftVouchers });
+              }
+              if (regularVouchers.length > 0) {
+                voucherOrders.push({ ...order, vouchers: regularVouchers });
+              }
+            } else if (hasGift) {
               giftOrders.push(order);
             } else if (hasVoucher) {
               voucherOrders.push(order);
